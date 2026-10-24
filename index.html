@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="tg.js"></script>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#0b0a0c}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* the Telegram build is always the phone layout: no device frame, no design notes */
+.stage{display:block!important;height:100%!important;min-height:0!important;padding:0!important}
+.device{width:100%!important;height:100%!important;aspect-ratio:auto!important;padding:0!important;border-radius:0!important;box-shadow:none!important}
+.app{border-radius:0!important}
+.statusbar,.homebar,.notes{display:none!important}
+/* in full screen, stay clear of the phone's status bar and Telegram's own buttons */
+:root{--tg-top:calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));--tg-bottom:var(--tg-safe-area-inset-bottom, 0px)}
+.top{padding-top:calc(var(--tg-top) + 10px)!important}
+.bottom{padding-bottom:calc(var(--tg-bottom) + 10px)!important}
+.topbar{padding-top:calc(var(--tg-top) + 8px)!important}
+.tabbar{padding-bottom:calc(var(--tg-bottom) + 8px)!important}
+.sheet{padding-bottom:calc(var(--tg-bottom) + 16px)!important}
+</style>
+</head>
+<body>
+<title>Game Y First Touch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: desktop = phone frame on a dark stage with design notes beside it; phone = the app itself, edge to edge.
+   App = top bar (hero + purse) / scrolling view / bottom tab bar. Single dark world, same palette as the run prototype. */
+:root{
+  --stage:#0c0a0d;
+  --bg:#141216;
+  --panel:#201c22;
+  --panel-hi:#29232b;
+  --seg:#2c262d;
+  --line:#3a3238;
+  --fg:#ece3d2;
+  --muted:#9d929a;
+  --torch:#e2b24c;
+  --torch-dim:#5b4524;
+  --torch-ink:#1a1209;
+  --blood:#cf4656;
+  --moss:#7fa48a;
+  --moss-dim:#26332b;
+  --star:#f3d36b;
+  --star-dim:#6a5a2a;
+  --scrim:rgba(20,18,22,.95);
+  --scrim-mid:rgba(20,18,22,.7);
+  --glow:rgba(226,178,76,.07);
+  --glow-strong:rgba(226,178,76,.28);
+  --scrim-lock:rgba(20,18,22,.5);
+  --pulse:rgba(226,178,76,.55);
+  --pulse-0:rgba(226,178,76,0);
+  --bezel:#050406;
+  --bezel-edge:#2c262e;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--stage);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+img{image-rendering:pixelated}
+:focus-visible{outline:2px solid var(--torch);outline-offset:2px}
+
+/* ---------- stage & device ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:radial-gradient(60% 55% at 50% 45%, var(--glow), transparent 70%)}
+.device{position:relative;flex:none;height:clamp(640px, calc(100vh - 48px), 864px);height:clamp(640px, calc(100dvh - 48px), 864px);aspect-ratio:410/864;padding:10px;border-radius:58px;background:var(--bezel);box-shadow:0 0 0 1px var(--bezel-edge), 0 40px 90px -30px var(--bezel)}
+.app{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+
+.statusbar{flex:none;position:relative;height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 28px 0 36px;font:600 15px/1 var(--body);color:var(--fg)}
+.island{position:absolute;top:11px;left:50%;width:118px;height:33px;margin-left:-59px;border-radius:17px;background:var(--bezel)}
+.sys{display:flex;gap:6px;align-items:center}
+.sys svg{display:block}
+.homebar{position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);opacity:.75;pointer-events:none}
+
+/* ---------- top bar ---------- */
+.topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
+.tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
+.hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
+.avatar img{width:32px;height:32px}
+.who{min-width:0;display:flex;flex-direction:column;gap:2px}
+.who b{font:500 17px/1.1 var(--display)}
+.who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.purse{display:flex;gap:6px}
+.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 7px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:500 14px/1 var(--display);font-variant-numeric:tabular-nums}
+.chip img{width:16px;height:16px}
+.chip.star{color:var(--star)}
+.tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
+.back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
+.back .ico{width:16px;height:14px}
+.tb-title{min-width:0;display:flex;flex-direction:column;gap:2px}
+.tb-title b{font:500 18px/1.1 var(--display)}
+.tb-title span{font-size:12px;color:var(--muted)}
+
+/* ---------- views ---------- */
+.main{position:relative;flex:1;min-height:0;display:flex}
+.views{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{display:flex;flex-direction:column;gap:12px;padding-block:16px 24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.view.fwd{animation:fwd .22s ease-out}
+.view.rev{animation:rev .22s ease-out}
+@keyframes fwd{from{opacity:.3;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes rev{from{opacity:.3;transform:translateX(-14px)}to{opacity:1;transform:none}}
+
+.vh{display:flex;flex-direction:column;gap:4px;padding-bottom:2px}
+.vh h2{margin:0;font:700 26px/1.05 var(--display);text-wrap:balance}
+.vh p,.intro{margin:0;font-size:14px;color:var(--muted);text-wrap:pretty}
+.sec{margin:8px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec span{font:400 12px/1 var(--body);letter-spacing:0;text-transform:none}
+.stub{display:inline-block;vertical-align:1px;margin-left:4px;padding:2px 6px;border:1px dashed var(--muted);border-radius:3px;font:500 10px/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
+.btn.sm{min-height:34px;padding:0 12px;font-size:14px}
+.btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.wide{width:100%}
+.btn:active,.strip:active,.price:active{transform:translateY(1px)}
+
+.ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+
+/* ---------- game: strips ---------- */
+.strip{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:4px;width:100%;min-height:134px;padding:14px 44px 14px 16px;border:1px solid var(--line);border-radius:6px;background-color:var(--panel);background-repeat:no-repeat;background-position:right bottom;image-rendering:pixelated;overflow:hidden;text-align:left;cursor:pointer}
+.strip::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, var(--scrim) 0%, var(--scrim) 28%, var(--scrim-mid) 52%, transparent 82%)}
+.strip>*{position:relative}
+.strip .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.strip .title{font:700 25px/1.05 var(--display);margin-top:2px}
+.strip .meta{font-size:13px;color:var(--muted);max-width:26ch}
+.strip .chev{position:absolute;right:16px;top:50%;width:10px;height:14px;margin-top:-7px;color:var(--muted)}
+.strip .badge{position:absolute;top:12px;right:14px;min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;border-radius:11px;background:var(--blood);color:var(--fg);font:500 13px/1 var(--display)}
+.strip.main{min-height:224px;border-color:var(--torch-dim)}
+.strip.main .eyebrow{color:var(--torch)}
+.strip.main .title{font-size:32px}
+.floors{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;width:min(210px,100%);margin-top:8px}
+.floors i{height:6px;border-radius:1px;background:var(--seg)}
+.floors i.done{background:var(--moss)}
+.floors i.now{background:var(--torch)}
+.cta{display:inline-flex;align-items:center;min-height:40px;margin-top:12px;padding:0 18px;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display)}
+
+/* ---------- first touch ---------- */
+.strip.first{min-height:300px}
+.strip.first .meta{max-width:30ch;font-size:14px;color:var(--fg)}
+.cta.pulse{animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--pulse)}100%{box-shadow:0 0 0 14px var(--pulse-0)}}
+.strip.locked{min-height:108px}
+.strip.locked::before{background:linear-gradient(90deg, var(--scrim) 0%, var(--scrim) 40%, var(--scrim-mid) 70%, var(--scrim-lock) 100%)}
+.strip.locked .title{color:var(--muted)}
+.strip .lockmark{position:absolute;right:15px;top:50%;width:16px;height:16px;margin-top:-8px;color:var(--muted)}
+.tab.locked{opacity:.5}
+.tab .ico.tablock{position:absolute;top:4px;left:50%;width:8px;height:8px;margin-left:12px;color:var(--fg)}
+.cell.empty{border-style:dashed;background:transparent;font:700 22px/1 var(--display);color:var(--line)}
+.locknote{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px dashed var(--line);border-radius:6px}
+.locknote .ico{width:16px;height:16px;margin-top:2px;color:var(--muted)}
+.locknote b{display:block;font:500 17px/1.15 var(--display)}
+.locknote p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+
+/* ---------- campaign: tower ---------- */
+.tower{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
+.tower::before{content:"";position:absolute;left:11px;top:18px;bottom:30px;width:2px;background:var(--line)}
+.biome{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding-block:10px}
+.node{position:relative;width:14px;height:14px;margin:4px 5px;background:var(--bg);border:2px solid var(--line)}
+.b-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.b-head b{font:500 18px/1.15 var(--display)}
+.range{font:500 13px/1 var(--display);color:var(--muted);font-variant-numeric:tabular-nums}
+.b-body p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.biome.lock .b-head b{color:var(--muted)}
+.biome .lockico{width:16px;height:16px;margin-top:3px;color:var(--muted)}
+.biome.now .node{border-color:var(--torch);background:var(--torch)}
+.biome.now .b-body{padding:12px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel)}
+.floorgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:12px}
+.fl{height:38px;display:grid;place-items:center;border-radius:3px;background:var(--seg);color:var(--muted);font:500 15px/1 var(--display);font-variant-numeric:tabular-nums}
+.fl.done{background:var(--moss-dim);color:var(--moss)}
+.fl.now{background:var(--torch);color:var(--torch-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;background:var(--seg)}
+.sw.done{background:var(--moss)}
+.sw.now{background:var(--torch)}
+.go{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 12px 16px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel-hi);box-shadow:0 -16px 24px var(--bg)}
+.go b{display:block;font:500 20px/1.1 var(--display)}
+.go span{font-size:12px;color:var(--muted)}
+
+/* ---------- quests & farm ---------- */
+.quest{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.quest.locked{cursor:default;background:transparent;border-style:dashed}
+.face{width:48px;height:48px;display:grid;place-items:center;border-radius:4px;background:var(--seg)}
+.face img{width:32px;height:32px}
+.face .q{font:700 22px/1 var(--display);color:var(--muted)}
+.q-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.q-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.q-head b{font:500 17px/1.15 var(--display)}
+.q-text{font-size:13px;color:var(--muted)}
+.qmeta{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;font-size:12px;color:var(--muted)}
+.qmeta b{font-weight:500;color:var(--fg)}
+.qbar{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.qbar i{flex:1;height:6px;border-radius:1px;background:var(--seg);overflow:hidden}
+.qbar i::after{content:"";display:block;height:100%;width:var(--p);background:var(--torch)}
+.pill{flex:none;padding:4px 6px;border-radius:3px;font:500 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.pill.ok{background:var(--moss-dim);color:var(--moss)}
+.pill.go{background:var(--torch-dim);color:var(--torch)}
+.pill.paid{background:var(--star-dim);color:var(--star)}
+.pill.off{background:var(--seg);color:var(--muted)}
+
+.frow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.frow.next{background:transparent;border-style:dashed}
+.fnum{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--moss-dim);color:var(--moss);font:700 20px/1 var(--display)}
+.frow.next .fnum{background:var(--seg);color:var(--muted)}
+.f-body{min-width:0}
+.f-body b{display:block;font:500 16px/1.15 var(--display)}
+.f-body .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.loot{display:flex;gap:4px;margin-top:6px}
+.loot img{width:22px;height:22px;padding:3px;border-radius:3px;background:var(--seg)}
+
+/* ---------- alchemy ---------- */
+.bench{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:4px;align-items:start;padding:16px 10px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.part{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.cell{width:64px;height:64px;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--seg)}
+.cell img{width:40px;height:40px}
+.part.res .cell{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 22px var(--glow-strong)}
+.part b{font:500 13px/1.15 var(--display)}
+.part small{font-size:11px;color:var(--muted)}
+.op{margin-top:20px;font:700 20px/1 var(--display);color:var(--muted)}
+.yield{display:flex;flex-wrap:wrap;gap:6px}
+.tag{padding:4px 9px;border-radius:12px;background:var(--seg);font-size:12px}
+.tag.up{color:var(--moss)}
+.pathnote{margin:0;font-size:13px;color:var(--muted)}
+.pathnote b{font-weight:500;color:var(--torch)}
+.bag{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.bag span{position:relative;aspect-ratio:1/1;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--seg)}
+.bag img{width:66%;height:66%}
+.bag .eq{position:absolute;top:2px;right:3px;font:500 8px/1 var(--display);letter-spacing:.06em;color:var(--moss)}
+.recipes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.recipes li{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:14px}
+.recipes img{width:22px;height:22px}
+.recipes .arrow{color:var(--muted)}
+.recipes .unk{background:transparent;border-style:dashed;color:var(--muted);font-family:var(--display)}
+
+/* ---------- almanac ---------- */
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.seg button{padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 13px/1 var(--display);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
+.count{margin:0;font-size:13px;color:var(--muted)}
+.count b{font:700 18px/1 var(--display);color:var(--fg)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.entry{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:10px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:center}
+.entry img{width:36px;height:36px}
+.entry span{font-size:11px;line-height:1.2}
+.entry.unk{background:transparent;border-style:dashed}
+.entry.unk i{width:36px;height:36px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
+.entry.unk span{color:var(--muted)}
+.rows{display:flex;flex-direction:column;gap:6px}
+.rowcard{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.rowcard .face{width:44px;height:44px}
+.rowcard b{display:block;font:500 16px/1.15 var(--display)}
+.rowcard .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.rowcard.unk{background:transparent;border-style:dashed}
+
+/* ---------- shop ---------- */
+.offer{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.offer b{display:block;font:500 16px/1.15 var(--display)}
+.offer .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.offer.feat{grid-template-columns:minmax(0,1fr);gap:10px;padding:16px;border-color:var(--star-dim)}
+.offer.feat b{font-size:20px}
+.offer.feat .row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.slots4{display:flex;gap:6px}
+.slots4 span{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--seg);font:700 20px/1 var(--display);color:var(--muted)}
+.slots4 img{width:30px;height:30px}
+.slots4 .plus{background:transparent;border:1px dashed var(--star);color:var(--star)}
+.price{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 14px;border:1px solid var(--star-dim);border-radius:18px;background:transparent;color:var(--star);font:500 15px/1 var(--display);cursor:pointer}
+.price img{width:14px;height:14px}
+.linkbtn{align-self:flex-start;padding:0;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* ---------- tab bar & toast ---------- */
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.tab .ico{width:30px;height:30px}
+.tab[aria-current="page"]{color:var(--torch)}
+.tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
+.toast{position:absolute;left:16px;right:16px;bottom:12px;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel-hi);font-size:13px;box-shadow:0 10px 30px var(--bezel);pointer-events:none}
+.toast.in{animation:toast .2s ease-out}
+@keyframes toast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- notes beside the phone ---------- */
+.notes{display:none;flex:0 1 300px;max-width:300px;flex-direction:column;gap:22px}
+.brand{font:700 34px/1 var(--display);color:var(--torch)}
+.lede{margin:8px 0 0;font-size:15px;color:var(--muted)}
+.note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.note p{margin:0;font-size:14px}
+.foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.note a{color:var(--torch);text-underline-offset:3px}
+.note .cur{color:var(--fg)}
+@media (min-width:1000px){.notes{display:flex}}
+
+/* ---------- on a real phone: no frame ---------- */
+@media (max-width:599px){
+  body{background:var(--bg)}
+  .stage{display:block;height:100%;min-height:0;padding:0;background:var(--bg)}
+  .device{width:100%;height:100%;aspect-ratio:auto;padding:0;border-radius:0;background:var(--bg);box-shadow:none}
+  .app{border-radius:0}
+  .statusbar,.homebar{display:none}
+  .tabbar{padding-bottom:8px}
+}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.toast.in,.cta.pulse{animation:none}}
+</style>
+
+<div class="stage">
+  <div class="device">
+    <div class="app" id="app">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="island"></span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <header class="topbar">
+        <div class="tb-root" id="tbRoot">
+          <button class="hero" type="button" data-stub="Hero screen: gear in six slots and the class path. Placeholder.">
+            <span class="avatar"><img data-spr="player" alt=""></span>
+            <span class="who"><b>Human</b><span>No class</span></span>
+          </button>
+          <div class="purse">
+            <span class="chip" aria-label="Gold: 0"><img data-spr="coin" alt="">0</span>
+            <span class="chip star" aria-label="Telegram Stars: 0"><img data-spr="star" alt="">0</span>
+          </div>
+        </div>
+        <div class="tb-sub" id="tbSub" hidden>
+          <button class="back" id="back" type="button" aria-label="Back"><i class="ico" data-ico="back" data-s="2"></i></button>
+          <div class="tb-title"><b id="tbTitle"></b><span id="tbSubt"></span></div>
+        </div>
+      </header>
+
+      <div class="main">
+        <div class="views" id="views">
+
+          <!-- PLAY -->
+          <section class="view" data-view="game" aria-label="Play">
+            <button class="strip main first" type="button" data-scene="campaign" data-open="campaign">
+              <span class="eyebrow">Main campaign</span>
+              <span class="title">Tower I</span>
+              <span class="meta">You wake in the tower's basement. Somewhere above: the academy and its entrance trial.</span>
+              <span class="floors" data-floors="0/15" aria-hidden="true"></span>
+              <span class="cta pulse">Start</span>
+            </button>
+            <button class="strip locked" type="button" data-scene="quests" data-stub="Errands unlock after the tutorial.">
+              <span class="eyebrow">Side quests</span>
+              <span class="title">Errands</span>
+              <span class="meta">Unlock after the tutorial</span>
+              <i class="ico lockmark" data-ico="lock" data-s="2"></i>
+            </button>
+            <button class="strip locked" type="button" data-scene="farm" data-stub="Farm unlocks after the tutorial, once there are cleared floors.">
+              <span class="eyebrow">Farm</span>
+              <span class="title">Cleared floors</span>
+              <span class="meta">Unlocks after the tutorial</span>
+              <i class="ico lockmark" data-ico="lock" data-s="2"></i>
+            </button>
+          </section>
+
+          <!-- CAMPAIGN -->
+          <section class="view" data-view="campaign" aria-label="Tower I" hidden>
+            <ol class="tower">
+              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Exam</b><span class="range">91–100</span></div><p>The academy's final trial.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
+              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>School</b><span class="range">71–90</span></div><p>Classes, students and rivals.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
+              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Undead</b><span class="range">31–70</span></div><p>Crypts and catacombs. The longest biome.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
+              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Slimes and poison plants</b><span class="range">16–30</span></div><p>Damp, slime and poisonous growth.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
+              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Interlude</b><span class="range">story</span></div><p>A scene after leaving the basement.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
+              <li class="biome now"><span class="node"></span><div class="b-body">
+                <div class="b-head"><b>Basement</b><span class="range">1–15</span></div>
+                <p>The hero climbs out of the basement. Tutorial and first mechanics.</p>
+                <div class="floorgrid" id="floorgrid" data-done="0" aria-label="Basement floors: floor 1 current"></div>
+                <div class="legend"><span><i class="sw done"></i>cleared</span><span><i class="sw now"></i>current</span><span><i class="sw"></i>locked</span></div>
+              </div></li>
+            </ol>
+            <div class="go">
+              <div><b>Floor 1</b><span>Basement · tutorial</span></div>
+              <a class="btn" href="run.html">Start</a>
+            </div>
+          </section>
+
+          <!-- ALCHEMY -->
+          <section class="view" data-view="alchemy" aria-label="Alchemy" hidden>
+            <div class="vh"><h2>Alchemy</h2><p>A base and a modifier fuse into a new item. Properties stack, the look changes.</p></div>
+            <div class="bench">
+              <div class="part"><span class="cell empty">?</span><b>Base</b><small>weapon</small></div>
+              <span class="op" aria-hidden="true">+</span>
+              <div class="part"><span class="cell empty">?</span><b>Modifier</b><small>property</small></div>
+              <span class="op" aria-hidden="true">=</span>
+              <div class="part"><span class="cell empty">?</span><b>New item</b><small>result</small></div>
+            </div>
+            <div class="locknote">
+              <i class="ico" data-ico="lock" data-s="2"></i>
+              <div><b>Unlocks in the tutorial</b><p>Find a weapon and a modifier in the basement and fuse them once. Then alchemy opens here.</p></div>
+            </div>
+          </section>
+
+          <!-- ALMANAC -->
+          <section class="view" data-view="almanac" aria-label="Almanac" hidden>
+            <div class="vh"><h2>Almanac</h2><p>Everything met in the tower. Entries appear as you discover them.</p></div>
+            <div class="seg" role="tablist" aria-label="Almanac sections">
+              <button type="button" role="tab" data-seg="items" aria-selected="true">Items</button>
+              <button type="button" role="tab" data-seg="foes" aria-selected="false">Foes</button>
+              <button type="button" role="tab" data-seg="classes" aria-selected="false">Classes</button>
+              <button type="button" role="tab" data-seg="races" aria-selected="false">Races</button>
+            </div>
+
+            <div data-panel="items">
+              <div class="rows" style="gap:10px">
+                <p class="count"><b>0</b> of 48 found <span class="stub">placeholder</span></p>
+                <div class="cards">
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                  <div class="entry unk"><i>?</i><span>Not found</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div data-panel="foes" hidden>
+              <div class="rows" style="gap:10px">
+                <p class="count"><b>0</b> of 30 met <span class="stub">placeholder</span></p>
+                <div class="cards">
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                  <div class="entry unk"><i>?</i><span>Not met</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div data-panel="classes" hidden>
+              <div class="rows">
+                <p class="intro">No class to pick at the start: it grows out of what you find and craft. You can take several.</p>
+                <div class="rowcard"><span class="face"><img data-spr="shield" alt=""></span><div><b>Warrior</b><span class="sub">Free · unlocked by items</span></div><span class="pill off">Not started</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="dagger" alt=""></span><div><b>Rogue</b><span class="sub">Free · unlocked by items</span></div><span class="pill off">Not started</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="orb" alt=""></span><div><b>Summoner</b><span class="sub">For Stars</span></div><span class="pill paid">★ Paid</span></div>
+                <div class="rowcard unk"><span class="face"><span class="q">?</span></span><div><b>Fourth class</b><span class="sub">Not designed yet</span></div><span class="stub">placeholder</span></div>
+              </div>
+            </div>
+
+            <div data-panel="races" hidden>
+              <div class="rows">
+                <div class="rowcard"><span class="face"><img data-spr="player" alt=""></span><div><b>Human</b><span class="sub">First hero</span></div><span class="pill ok">Unlocked</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="cat" alt=""></span><div><b>Catfolk</b><span class="sub">Free after the tutorial</span></div><span class="pill off">Locked</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="dwarf" alt=""></span><div><b>Dwarf</b><span class="sub">For Stars · race TBD</span></div><span class="pill paid">★ Paid</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="elf" alt=""></span><div><b>Elf</b><span class="sub">Met in the tower, later for Stars</span></div><span class="pill off">NPC</span></div>
+                <div class="rowcard"><span class="face"><img data-spr="fish" alt=""></span><div><b>Fishfolk</b><span class="sub">Met in the tower · TBD</span></div><span class="pill off">NPC</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SHOP -->
+          <section class="view" data-view="shop" aria-label="Shop" hidden>
+            <div class="vh"><h2>Shop</h2><p>Purchases with Telegram Stars. Range and prices are not decided yet. <span class="stub">placeholder</span></p></div>
+
+            <div class="offer feat">
+              <div class="slots4"><span><img data-spr="player" alt="Human"></span><span>?</span><span>?</span><span class="plus">+</span></div>
+              <div class="row">
+                <div><b>Hero slot</b><span class="sub">Fourth hero onward. The first three unlock as you play.</span></div>
+                <button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button>
+              </div>
+            </div>
+
+            <h3 class="sec">Races</h3>
+            <div class="offer"><span class="face"><img data-spr="dwarf" alt=""></span><div><b>Dwarf</b><span class="sub">Race for a new hero</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
+
+            <h3 class="sec">Classes</h3>
+            <div class="offer"><span class="face"><img data-spr="orb" alt=""></span><div><b>Summoner</b><span class="sub">Opens the summoner path</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
+
+            <h3 class="sec">Components</h3>
+            <div class="offer"><span class="face"><img data-spr="pouch" alt=""></span><div><b>Modifier pouch</b><span class="sub">A random rare modifier for alchemy</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
+            <button class="linkbtn" type="button" data-stub="Odds table — placeholder. Odds will have to be shown openly.">Drop odds</button>
+          </section>
+
+        </div>
+        <div class="toast" id="toast" role="status" hidden></div>
+      </div>
+
+      <nav class="tabbar" aria-label="Sections">
+        <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span>Play</span></button>
+        <button class="tab locked" type="button" data-tab="alchemy" aria-label="Alchemy, locked"><i class="ico" data-ico="flask"></i><span>Alchemy</span><i class="ico tablock" data-ico="lock" data-s="1"></i></button>
+        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span>Almanac</span></button>
+        <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span>Shop</span></button>
+      </nav>
+      <span class="homebar" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  </div>
+
+<script>
+(() => {
+document.documentElement.lang = "en";
+const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= sprites (same palette as the run prototype) ================= */
+function mk(rows, pal, base) {
+  const w = rows[0].length, h = rows.length;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); if (base) g.drawImage(base, 0, 0);
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
+  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
+  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
+  o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1", V:"#c9bdf2", u:"#f3d36b" };
+const SPR = {
+  player: mk(["..hhhh..","..hssh..","..ssss..",".bbbbbb.","s.bbbb.s","..bbbb..","..l..l..","..l..l.."], P),
+  rat:    mk(["........","........","...nn...","..nnnnx.",".nnnnnnn","nnnnnnn.",".t.t.t..","t......."], P),
+  slime:  mk(["........","...gg...","..gggg..",".gggggg.",".gxggxg.","gggggggg","GGGGGGGG","........"], P),
+  chest:  mk(["........",".wwwwww.","wyyyyyyw","wwwkkwww","wyykkyyw","wyyyyyyw","wwwwwwww","........"], P),
+  open:   mk(["........","wwwwwwww","w.dddd.w","wddddddw","wyyyyyyw","wyyyyyyw","wwwwwwww","........"], P),
+  shadow: mk(["..dddd..",".dddddd.",".dxddxd.",".dddddd.","dddddddd","dddddddd","d.dd.dd.","d..d..d."], P),
+  blade:  mk([".......m","......mM",".....mM.","....mM..",".k.mM...","..kM....",".hkk....","h......."], P),
+  rose:   mk(["..rr....",".rRrr...",".rrRr...","..rr....","...G.G..","...GG...","..G.....","..G....."], P),
+  potion: mk(["...cc...","...ee...","..eppe..",".eppppe.",".epppre.",".eppppe.","..eeee..","........"], P),
+  elf:    mk(["..kkkk..",".kkkkkk.","skdssdks",".kssssk.","..gGGg..",".gggggg.",".gggggg.","..g..g.."], P),
+  cat:    mk([".o....o.",".oo..oo.",".oooooo.",".odoodo.",".ooeeoo.","..bbbb..",".obbbbo.","..l..l.."], P),
+  dwarf:  mk(["..MMMM..",".MmmmmM.",".sdssds.",".yyyyyy.","yyyyyyyy",".ryyyyr.",".rrrrrr.",".l....l."], P),
+  fish:   mk(["...ff...","..ffff..",".feffef.",".ffffff.","F.ffff.F","..FFFF..",".FFFFFF.","..F..F.."], P),
+  shield: mk([".mmmmmm.","mMMrrMMm","mMMrrMMm","mrrrrrrm","mMMrrMMm",".mMrrMm.","..mMMm..","...mm..."], P),
+  dagger: mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
+  orb:    mk(["..vvvv..",".vVvvvv.",".vVvvvv.",".vvvvvv.","..vvvv..","...yy...","..yyyy..",".yyyyyy."], P),
+  coin:   mk(["..kkkk..",".kkkkkk.","kkyyyykk","kkykkykk","kkykkykk","kkyyyykk",".kkkkkk.","..kkkk.."], P),
+  star:   mk(["...uu...","...uu...","uuuuuuuu",".uuuuuu.","..uuuu..",".uuuuuu.",".uu..uu.","u......u"], P),
+  pouch:  mk(["..r..r..","...rr...","..wwww..",".wyyyyw.","wyykkyyw","wykyykyw","wyykkyyw",".wwwwww."], P)
+};
+SPR.thorns = mk(["......r.",".....G.r","....G.G.","...G.G..","..G.....","........","........","........"], P, SPR.blade);
+const urls = {};
+const sprURL = k => urls[k] || (urls[k] = SPR[k].toDataURL());
+document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+
+/* ================= mask icons (take currentColor) ================= */
+const MASK = {
+  tower: [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
+  flask: ["...####...","....##....","....##....","...####...","..##..##..",".##....##.",".#......#.",".########.",".########.","..######.."],
+  book:  ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
+  bag:   ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
+  lock:  ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
+  back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
+  chev:  ["##...",".##..","..##.","...##","..##.",".##..","##..."]
+};
+const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1));
+function maskURL(k, cell) {
+  const rows = MASK[k], s = cell * DPR;
+  const c = document.createElement("canvas"); c.width = rows[0].length * s; c.height = rows.length * s;
+  const g = c.getContext("2d"); g.fillStyle = "#fff";
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === "#") g.fillRect(x * s, y * s, s, s); }));
+  return c.toDataURL();
+}
+document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
+
+/* ================= generated bits ================= */
+document.querySelectorAll("[data-floors]").forEach(el => {
+  const [done, total] = el.dataset.floors.split("/").map(Number);
+  for (let i = 1; i <= total; i++) { const s = document.createElement("i"); if (i <= done) s.className = "done"; else if (i === done + 1) s.className = "now"; el.appendChild(s); }
+});
+const fg = document.getElementById("floorgrid"), DONE = +(fg.dataset.done || 0);
+for (let row = 2; row >= 0; row--) for (let col = 0; col < 5; col++) {   // tower climbs up: floor 1 bottom-left
+  const n = row * 5 + col + 1, s = document.createElement("span");
+  s.className = "fl" + (n <= DONE ? " done" : n === DONE + 1 ? " now" : "");
+  s.textContent = n; fg.appendChild(s);
+}
+
+/* ================= strip scenes (pixel art, 3 screen px per art px) ================= */
+const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
+function glow(g, x, y, r, rgb, a) {
+  const gr = g.createRadialGradient(x, y, 1, x, y, r);
+  gr.addColorStop(0, `rgba(${rgb},${a})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+}
+const SCENES = {
+  campaign(g, W, H) {
+    const fy = H - 9;
+    g.fillStyle = "#1a1518"; g.fillRect(0, 0, W, H);
+    const bricks = ["#3a2e31", "#342a2d", "#2f2629", "#3d3235"];
+    for (let r = 0; r * 5 < fy; r++) {
+      const off = r % 2 ? 5 : 0;
+      for (let x = -off; x < W; x += 10) { g.fillStyle = bricks[hash(r * 977 + x + 40) % 4]; g.fillRect(x, r * 5, 9, 4); }
+    }
+    g.fillStyle = "#141013"; g.fillRect(0, fy, W, H - fy);
+    g.fillStyle = "#211a1d"; for (let x = 0; x < W; x += 11) g.fillRect(x, fy + 3, 9, 1);
+    const sx = W - 40;                                     // stairs climbing up to the right
+    for (let i = 0; i < 9; i++) {
+      const x = sx + i * 5, y = fy - (i + 1) * 6; if (y < -6) break;
+      g.fillStyle = "#3f342c"; g.fillRect(x, y, W - x, fy - y);
+      g.fillStyle = "#8a765c"; g.fillRect(x, y, 5, 1);
+      g.fillStyle = "#2a221d"; g.fillRect(x, y + 1, 1, 5);
+    }
+    glow(g, W - 4, 0, 72, "255,214,140", .5);             // light from the floor above
+    const tx = W - 62, ty = 20;                             // wall torch
+    glow(g, tx, ty, 26, "255,170,70", .45);
+    g.fillStyle = "#4a3a2a"; g.fillRect(tx - 1, ty + 2, 2, 6); g.fillRect(tx - 2, ty + 2, 4, 1);
+    g.fillStyle = "#ff7a3a"; g.fillRect(tx - 1, ty - 1, 2, 3);
+    g.fillStyle = "#ffd36a"; g.fillRect(tx, ty - 3, 1, 3); g.fillRect(tx - 1, ty, 1, 1);
+    g.drawImage(SPR.player, sx - 12, fy - 8);
+    g.fillStyle = "rgba(255,230,180,.6)";
+    for (let i = 0; i < 10; i++) { const h = hash(i + 7); g.fillRect(W - 6 - (h % 34), 2 + ((h >> 8) % 30), 1, 1); }
+  },
+  quests(g, W, H) {
+    const fy = H - 6;
+    const planks = ["#3b2f23", "#35291f", "#40332a", "#382c21"];
+    for (let x = 0, i = 0; x < W; x += 7, i++) { g.fillStyle = planks[hash(i + 3) % 4]; g.fillRect(x, 0, 6, fy); g.fillStyle = "#241b14"; g.fillRect(x + 6, 0, 1, fy); }
+    g.fillStyle = "#1c1511"; g.fillRect(0, fy, W, H - fy);
+    const bw = 38, bh = Math.min(fy - 8, 26), bx = W - bw - 6, by = 5;   // notice board
+    g.fillStyle = "#5a3820"; g.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+    g.fillStyle = "#7a5a3a"; g.fillRect(bx, by, bw, bh);
+    for (const [nx, ny, nw, nh, c] of [[2,2,10,9,"#e9dfc8"],[14,4,9,11,"#d8ccb0"],[25,1,11,8,"#e9dfc8"],[4,13,9,9,"#cfc2a4"],[25,12,10,10,"#e2d6bc"]]) {
+      if (ny + nh > bh) continue;
+      g.fillStyle = c; g.fillRect(bx + nx, by + ny, nw, nh);
+      g.fillStyle = "rgba(60,40,30,.5)"; for (let l = 2; l < nh - 1; l += 2) g.fillRect(bx + nx + 1, by + ny + l, nw - 3 - (l % 4), 1);
+      g.fillStyle = "#cf4656"; g.fillRect(bx + nx + (nw >> 1), by + ny, 1, 1);
+    }
+    const lx = bx - 14, ly = 6;                             // hanging lantern
+    glow(g, lx, ly + 4, 30, "255,190,90", .4);
+    g.fillStyle = "#2a2018"; g.fillRect(lx, 0, 1, ly);
+    g.fillStyle = "#6e4426"; g.fillRect(lx - 2, ly, 5, 1); g.fillRect(lx - 2, ly + 6, 5, 1);
+    g.fillStyle = "#ffd36a"; g.fillRect(lx - 1, ly + 1, 3, 5);
+    g.drawImage(SPR.elf, bx - 12, fy - 8);
+  },
+  farm(g, W, H) {
+    const fy = H - 8;
+    const stones = ["#2c2b30", "#28272c", "#312f35", "#2a2a2e"];
+    for (let r = 0; r * 6 < fy; r++) { const off = (r * 7) % 11; for (let x = -off; x < W; x += 11) { g.fillStyle = stones[hash(r * 131 + x + 900) % 4]; g.fillRect(x, r * 6, 10, 5); } }
+    g.fillStyle = "#4a6e3e"; for (let i = 0; i < 26; i++) { const h = hash(i + 50); g.fillRect(W - 1 - (h % 70), fy - 1 - ((h >> 6) % 8), 1 + ((h >> 12) % 2), 1); }
+    g.fillStyle = "#17161a"; g.fillRect(0, fy, W, H - fy);
+    g.fillStyle = "#4a6e3e"; g.fillRect(W - 58, fy, 12, 2); g.fillStyle = "#7aa266"; g.fillRect(W - 56, fy, 8, 1);
+    const cx = W - 30;                                      // opened chest and spilled coins
+    glow(g, cx + 4, fy - 4, 24, "232,191,85", .35);
+    g.drawImage(SPR.open, cx, fy - 7);
+    g.fillStyle = "#e8bf55";
+    for (const [dx, dy] of [[-3,0],[-6,1],[10,0],[13,1],[9,1],[-9,1],[16,0]]) g.fillRect(cx + dx, fy + dy, 2, 1);
+    g.fillRect(cx + 2, fy - 7, 4, 1);
+    g.drawImage(SPR.blade, W - 12, fy - 9);
+    g.fillStyle = "#d8ccb0"; g.fillRect(W - 72, fy + 1, 5, 1); g.fillRect(W - 73, fy, 1, 1); g.fillRect(W - 67, fy + 2, 1, 1);
+  }
+};
+function paintStrip(el) {
+  const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
+  const S = 3, W = Math.ceil(w / S), H = Math.ceil(h / S), key = W + "x" + H;
+  if (el._key === key) return; el._key = key;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  SCENES[el.dataset.scene](g, W, H);
+  el.style.backgroundImage = `url(${c.toDataURL()})`;
+  el.style.backgroundSize = `${W * S}px ${H * S}px`;
+}
+const strips = document.querySelectorAll("[data-scene]");
+if ("ResizeObserver" in window) { const ro = new ResizeObserver(es => es.forEach(e => paintStrip(e.target))); strips.forEach(el => ro.observe(el)); }
+else { strips.forEach(paintStrip); window.addEventListener("resize", () => strips.forEach(paintStrip)); }
+
+/* ================= navigation ================= */
+const TABS = ["game", "alchemy", "almanac", "shop"];
+const SUB = {
+  campaign: { title: "Tower I", sub: "Trial of Applicants · 0 of 100 cleared" },
+  quests:   { title: "Errands", sub: "Side quests" },
+  farm:     { title: "Farm", sub: "Cleared floors" }
+};
+const views = [...document.querySelectorAll(".view")], viewsEl = document.getElementById("views");
+let tab = "game", sub = null;
+try { const t = localStorage.getItem("gamey.tab"); if (TABS.includes(t)) tab = t; } catch (e) {}
+
+function show(dir) {
+  const id = sub || tab, cur = views.find(v => v.dataset.view === id);
+  views.forEach(v => { v.hidden = v !== cur; });
+  if (dir && !still) { cur.classList.remove("fwd", "rev"); void cur.offsetWidth; cur.classList.add(dir); }
+  document.getElementById("tbRoot").hidden = !!sub;
+  document.getElementById("tbSub").hidden = !sub;
+  if (window.GY) window.GY.back(sub ? () => { sub = null; show("rev"); } : null);   // Telegram's own back button closes a sub-screen
+  if (sub) { document.getElementById("tbTitle").textContent = SUB[sub].title; document.getElementById("tbSubt").textContent = SUB[sub].sub; }
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
+  viewsEl.scrollTop = sub === "campaign" ? viewsEl.scrollHeight : 0;   // the tower is read bottom-up
+  cur.querySelectorAll("[data-scene]").forEach(paintStrip);
+}
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.tab === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
+  tab = b.dataset.tab; sub = null;
+  try { localStorage.setItem("gamey.tab", tab); } catch (e) {}
+  show("fwd");
+}));
+document.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { sub = b.dataset.open; show("fwd"); }));
+document.getElementById("back").addEventListener("click", () => { sub = null; show("rev"); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && sub) { sub = null; show("rev"); } });
+
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
+  document.querySelectorAll("[data-panel]").forEach(p => { p.hidden = p.dataset.panel !== b.dataset.seg; });
+}));
+
+/* ================= stubs ================= */
+const toastEl = document.getElementById("toast"); let tt;
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.hidden = false;
+  toastEl.classList.remove("in"); void toastEl.offsetWidth; toastEl.classList.add("in");
+  clearTimeout(tt); tt = setTimeout(() => { toastEl.hidden = true; }, 2600);
+}
+document.addEventListener("click", e => { const s = e.target.closest("[data-stub]"); if (s) toast(s.dataset.stub); });
+
+show();
+})();
+</script>
+
+</body>
+</html>

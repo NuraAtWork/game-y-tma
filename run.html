@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="tg.js"></script>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#0b0a0c}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* the Telegram build is always the phone layout: no device frame, no design notes */
+.stage{display:block!important;height:100%!important;min-height:0!important;padding:0!important}
+.device{width:100%!important;height:100%!important;aspect-ratio:auto!important;padding:0!important;border-radius:0!important;box-shadow:none!important}
+.app{border-radius:0!important}
+.statusbar,.homebar,.notes{display:none!important}
+/* in full screen, stay clear of the phone's status bar and Telegram's own buttons */
+:root{--tg-top:calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));--tg-bottom:var(--tg-safe-area-inset-bottom, 0px)}
+.top{padding-top:calc(var(--tg-top) + 10px)!important}
+.bottom{padding-bottom:calc(var(--tg-bottom) + 10px)!important}
+.topbar{padding-top:calc(var(--tg-top) + 8px)!important}
+.tabbar{padding-bottom:calc(var(--tg-bottom) + 8px)!important}
+.sheet{padding-bottom:calc(var(--tg-bottom) + 16px)!important}
+</style>
+</head>
+<body>
+<title>Game Y Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: desktop = phone frame with notes beside it; phone = the run edge to edge.
+   Run = HUD / first-person view filling the screen (minimap in its corner, battle box over its floor) / action bar;
+   satchel, full map and alchemy table open as bottom sheets. Visual world of the Game Y run prototype, single dark theme by design. */
+:root{
+  --stage:#0c0a0d;
+  --bg:#141216;
+  --panel:#201c22;
+  --line:#3a3238;
+  --fg:#ece3d2;
+  --muted:#9d929a;
+  --torch:#e2b24c;
+  --torch-ink:#1a1209;
+  --blood:#cf4656;
+  --moss:#7fa48a;
+  --mapbg:#3a2627;
+  --chest:#e8bf55;
+  --foe:#d4495b;
+  --stairs:#5b7db0;
+  --table:#8f7ad1;
+  --paper:#f2e6cf;
+  --well:#0e0c10;
+  --black:#0b0a0c;
+  --ink:#000;
+  --glass:rgba(32,28,34,.74);
+  --glass-strong:rgba(20,18,22,.92);
+  --veil-soft:rgba(8,6,9,.5);
+  --map-edge:rgba(242,230,207,.22);
+  --torch-glow:rgba(226,178,76,.6);
+  --ink-paper:#2a1e14;
+  --veil:rgba(8,6,9,.86);
+  --scrim:rgba(8,6,9,.6);
+  --glow:rgba(226,178,76,.07);
+  --pulse:rgba(226,178,76,.55);
+  --pulse-0:rgba(226,178,76,0);
+  --bezel:#050406;
+  --bezel-edge:#2c262e;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--stage);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--torch);outline-offset:2px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--pulse)}100%{box-shadow:0 0 0 12px var(--pulse-0)}}
+
+/* ---------- stage & device (same as the other states) ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:radial-gradient(60% 55% at 50% 45%, var(--glow), transparent 70%)}
+.device{position:relative;flex:none;height:clamp(640px, calc(100vh - 48px), 864px);height:clamp(640px, calc(100dvh - 48px), 864px);aspect-ratio:410/864;padding:10px;border-radius:58px;background:var(--bezel);box-shadow:0 0 0 1px var(--bezel-edge), 0 40px 90px -30px var(--bezel)}
+.app{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:var(--black)}
+.statusbar{position:absolute;top:0;left:0;right:0;z-index:3;pointer-events:none;height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 28px 0 36px;font:600 15px/1 var(--body);color:var(--fg)}
+.island{position:absolute;top:11px;left:50%;width:118px;height:33px;margin-left:-59px;border-radius:17px;background:var(--bezel)}
+.sys{display:flex;gap:6px;align-items:center}
+.sys svg{display:block}
+.homebar{position:absolute;bottom:8px;left:50%;z-index:30;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);opacity:.75;pointer-events:none}
+
+/* ---------- run ---------- */
+/* the view fills the whole screen; the interface floats over its darkened top and bottom edges */
+.ui{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;pointer-events:none}
+.ui button{pointer-events:auto}
+.top{flex:none;display:flex;flex-direction:column;gap:10px;padding-block:56px 30px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:linear-gradient(180deg, var(--veil) 0%, var(--veil-soft) 55%, transparent)}
+.toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;min-height:20px}
+.mid{position:relative;flex:1;min-height:0}
+.bottom{flex:none;display:flex;flex-direction:column;gap:8px;padding-block:28px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:linear-gradient(0deg, var(--veil) 0%, var(--veil) 50%, transparent)}
+.botrow{display:flex;align-items:flex-end;gap:12px}
+.label{font-family:var(--display);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-variant-numeric:tabular-nums}
+.num{font-family:var(--display);font-size:16px}
+.bar{height:10px;background:var(--well);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.bar>i{display:block;height:100%;transition:width .2s}
+.hud{flex:none;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto;gap:14px;align-items:end}
+.snd{width:32px;height:32px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--glass);color:var(--fg);cursor:pointer}
+.snd .x{display:none}
+.snd.off{color:var(--muted)}
+.snd.off .wave{display:none}
+.snd.off .x{display:inline}
+.hud .label{font-size:11px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud .num{flex:none;white-space:nowrap}
+.where{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.hp{position:relative}
+
+.scene{position:absolute;inset:0;overflow:hidden;background:var(--black)}
+.scene > canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.cap{min-width:0;font-family:var(--display);font-size:16px;line-height:1.15;color:var(--torch);text-shadow:0 2px 0 var(--ink)}
+
+.foe{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px;font:500 14px/1 var(--display);text-shadow:0 2px 0 var(--ink);pointer-events:none}
+.foe i{display:block;width:84px;height:7px;background:var(--well);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.foe b{display:block;height:100%;background:var(--blood);transition:width .2s}
+.intent{font-size:13px}
+.intent.hit{color:var(--blood)}
+.intent.calm{color:var(--muted)}
+.intent.warn{color:var(--torch)}
+
+.go{position:absolute;z-index:2;width:44px;height:44px;display:grid;place-items:center;padding:0;font-family:var(--display);font-size:18px;color:var(--fg);background:var(--glass);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.go:active{transform:translateY(1px)}
+.go.f{top:16%;left:50%;margin-left:-22px}
+.go.l{left:12px;top:42%;margin-top:-22px}
+.go.r{right:12px;top:42%;margin-top:-22px}
+.go.b{bottom:4px;left:50%;margin-left:-22px}
+.go.pulse{border-color:var(--torch);animation:pulse 1.6s ease-out infinite}
+.say{flex:1;min-width:0;padding:0 0 2px;border:0;background:none;font-size:13px;line-height:1.3;text-align:left;text-shadow:0 1px 0 var(--ink);cursor:pointer}
+.say span{display:block}
+/* combat numbers: rise over the foe and over the health bar, then fade */
+.pop{position:absolute;left:50%;z-index:4;font:700 28px/1 var(--display);color:var(--fg);text-shadow:0 2px 0 var(--ink);white-space:nowrap;pointer-events:none;animation:pop .9s ease-out forwards}
+.pop.big{font-size:36px;color:var(--torch)}
+.pop.miss{font-size:18px;color:var(--muted)}
+.pop.hero{left:42%;top:-10px;font-size:18px;color:var(--blood);animation-name:rise}
+.pop.hero.miss{color:var(--moss)}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,8px)}15%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-26px)}}
+@keyframes rise{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-16px)}}
+.overlay{position:absolute;inset:0;z-index:5;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+.overlay h2{font-family:var(--display);font-size:30px;margin:0;color:var(--torch)}
+.overlay.dead h2{color:var(--blood)}
+.overlay p{margin:0;color:var(--muted);max-width:32ch;font-size:15px;text-wrap:pretty}
+.overlay p:first-of-type{color:var(--fg)}
+
+/* minimap in the corner of the view; full map in a sheet */
+.mini{position:relative;flex:none;margin-left:auto;padding:3px;background:transparent;border:1px solid var(--map-edge);border-radius:4px;cursor:pointer}
+.mini canvas{display:block;image-rendering:pixelated}
+.compass{position:absolute;top:8px;right:8px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--well);border:1px solid var(--line);font:500 12px/1 var(--display);color:var(--paper);pointer-events:none}
+.mini .compass{top:-9px;right:-9px;width:22px;height:22px;font-size:10px}
+.needle{position:absolute;inset:-1px;transition:transform .26s ease-out}
+.needle::before{content:"";position:absolute;left:50%;top:-4px;margin-left:-4px;border:4px solid transparent;border-top:0;border-bottom:6px solid var(--blood)}
+.bigmap{position:relative;align-self:center;padding:6px;background:var(--mapbg);border:1px solid var(--line);border-radius:6px}
+.bigmap canvas{display:block;image-rendering:pixelated;cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px}
+.legend .look{clip-path:polygon(50% 0,100% 100%,0 100%)}
+
+/* battle box: message, then four move slots, like a Pokémon fight menu */
+.battle{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--glass-strong);border:1px solid var(--line);border-radius:6px}
+.moves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.move{position:relative;min-height:46px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px;padding:6px 30px 6px 10px;border:1px solid var(--torch);border-radius:4px;background:var(--panel);text-align:left}
+.move img{position:absolute;top:6px;right:6px;width:20px;height:20px;image-rendering:pixelated}
+button.move{cursor:pointer}
+button.move:active{transform:translateY(1px)}
+.move b{font:500 14px/1.15 var(--display);color:var(--fg)}
+.move .new{font:500 10px/1 var(--display);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--torch)}
+.move.empty{border:1px dashed var(--line);background:transparent}
+.move.empty b{color:var(--muted)}
+.move.hot{animation:pulse 1.6s ease-out infinite}
+
+.actbar{flex:none;display:flex;gap:8px}
+
+/* a note on the floor: outlined so it asks to be tapped; its text opens as a sheet of paper */
+.floornote{position:absolute;z-index:1;padding:0;border:0;background:none;cursor:pointer;transform:translate(-50%,-100%)}
+.floornote img{display:block;width:100%;height:auto;image-rendering:pixelated;filter:drop-shadow(1px 0 0 var(--torch)) drop-shadow(-1px 0 0 var(--torch)) drop-shadow(0 1px 0 var(--torch)) drop-shadow(0 -1px 0 var(--torch))}
+.floornote.unread img{animation:glint 1.6s ease-in-out infinite}
+.floornote.read img{filter:drop-shadow(1px 0 0 var(--muted)) drop-shadow(-1px 0 0 var(--muted)) drop-shadow(0 1px 0 var(--muted)) drop-shadow(0 -1px 0 var(--muted))}
+@keyframes glint{50%{filter:drop-shadow(2px 0 0 var(--torch)) drop-shadow(-2px 0 0 var(--torch)) drop-shadow(0 2px 0 var(--torch)) drop-shadow(0 -2px 0 var(--torch)) drop-shadow(0 0 10px var(--torch-glow))}}
+.paper{position:absolute;left:50%;top:42%;z-index:22;width:min(280px, 82%);padding:18px 20px 16px;background:var(--paper);color:var(--ink-paper);border-radius:2px;transform:translate(-50%,-50%) rotate(-2deg);box-shadow:0 18px 40px var(--veil);cursor:pointer}
+.paper b{display:block;margin-bottom:10px;font:500 18px/1.1 var(--display)}
+.paper ol{margin:0 0 12px;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.paper .out{color:var(--blood);text-decoration:line-through;text-decoration-thickness:2px}
+.paper p{margin:0;font-size:13px;font-style:italic}
+.bagbtn{position:relative;flex:none;min-width:104px;min-height:54px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;font-family:var(--display);font-size:17px;cursor:pointer}
+.bagbtn .cnt{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bagbtn .dot{position:absolute;top:7px;right:7px;width:8px;height:8px;background:var(--torch)}
+.act{flex:1;min-width:0;display:flex}
+.act .btn{flex:1;min-height:54px;font-size:19px}
+.act .empty{flex:1;display:grid;place-items:center;border:1px dashed var(--line);border-radius:6px;font-size:13px;color:var(--muted)}
+
+.btn{font-family:var(--display);font-size:16px;background:var(--torch);color:var(--torch-ink);border:0;border-radius:4px;padding:9px 14px;cursor:pointer}
+.btn.red{background:var(--blood);color:var(--fg)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:14px}
+.btn:active,.bagbtn:active{transform:translateY(1px)}
+
+/* ---------- sheets ---------- */
+.backdrop{position:absolute;inset:0;z-index:20;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;max-height:82%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-block:8px 30px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:var(--bg);border-top:1px solid var(--line);border-radius:16px 16px 0 0}
+.sheet.in{animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{flex:none;width:40px;height:4px;margin:0 auto 2px;border-radius:2px;background:var(--line)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sheet-head b{font:500 22px/1 var(--display);color:var(--torch)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.slot{aspect-ratio:1/1;max-width:100%;background:var(--well);border:1px solid var(--line);border-radius:4px;padding:4px;display:grid;place-items:center;cursor:pointer;position:relative}
+.slot img{width:80%;height:80%;image-rendering:pixelated}
+.slot.sel{border-color:var(--torch);box-shadow:0 0 0 1px var(--torch) inset}
+.slot .eq{position:absolute;top:2px;right:3px;font-family:var(--display);font-size:9px;color:var(--moss)}
+.slot:disabled{cursor:default;opacity:.45}
+.detail{display:flex;flex-direction:column;gap:8px}
+.detail:empty{display:none}
+.detail b{font-family:var(--display);font-weight:500;font-size:16px;color:var(--torch)}
+.detail p{margin:0;color:var(--muted);font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.log{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px;max-height:10em;overflow:auto}
+.log div:first-child{color:var(--fg)}
+
+/* alchemy table */
+.bench{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:4px;align-items:start;padding:14px 8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.part{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.cell{width:60px;height:60px;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--well);font:700 22px/1 var(--display);color:var(--line)}
+.cell img{width:40px;height:40px;image-rendering:pixelated}
+.part.res .cell{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch)}
+.part b{font:500 13px/1.15 var(--display)}
+.part small{font-size:11px;color:var(--muted)}
+.op{margin-top:20px;font:700 20px/1 var(--display);color:var(--muted)}
+.cell.empty{border-style:dashed;background:transparent}
+button.cell{padding:0;cursor:pointer}
+.tablerow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px}
+.tablenote{font-size:13px;color:var(--blood)}
+.slot.fit{border-color:var(--torch);animation:pulse 1.6s ease-out infinite}
+.slot.used{opacity:.25}
+
+/* chest */
+.loot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lootitem{min-width:0;display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--torch);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.lootitem:active{transform:translateY(1px)}
+.lootitem img{flex:none;width:36px;height:36px;image-rendering:pixelated}
+.lootitem b{min-width:0;font:500 14px/1.15 var(--display)}
+
+/* ---------- notes beside the phone ---------- */
+.notes{display:none;flex:0 1 300px;max-width:300px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:thin;flex-direction:column;gap:20px}   /* scrolls on its own, so the phone stays centred */
+.brand{font:700 34px/1 var(--display);color:var(--torch)}
+.lede{margin:8px 0 0;font-size:15px;color:var(--muted)}
+.note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.note p{margin:0;font-size:14px}
+.note a{color:var(--torch);text-underline-offset:3px}
+.note .cur{color:var(--fg)}
+.foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (min-width:1000px){.notes{display:flex}}
+
+/* ---------- on a real phone: no frame ---------- */
+@media (max-width:599px){
+  body{background:var(--bg)}
+  .stage{display:block;height:100%;min-height:0;padding:0;background:var(--bg)}
+  .device{width:100%;height:100%;aspect-ratio:auto;padding:0;border-radius:0;background:var(--bg);box-shadow:none}
+  .app{border-radius:0}
+  .statusbar,.homebar{display:none}
+  .top{padding-top:10px}
+  .bottom{padding-bottom:10px}
+  .sheet{padding-bottom:16px}
+}
+@media (prefers-reduced-motion:reduce){.bar>i,.foe b,.needle{transition:none}.sheet.in,.go.pulse,.move.hot,.pop,.slot.fit,.floornote.unread img{animation:none}}
+</style>
+
+<div class="stage">
+  <div class="device">
+    <div class="app" id="app">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="island"></span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <div class="scene" id="scene">
+        <canvas id="view" width="256" height="192" aria-label="First-person view"></canvas>
+        <button class="floornote unread" id="note" type="button" aria-label="Note" hidden><img id="noteimg" alt=""></button>
+      </div>
+      <div class="ui">
+        <div class="top">
+          <div class="hud">
+            <div class="hp" id="hpbox">
+              <div class="row"><span class="label">Health</span><span class="num" id="hpv"></span></div>
+              <div class="bar"><i id="hpb" style="background:var(--blood)"></i></div>
+            </div>
+            <div class="where"><span class="label">Basement</span><span class="num">Floor 1</span></div>
+            <button class="snd" id="snd" type="button" aria-label="Sound" aria-pressed="true"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M1 6h3l4-3v10l-4-3H1z"/><path class="wave" fill="currentColor" d="M10 6h1v4h-1zM12 4h1v8h-1z"/><path class="x" stroke="currentColor" stroke-width="1.5" d="M10.5 5.5l4 5M14.5 5.5l-4 5"/></svg></button>
+          </div>
+          <div class="toprow">
+            <div class="cap" id="roomname"></div>
+            <div class="foe" id="foe" hidden><span id="foename"></span><i><b id="foebar"></b></i><span class="intent" id="intent"></span></div>
+          </div>
+        </div>
+        <div class="mid">
+          <button class="go f" type="button" data-rel="f" aria-label="Forward">▲</button>
+          <button class="go l" type="button" data-rel="l" aria-label="Left">◀</button>
+          <button class="go r" type="button" data-rel="r" aria-label="Right">▶</button>
+          <button class="go b" type="button" data-rel="b" aria-label="Back">▼</button>
+        </div>
+        <div class="bottom">
+          <div class="botrow">
+            <button class="say" id="say" type="button" aria-label="Open log"><span id="saytxt"></span></button>
+            <button class="mini" id="mini" type="button" aria-label="Open map"><canvas id="map"></canvas><span class="compass" aria-hidden="true"><i class="needle"></i>N</span></button>
+          </div>
+          <div class="battle" id="battle" hidden>
+            <div class="row"><span class="label">Moves</span><span class="label" id="bcount"></span></div>
+            <div class="moves" id="bmoves"></div>
+          </div>
+          <div class="actbar">
+            <button class="bagbtn" id="bagbtn" type="button">Bag <span class="cnt" id="bagcount"></span><i class="dot" id="bagdot" hidden></i></button>
+            <div class="act" id="acts"></div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay" id="overlay" hidden></div>
+      <div class="paper" id="paper" role="dialog" aria-label="Note" tabindex="-1" hidden>
+        <b>Applicants</b>
+        <ol><li>Irma Sott</li><li>Dane Varo</li><li class="out">▬▬▬▬▬▬▬</li><li>Osa Bren</li></ol>
+        <p>Your name is crossed out.</p>
+      </div>
+
+      <div class="backdrop" id="backdrop" hidden></div>
+      <div class="sheet" id="sheet" role="dialog" aria-label="Bag" hidden>
+        <div class="grab"></div>
+        <div class="sheet-head"><b>Bag</b><button class="btn ghost sm" id="close" type="button">Close</button></div>
+        <div class="card"><div class="label">In hand</div><div id="eqname" style="font-size:14px"></div></div>
+        <div class="card">
+          <div class="row"><span class="label">Moves</span><span class="label" id="mcount"></span></div>
+          <div class="moves" id="mlist"></div>
+        </div>
+        <div class="card">
+          <div class="label">Items</div>
+          <div class="slots" id="slots"></div>
+          <div class="detail" id="detail"></div>
+        </div>
+        <div class="card"><div class="label">Log</div><div class="log" id="log"></div></div>
+      </div>
+      <div class="sheet" id="mapsheet" role="dialog" aria-label="Map" hidden>
+        <div class="grab"></div>
+        <div class="sheet-head"><b>Basement · floor 1</b><button class="btn ghost sm" id="mapclose" type="button">Close</button></div>
+        <div class="bigmap" id="bigbox"><canvas id="bigmap" aria-label="Floor map"></canvas><span class="compass" aria-hidden="true"><i class="needle"></i>N</span></div>
+        <div class="legend"><span><i style="background:var(--chest)"></i>chest</span><span><i style="background:var(--foe)"></i>foe</span><span><i style="background:var(--table)"></i>alchemy table</span><span><i style="background:var(--stairs)"></i>stairs</span><span><i class="look" style="background:var(--torch)"></i>facing</span></div>
+      </div>
+      <div class="sheet" id="chestsheet" role="dialog" aria-label="Chest" hidden>
+        <div class="grab"></div>
+        <div class="sheet-head"><b>Chest</b><button class="btn ghost sm" id="chestclose" type="button">Close</button></div>
+        <div class="loot" id="loot"></div>
+        <button class="btn" id="takeall" type="button">Take all</button>
+      </div>
+      <div class="sheet" id="tablesheet" role="dialog" aria-label="Alchemy table" hidden>
+        <div class="grab"></div>
+        <div class="sheet-head"><b>Alchemy table</b><button class="btn ghost sm" id="tableclose" type="button">Close</button></div>
+        <div class="bench" id="bench"></div>
+        <div class="tablerow"><span class="tablenote" id="tablenote"></span><button class="btn" id="fusebtn" type="button" hidden>Fuse</button></div>
+        <div class="card"><div class="label">Bag</div><div class="slots" id="tableinv"></div></div>
+      </div>
+      <span class="homebar" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  </div>
+
+<script>
+(() => {
+document.documentElement.lang = "en";
+const $ = id => document.getElementById(id);
+
+/* ================= floor 1, as in Game_Y_basement_1-15.md ================= */
+const COLS = 5, ROWS = 4, HERO_HP = 15, SLOTS = 4;
+const NODES = {
+  A: { x:0, y:3, label:"Cellar",  name:"Cold cellar", kind:"room" },
+  K: { x:1, y:3, label:"Damp",    name:"Damp corridor", kind:"hall" },
+  B: { x:2, y:3, label:"Pass",    name:"Narrow passage", kind:"hall", foe:"snake", flee:"C" },
+  C: { x:2, y:2, label:"Nook",    name:"Dead end", kind:"room", chest:["dagger", "stone"] },
+  D: { x:3, y:3, label:"Hall",    name:"Corridor", kind:"hall" },
+  I: { x:3, y:2, label:"Closet",  name:"Closet", kind:"room", note:true },
+  E: { x:4, y:3, label:"Vault",   name:"Empty vault", kind:"room" },
+  F: { x:4, y:2, label:"Table",   name:"Alchemy table", kind:"room", table:true },
+  G: { x:4, y:1, label:"Door",    name:"Heavy door", kind:"hall" },
+  H: { x:4, y:0, label:"Lair",    name:"Lair", kind:"room", foe:"mother", exit:true }
+};
+const EDGES = ["AK","KB","BC","BD","DI","DE","EF","FG","GH"];
+const ADJ = {}; for (const k in NODES) ADJ[k] = [];
+EDGES.forEach(([a,b]) => { ADJ[a].push(b); ADJ[b].push(a); });
+const nodeAtDir = (id, dx, dy) => ADJ[id].find(o => NODES[o].x === NODES[id].x + dx && NODES[o].y === NODES[id].y + dy);
+
+// Moves come from items, Pokémon-style: four slots filled by the weapon in hand (concept v0.8).
+const DEF = {
+  dagger: { name:"Blunt dagger", type:"weapon", dmg:2, moves:["strike"], spr:"dagger" },
+  stone:  { name:"Whetstone", type:"mod", spr:"stone" },
+  fang:   { name:"Snake fang", type:"mod", spr:"fang" },
+  sharp:  { name:"Sharp dagger", type:"weapon", dmg:3, moves:["strike"], spr:"sharp" },
+  viper:  { name:"Viper dagger", type:"weapon", dmg:3, moves:["strike", "reflex"], spr:"viper" }
+};   // no descriptions: what fuses into what is for the player to discover
+const RECIPES = [["dagger", "stone", "sharp"], ["sharp", "fang", "viper"]];   // base + modifier → result
+const MOVES = {
+  strike: { name:"Dagger strike" },
+  reflex: { name:"Viper reflex" }
+};
+const INTENTS = {
+  bite:  { tone:"hit",  label: d => `Bites · ${d}` },
+  coil:  { tone:"calm", label: () => "Coils" },
+  prep:  { tone:"warn", label: () => "Readies a lunge" },
+  throw: { tone:"hit",  label: d => `Lunge · ${d}` }
+};
+const FOES = {
+  snake:  { name:"Snake", hp:6, spr:"snake", k:8, chase:true, loot:"fang", pattern:[["bite", 2], ["coil", 0]] },
+  mother: { name:"Mother Snake", hp:16, spr:"mother", k:11, boss:true, pattern:[["bite", 2], ["bite", 2], ["prep", 0], ["throw", 6]] }
+};
+
+/* ================= sprites ================= */
+function mk(rows, pal, base) {
+  const c = document.createElement("canvas"); c.width = 8; c.height = 8;
+  const g = c.getContext("2d"); if (base) g.drawImage(base, 0, 0);
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
+  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
+  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
+  o:"#8c7a3a", O:"#5c4f22", u:"#e8bf55" };
+const SPR = {
+  player: mk(["..hhhh..","..hssh..","..ssss..",".bbbbbb.","s.bbbb.s","..bbbb..","..l..l..","..l..l.."], P),
+  snake:  mk(["....gg..","...gxgg.","...ggr..","...gg...","..gg....",".gGGgg..","gGggggg.",".ggggg.."], P),
+  mother: mk(["...oo...","..ouuo..","..oooo..","...oor..","..oo....",".oOOoo..","oOooooo.",".ooooo.."], P),
+  chest:  mk(["........",".wwwwww.","wyyyyyyw","wwwkkwww","wyykkyyw","wyyyyyyw","wwwwwwww","........"], P),
+  open:   mk(["........","wwwwwwww","w.dddd.w","wddddddw","wyyyyyyw","wyyyyyyw","wwwwwwww","........"], P),
+  dagger: mk(["........","......n.",".....nn.","....nn..","..knn...","...k....","..h.k...",".h......"], P),
+  sharp:  mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
+  viper:  mk(["........","......g.",".....gm.","....gm..","..kgm...","...k....","..G.k...",".G......"], P),
+  stone:  mk(["........","........","..nnnn..",".nMMMMn.",".nMmmMn.",".nnnnnn.","........","........"], P),
+  fang:   mk(["........","..ee....","..eee...","...ee...","...ee...","....e...","....e...","........"], P),
+  table:  mk(["...c..e.","..ppe.ee","..pp..ee","wwwwwwww","wyyyyyyw",".w....w.",".w....w.",".w....w."], P),
+  note:   mk(["........","........","..eeeee.",".eMMMMe.",".eeeeee.",".eMMMee.","..eeeee.","........"], P)
+};
+$("noteimg").src = SPR.note.toDataURL();
+const ICON = {};
+const iconURL = it => ICON[it.spr] || (ICON[it.spr] = SPR[it.spr].toDataURL());
+
+/* ================= sound: all synthesized with Web Audio, no files ================= */
+const SND = (() => {
+  let ctx = null, out = null, noise = null, on = true, foot = 0;
+  try { on = localStorage.getItem("gamey.sound") !== "off"; } catch (e) {}
+  function start() {   // browsers allow sound only after a tap, so the first tap starts it
+    if (ctx) { if (ctx.state === "suspended" && !document.hidden) ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ctx = new AC(); out = ctx.createGain(); out.gain.value = on ? 0.8 : 0; out.connect(ctx.destination);
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    ambience();
+  }
+  function env(g, t, a, peak, dur) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+  function tone(f, dur, { type = "square", vol = .15, to = null, at = 0, a = .005 } = {}) {
+    if (!ctx) return;
+    const t = ctx.currentTime + at, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    env(g, t, a, vol, dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .05);
+  }
+  function burst(dur, { kind = "bandpass", f = 1200, to = null, q = 1, vol = .2, at = 0, a = .005 } = {}) {   // filtered noise
+    if (!ctx) return;
+    const t = ctx.currentTime + at, s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; fl.type = kind; fl.Q.value = q;
+    fl.frequency.setValueAtTime(f, t); if (to) fl.frequency.exponentialRampToValueAtTime(to, t + dur);
+    env(g, t, a, vol, dur); s.connect(fl).connect(g).connect(out); s.start(t, Math.random()); s.stop(t + dur + .05);
+  }
+  function ambience() {   // a low rumble, a draught that comes and goes, water dripping somewhere
+    const r = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), rg = ctx.createGain();
+    r.buffer = noise; r.loop = true; lp.type = "lowpass"; lp.frequency.value = 140; rg.gain.value = .22;
+    r.connect(lp).connect(rg).connect(out); r.start();
+    const w = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), wg = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+    w.buffer = noise; w.loop = true; bp.type = "bandpass"; bp.frequency.value = 500; bp.Q.value = .7; wg.gain.value = .03;
+    lfo.frequency.value = .07; lg.gain.value = .025; lfo.connect(lg).connect(wg.gain);
+    w.connect(bp).connect(wg).connect(out); w.start(); lfo.start();
+    const drip = () => {
+      if (on && ctx.state === "running") { const f = 900 + Math.random() * 700; tone(f, .18, { type: "sine", vol: .05, to: f * .5 }); tone(f * .5, .25, { type: "sine", vol: .015, at: .22, to: f * .3 }); }
+      setTimeout(drip, 3000 + Math.random() * 6000);
+    };
+    setTimeout(drip, 2500);
+  }
+  document.addEventListener("visibilitychange", () => { if (ctx) document.hidden ? ctx.suspend() : ctx.resume(); });
+  const buzz = k => window.GY && window.GY.haptic(k);   // phone vibration, only inside Telegram (see tools/tg.js)
+  return {
+    start,
+    isOn: () => on,
+    setOn(v) { on = v; try { localStorage.setItem("gamey.sound", v ? "on" : "off"); } catch (e) {} if (ctx) out.gain.setTargetAtTime(v ? .8 : 0, ctx.currentTime, .05); },
+    step()    { foot ^= 1; burst(.09, { kind: "lowpass", f: 380 + foot * 60, vol: .5 }); tone(70 + foot * 8, .08, { type: "sine", vol: .25, to: 45 }); },
+    bump()    { buzz("soft"); tone(60, .12, { type: "sine", vol: .3, to: 40 }); burst(.06, { kind: "lowpass", f: 250, vol: .3 }); },
+    tick()    { tone(1500, .03, { vol: .03 }); },
+    hiss()    { burst(.6, { kind: "highpass", f: 3000, vol: .12, a: .08 }); },
+    roar()    { tone(90, .7, { type: "sawtooth", vol: .08, to: 55, a: .05 }); burst(.8, { kind: "bandpass", f: 700, to: 300, vol: .12, a: .1 }); },
+    rattle()  { buzz("rigid"); for (let i = 0; i < 6; i++) burst(.04, { f: 2400, q: 4, vol: .18, at: i * .06 }); },
+    swing()   { buzz("light"); burst(.12, { f: 2600, to: 600, q: 1.5, vol: .25 }); burst(.08, { kind: "lowpass", f: 900, vol: .45, at: .06 }); tone(140, .1, { vol: .08, at: .06, to: 70 }); },
+    hurt()    { buzz("heavy"); tone(220, .18, { vol: .1, to: 90, at: .2 }); burst(.12, { kind: "lowpass", f: 600, vol: .35, at: .2 }); },
+    counter() { buzz("medium"); burst(.1, { kind: "highpass", f: 4000, to: 1500, vol: .2 }); tone(880, .08, { vol: .07, at: .08 }); tone(1320, .2, { type: "triangle", vol: .08, at: .14 }); burst(.1, { kind: "lowpass", f: 900, vol: .5, at: .12 }); },
+    miss()    { burst(.15, { f: 1500, to: 800, vol: .1 }); },
+    kill()    { buzz("ok"); [392, 330, 262].forEach((f, i) => tone(f, .12, { vol: .06, at: .15 + i * .07 })); },
+    chest()   { tone(180, .35, { type: "sawtooth", vol: .05, to: 260, a: .05 }); burst(.3, { f: 900, to: 1400, q: 3, vol: .08 }); tone(1200, .05, { vol: .05, at: .34 }); },
+    take(at = 0) { buzz("tick"); tone(660, .06, { vol: .06, at }); tone(990, .1, { vol: .06, at: at + .06 }); },
+    blade()   { buzz("medium"); burst(.25, { kind: "highpass", f: 5000, vol: .1 }); tone(1760, .4, { type: "triangle", vol: .05, to: 1700 }); tone(2640, .3, { type: "sine", vol: .03 }); },
+    fuse()    { buzz("ok"); for (let i = 0; i < 7; i++) tone(300 + Math.random() * 500, .06, { type: "sine", vol: .05, at: i * .05 }); [523, 659, 784, 1047].forEach((f, i) => tone(f, .25, { type: "triangle", vol: .06, at: .4 + i * .08 })); },
+    nope()    { buzz("error"); tone(110, .2, { vol: .07 }); tone(104, .2, { vol: .07, at: .02 }); },
+    paper()   { for (let i = 0; i < 3; i++) burst(.07, { f: 3000 + Math.random() * 2000, q: .8, vol: .1, at: i * .05 }); },
+    cloth()   { burst(.18, { f: 1200, to: 500, vol: .07, a: .03 }); },
+    win()     { buzz("ok"); [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, .35, { type: "triangle", vol: .08, at: i * .11 })); },
+    die()     { buzz("error"); tone(220, 1.2, { type: "sawtooth", vol: .07, to: 55, a: .02 }); burst(1, { kind: "lowpass", f: 400, to: 80, vol: .2 }); }
+  };
+})();
+
+/* ================= state ================= */
+let S, uid = 1, sheetOpen = null;
+function newGame(intro) {
+  S = { at:"A", from:null, face:{dx:1,dy:0}, visited:new Set(["A"]), hp:HERO_HP, max:HERO_HP, turn:0,
+        foes:{}, chests:{}, inv:[], eq:null, sel:null, log:[], flash:"", over:false, won:false, intro:!!intro,
+        kills:0, moves:0, bagNew:false, fresh:new Set(), chestTurn:false, taken:[], noteRead:false,
+        bench:{ base:null, mod:null }, lastFused:null, tableNote:"" };
+  for (const k in NODES) {
+    if (NODES[k].foe) { const f = FOES[NODES[k].foe]; S.foes[k] = { ...f, hp:f.hp, max:f.hp, step:0, wait:0 }; }
+    if (NODES[k].chest) S.chests[k] = false;
+  }
+  $("overlay").hidden = true;
+  closeSheet();
+  renderAll();
+  if (intro) overlay(false, "Awakening", "You wake in a cold cellar.", "Get up", () => { SND.start(); S.intro = false; $("overlay").hidden = true; renderAll(); });
+}
+const foeHere = () => { const f = S.foes[S.at]; return f && f.hp > 0 ? f : null; };
+const weapon = () => S.eq && S.eq.type === "weapon" ? S.eq : null;
+function moves() { const w = weapon(); return w ? w.moves.map(id => ({ id, name: MOVES[id].name, src: w })) : []; }
+function intentOf(f) { const [kind, dmg] = f.pattern[f.step % f.pattern.length]; return { kind, dmg, ...INTENTS[kind] }; }
+function say(t, flash) { S.log.unshift(t); S.log = S.log.slice(0, 12); if (flash) S.flash = t; }   // flash: also show it on the view until the next step
+function give(key) { const it = { uid:uid++, key, ...DEF[key] }; S.inv.push(it); S.bagNew = true; return it; }
+function known(id) { return S.visited.has(id) || ADJ[id].some(o => S.visited.has(o)); }
+function bfsNext(from, to) {
+  const prev = { [from]: null }, q = [from];
+  while (q.length) { const c = q.shift(); if (c === to) break; for (const o of ADJ[c]) if (!(o in prev)) { prev[o] = c; q.push(o); } }
+  if (!(to in prev) || from === to) return null;
+  let c = to; while (prev[c] !== from) c = prev[c]; return c;
+}
+
+/* ================= actions ================= */
+function go(dx, dy, turn = true) {   // a step back keeps the hero facing forward
+  if (S.over || S.intro) return;
+  S.flash = "";
+  const to = nodeAtDir(S.at, dx, dy);
+  if (!to) { SND.bump(); say("No way through", true); renderAll(); return; }
+  SND.step();
+  S.from = S.at; S.at = to; if (turn) S.face = { dx, dy }; S.moves++;
+  S.visited.add(to);
+  endTurn();
+}
+// Combat speaks in numbers over the foe and the health bar; the journal keeps one short line per event.
+function act(id) {
+  const f = foeHere(), w = weapon();
+  if (!f || !w || S.over || !w.moves.includes(id)) return;
+  const it = intentOf(f);
+  S.fresh.delete(id); S.flash = "";
+  if (id === "reflex" && it.dmg > 0) {
+    const d = w.dmg * 2; f.hp -= d; f.step++;
+    SND.counter(); popFoe(f, `−${d}`, "big"); popHero("dodge", "miss"); say(`${MOVES.reflex.name}: −${d}`);
+  } else {
+    if (id === "strike") { f.hp -= w.dmg; SND.swing(); popFoe(f, `−${w.dmg}`); say(`${MOVES.strike.name}: −${w.dmg}`); }
+    else { SND.miss(); popFoe(f, "wasted", "miss"); }
+    if (f.hp > 0) { if (it.dmg) { S.hp -= it.dmg; SND.hurt(); popHero(`−${it.dmg}`); say(`${f.name}: −${it.dmg} to you`); } f.step++; }
+  }
+  if (f.hp <= 0) defeat(f);
+  endTurn();
+}
+function defeat(f) {
+  S.kills++; SND.kill();
+  if (f.loot) { SND.take(.45); say(`+ ${give(f.loot).name}`, true); }
+}
+function flee() {   // running away costs nothing on floor 1: the escape is part of the story
+  const f = foeHere(); if (!f || S.over) return;
+  const n = NODES[S.at], back = n.flee || (S.from && ADJ[S.at].includes(S.from) ? S.from : ADJ[S.at][0]);
+  if (f.chase) { f.hunting = true; f.wait = 1; }   // the snake follows the one who ran, but leaves the hero one turn
+  const dx = NODES[back].x - n.x, dy = NODES[back].y - n.y;
+  go(dx, dy, !(dx === -S.face.dx && dy === -S.face.dy));
+}
+// Opening a chest costs the turn, but the turn ends only when the hero closes it: there is time to take what's inside.
+const chestLeft = id => Array.isArray(S.chests[id]) && S.chests[id].length > 0;
+function openChest() {
+  if (S.over || foeHere() || S.chests[S.at] === undefined) return;
+  if (S.chests[S.at] === false) { S.chests[S.at] = [...NODES[S.at].chest]; S.chestTurn = true; S.flash = ""; SND.chest(); }
+  if (chestLeft(S.at)) openSheet("chestsheet");
+}
+function take(i) {
+  const left = S.chests[S.at]; if (!Array.isArray(left) || !left[i] || S.inv.length >= 6) return;
+  const it = give(left.splice(i, 1)[0]); S.taken.push(it.name);
+  if (it.type === "weapon") SND.blade(); else SND.take();
+  if (it.type === "weapon" && !S.eq) { S.eq = it; it.moves.forEach(m => S.fresh.add(m)); }   // an empty hand takes the weapon
+  if (!left.length) closeSheet(); else renderAll();
+}
+function climb() { if (!S.over && NODES[S.at].exit && !foeHere()) win(); }
+function endTurn() {
+  S.turn++;
+  for (const [room, f] of Object.entries(S.foes)) {   // a chasing foe follows the hero one room per turn
+    if (!f.hunting || f.hp <= 0 || room === S.at) continue;
+    if (f.wait > 0) { f.wait--; continue; }
+    const nx = bfsNext(room, S.at);
+    if (nx && !S.foes[nx]) { delete S.foes[room]; S.foes[nx] = f; }
+  }
+  if (S.hp <= 0) { S.hp = 0; die(); return; }
+  renderAll();
+}
+function equip(it) {
+  if (S.over) return;
+  if (S.eq && S.eq.uid === it.uid) { S.eq = null; say(`To bag: ${it.name}`); }
+  else { S.eq = it; say(`In hand: ${it.name}`); }
+  renderAll();
+}
+function fitting() {   // items that fuse with something else in the bag glow at the table
+  const ids = new Set();
+  RECIPES.forEach(([a, b]) => { const x = S.inv.find(i => i.key === a), y = S.inv.find(i => i.key === b); if (x && y) { ids.add(x.uid); ids.add(y.uid); } });
+  return ids;
+}
+function place(it) {   // a weapon goes on the base spot, a modifier on the other; tapping it again takes it back
+  S.lastFused = null; S.tableNote = ""; SND.tick();
+  const spot = it.type === "weapon" ? "base" : "mod";
+  S.bench[spot] = S.bench[spot] === it.uid ? null : it.uid;
+  renderTable();
+}
+function fuseBench() {
+  const base = S.inv.find(i => i.uid === S.bench.base), mod = S.inv.find(i => i.uid === S.bench.mod);
+  if (!base || !mod) return;
+  const r = RECIPES.find(([a, b]) => a === base.key && b === mod.key);
+  if (!r) { SND.nope(); S.tableNote = "Won't fuse"; renderTable(); return; }
+  const wasEq = S.eq && S.eq.uid === base.uid;
+  S.inv = S.inv.filter(i => i !== base && i !== mod); S.sel = null;
+  const it = give(r[2]); if (wasEq) S.eq = it;
+  it.moves.filter(m => !base.moves.includes(m)).forEach(m => S.fresh.add(m));
+  S.bench = { base: null, mod: null }; S.lastFused = it;
+  SND.fuse(); say(`= ${it.name}`, true);
+  renderAll();
+}
+function win() {
+  S.over = true; S.won = true; closeSheet(); renderAll(); SND.win();
+  overlay(false, "Floor 1 cleared", `Turns: ${S.turn} · Foes: ${S.kills}`, "Play again", () => newGame(false));
+}
+function die() {
+  S.over = true; closeSheet(); renderAll(); SND.die();
+  overlay(true, "You fell", S.inv.length ? `Lost: ${S.inv.map(i => i.name).join(", ")}` : "", "Try again", () => newGame(false));
+}
+function overlay(dead, title, text, label, fn) {
+  const o = $("overlay");
+  o.className = "overlay" + (dead ? " dead" : "");
+  o.innerHTML = `<h2></h2><p></p><button class="btn" id="again" type="button"></button>`;
+  o.querySelector("h2").textContent = title;
+  const p = o.querySelector("p"); p.textContent = text; p.hidden = !text;
+  const b = o.querySelector("#again"); b.textContent = label; b.onclick = fn;
+  o.hidden = false; b.focus({ preventScroll: true });
+}
+function pop(host, text, cls) {
+  const s = document.createElement("span"); s.className = "pop" + (cls ? " " + cls : ""); s.textContent = text;
+  host.appendChild(s); setTimeout(() => s.remove(), 900);
+  return s;
+}
+function popFoe(f, text, cls) {   // just above the foe's head, wherever the view puts it
+  const r = R(FOE_D), head = r.b - 8 * f.k - 4;
+  pop($("scene"), text, cls).style.top = `${Math.max(2, head / VH * 100 - 6)}%`;
+}
+function popHero(text, cls) { pop($("hpbox"), text, "hero" + (cls ? " " + cls : "")); }
+
+/* ================= first-person view ================= */
+const vc = $("view"), vx = vc.getContext("2d");
+const VW = 256, CX = 128;
+let VH = 192, CY = 84;   // the view fills its pane, so its height follows the pane's shape
+let sceneBase = null;
+function sizeScene(w, h) {
+  const nh = Math.max(160, Math.round(VW * h / w));
+  if (nh === VH && vc.height === nh) return;
+  VH = nh; CY = Math.round(VH * 0.42); vc.width = VW; vc.height = VH;
+}
+const sc = d => 1 / (1 + d * 6);
+const FOE_D = 0.24;   // foes stand a little further in, so their feet stay above the battle box
+const R = d => { const s = sc(d); return { l: CX - CX * s, r: CX + CX * s, t: CY - CY * s, b: CY + (VH - CY) * s }; };
+function poly(pts, fill) { vx.beginPath(); vx.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) vx.lineTo(p[0], p[1]); vx.closePath(); vx.fillStyle = fill; vx.fill(); }
+function line(x1, y1, x2, y2, c, w = 1) { vx.strokeStyle = c; vx.lineWidth = w; vx.beginPath(); vx.moveTo(x1, y1); vx.lineTo(x2, y2); vx.stroke(); }
+const yAt = (r, f) => r.t + (r.b - r.t) * f;
+function drawScene() {
+  const n = NODES[S.at], { dx, dy } = S.face;
+  const fwd = !!nodeAtDir(S.at, dx, dy), left = !!nodeAtDir(S.at, dy, -dx), right = !!nodeAtDir(S.at, -dy, dx);
+  const hall = n.kind === "hall";
+  const pal = hall ? { wall:"#76735f", low:"#4f473a", seam:"#3a362e", ceil:"#2c2926", floor:"#5a4733", plank:"#3b2f23" }
+                   : { wall:"#857a69", low:"#57493b", seam:"#42392f", ceil:"#302b28", floor:"#634e38", plank:"#433426" };
+  const endD = fwd ? 1 : (hall ? 0.75 : 0.42);
+  const E = R(endD), kz = Math.sqrt(VH / 192);   // light falloff grows with a taller view
+  vx.setTransform(1,0,0,1,0,0); vx.imageSmoothingEnabled = false;
+  vx.fillStyle = "#000"; vx.fillRect(0, 0, VW, VH);
+  poly([[0,0],[VW,0],[E.r,E.t],[E.l,E.t]], pal.ceil);
+  poly([[0,VH],[VW,VH],[E.r,E.b],[E.l,E.b]], pal.floor);
+  poly([[0,0],[E.l,E.t],[E.l,E.b],[0,VH]], pal.wall);
+  poly([[VW,0],[E.r,E.t],[E.r,E.b],[VW,VH]], pal.wall);
+  const N0 = R(0);
+  poly([[0,yAt(N0,.6)],[E.l,yAt(E,.6)],[E.l,E.b],[0,VH]], pal.low);
+  poly([[VW,yAt(N0,.6)],[E.r,yAt(E,.6)],[E.r,E.b],[VW,VH]], pal.low);
+  line(0, yAt(N0,.6), E.l, yAt(E,.6), "#7a6c58");
+  line(VW, yAt(N0,.6), E.r, yAt(E,.6), "#7a6c58");
+  for (let x = -96; x <= VW + 96; x += 24) line(x, VH, CX + (x - CX) * sc(endD), E.b, pal.plank);
+  for (let d = 0.06; d < endD; d += 0.09) { const r = R(d); line(r.l, r.b, r.r, r.b, pal.plank); line(r.l, r.t, r.r, r.t, "#141212"); }
+  for (let d = 0.12; d < endD; d += 0.18) { const r = R(d); line(r.l, r.t, r.l, r.b, pal.seam, 2); line(r.r, r.t, r.r, r.b, pal.seam, 2); }
+  const door = (side) => {
+    const d1 = 0.1, d2 = Math.min(0.3, endD - 0.04), a = R(d1), b = R(d2);
+    const xa = side < 0 ? a.l : a.r, xb = side < 0 ? b.l : b.r;
+    poly([[xa, yAt(a,.14)],[xb, yAt(b,.14)],[xb, b.b],[xa, a.b]], "#050406");
+    vx.strokeStyle = "#6a5a46"; vx.lineWidth = 2; vx.beginPath();
+    vx.moveTo(xa, a.b); vx.lineTo(xa, yAt(a,.14)); vx.lineTo(xb, yAt(b,.14)); vx.lineTo(xb, b.b); vx.stroke();
+  };
+  if (left) door(-1); if (right) door(1);
+  if (fwd) { vx.fillStyle = "#000"; vx.fillRect(E.l, E.t, E.r - E.l, E.b - E.t); }
+  else {
+    vx.fillStyle = pal.wall; vx.fillRect(E.l, E.t, E.r - E.l, E.b - E.t);
+    vx.fillStyle = pal.low; vx.fillRect(E.l, yAt(E,.6), E.r - E.l, E.b - yAt(E,.6));
+    line(E.l, yAt(E,.6), E.r, yAt(E,.6), "#7a6c58");
+    for (let i = 1; i < 4; i++) { const x = E.l + (E.r - E.l) * i / 4; line(x, E.t, x, E.b, pal.seam); }
+    if (!hall) {
+      const w = (E.r - E.l) * .22, x = CX - w / 2, y = yAt(E, .2);
+      vx.fillStyle = "#1c1a22"; vx.fillRect(x, y, w, w * .9);
+      vx.fillStyle = "#2c3038"; vx.fillRect(x + 2, y + 2, w / 2 - 3, w * .9 - 4); vx.fillRect(x + w / 2 + 1, y + 2, w / 2 - 3, w * .9 - 4);
+    }
+  }
+  const g = vx.createRadialGradient(CX, CY, 0, CX, CY, 58 * kz);
+  g.addColorStop(0, "rgba(0,0,0,.7)"); g.addColorStop(1, "rgba(0,0,0,0)");
+  vx.fillStyle = g; vx.fillRect(0, 0, VW, VH);
+  if (n.exit) {   // stairs up and out of the basement, lit from the floor above
+    const steps = 7, w = 0.38, rise = 0.08, run = 0.04;
+    for (let i = 0; i < steps; i++) {
+      const d0 = 0.1 + i * run, d1 = d0 + run, f0 = i * rise, f1 = f0 + rise, a = R(d0), b = R(d1), lit = i / steps;
+      const ya0 = a.b - f0 * (a.b - a.t), ya1 = a.b - f1 * (a.b - a.t), yb1 = b.b - f1 * (b.b - b.t);
+      const xa = (a.r - CX) * w, xb = (b.r - CX) * w;
+      poly([[CX - xa, ya0],[CX + xa, ya0],[CX + xa, ya1],[CX - xa, ya1]], `rgb(${58 + lit * 40},${48 + lit * 34},${40 + lit * 24})`);
+      poly([[CX - xa, ya1],[CX + xa, ya1],[CX + xb, yb1],[CX - xb, yb1]], `rgb(${110 + lit * 70},${94 + lit * 60},${72 + lit * 40})`);
+    }
+    const top = R(0.1 + steps * run), ty = top.b - steps * rise * (top.b - top.t);
+    const lg = vx.createRadialGradient(CX, ty, 2, CX, ty, 70 * kz);
+    lg.addColorStop(0, "rgba(255,214,140,.45)"); lg.addColorStop(1, "rgba(255,214,140,0)");
+    vx.fillStyle = lg; vx.fillRect(0, 0, VW, VH);
+  }
+  const put = (img, d, k, lift = 0) => {
+    const r = R(d), size = 8 * k, x = Math.round(CX - size / 2), y = Math.round(r.b - size - lift);
+    vx.drawImage(img, x, y, size, size);
+  };
+  if (n.table) put(SPR.table, 0.3, 7);
+  if (S.chests[S.at] !== undefined) put(S.chests[S.at] ? SPR.open : SPR.chest, 0.28, 5, 2);
+  const f = foeHere();
+  if (f) put(SPR[f.spr], FOE_D, f.k, 4);
+  const t = vx.createRadialGradient(CX, VH * .85, 10, CX, VH * .85, 200 * kz);
+  t.addColorStop(0, "rgba(226,178,76,.2)"); t.addColorStop(1, "rgba(226,178,76,0)");
+  vx.fillStyle = t; vx.fillRect(0, 0, VW, VH);
+  const v = vx.createRadialGradient(CX, CY + 10, 80 * kz, CX, CY + 10, 175 * kz);
+  v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.55)");
+  vx.fillStyle = v; vx.fillRect(0, 0, VW, VH);
+  sceneBase = vx.getImageData(0, 0, VW, VH);
+  grain();
+}
+function grain() {
+  if (!sceneBase) return;
+  const img = new ImageData(new Uint8ClampedArray(sceneBase.data), sceneBase.width, sceneBase.height), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - .5) * 18, avg = (d[i] + d[i+1] + d[i+2]) / 3;
+    d[i]   = d[i]   * .8 + avg * .2 + n;
+    d[i+1] = d[i+1] * .8 + avg * .2 + n;
+    d[i+2] = d[i+2] * .8 + avg * .2 + n;
+  }
+  vx.putImageData(img, 0, 0);
+}
+const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (!still) setInterval(grain, 110);
+
+/* ================= map ================= */
+// The map turns with the hero: facing is always up, so ▶ on the scene is always right on the map.
+// The floor is drawn on a square board so a turn never changes the map's size.
+// Two copies: the minimap keeps the hero in its centre, the full map shows the whole floor.
+const B = Math.max(COLS, ROWS), MID = (B - 1) / 2, FCX = (COLS - 1) / 2, FCY = (ROWS - 1) / 2;
+const mkMap = (id, labels, follow) => { const c = $(id); return { c, g: c.getContext("2d"), labels, follow, cell: 0 }; };
+const MINI = mkMap("map", false, true), BIG = mkMap("bigmap", true, false), MAPS = [MINI, BIG];
+let heading = null, spin = 0;
+function sizeMap(m, px) {
+  const dpr = window.devicePixelRatio || 1, cell = Math.max(10, Math.floor(px / B)), W = cell * B;
+  if (cell === m.cell && m.c.width === Math.round(W * dpr)) return;
+  m.cell = cell;
+  m.c.style.width = m.c.style.height = W + "px";
+  m.c.width = m.c.height = Math.round(W * dpr);
+  m.g.setTransform(dpr, 0, 0, dpr, 0, 0); m.g.imageSmoothingEnabled = false;
+}
+const toScreen = (vx, vy) => { const f = S.face; return { x: -vx * f.dy + vy * f.dx, y: -(vx * f.dx + vy * f.dy) }; };
+const ctrAt = (id, cell, follow) => {
+  const o = follow ? NODES[S.at] : { x: FCX, y: FCY }, p = toScreen(NODES[id].x - o.x, NODES[id].y - o.y);
+  return { x: (p.x + MID + .5) * cell, y: (p.y + MID + .5) * cell };
+};
+function drawMap(m) {
+  const mx = m.g, cell = m.cell, W = cell * B, H = W, ctr = id => ctrAt(id, cell, m.follow);
+  mx.clearRect(0, 0, W, H);
+  mx.fillStyle = m.follow ? "rgba(58,38,39,.38)" : "#3a2627"; mx.fillRect(0, 0, W, H);   // the minimap lets the view show through
+  for (let i = 0; i < 70; i++) {
+    const h = (i * 2654435761) >>> 0;
+    mx.fillStyle = i % 3 ? "rgba(20,10,12,.18)" : "rgba(120,80,70,.10)";
+    mx.fillRect((h % 997) / 997 * W, ((h >> 10) % 991) / 991 * H, 3 + (h % 7) * 2, 3 + ((h >> 5) % 5) * 2);
+  }
+  const box = Math.round(cell * .62);
+  mx.lineCap = "square";
+  for (const [a, b] of EDGES) {
+    if (!(S.visited.has(a) || S.visited.has(b))) continue;
+    const p = ctr(a), q = ctr(b);
+    mx.strokeStyle = "#1a1012"; mx.lineWidth = Math.max(3, cell * .1); mx.beginPath(); mx.moveTo(p.x, p.y); mx.lineTo(q.x, q.y); mx.stroke();
+    mx.strokeStyle = "#e0b84a"; mx.lineWidth = Math.max(2, cell * .06); mx.beginPath(); mx.moveTo(p.x, p.y); mx.lineTo(q.x, q.y); mx.stroke();
+  }
+  const fs = Math.max(10, Math.round(cell * .17));
+  mx.textAlign = "center"; mx.textBaseline = "middle";
+  for (const id in NODES) {
+    if (!known(id)) continue;
+    const n = NODES[id], c = ctr(id), x = Math.round(c.x - box / 2), y = Math.round(c.y - box / 2);
+    const vis = S.visited.has(id);
+    mx.fillStyle = "#120c0e"; mx.fillRect(x + 3, y + 3, box, box);
+    mx.fillStyle = !vis ? "#2a1e20" : n.exit ? "#5b7db0" : "#6f9a86";
+    mx.fillRect(x, y, box, box);
+    mx.strokeStyle = vis ? "#e9e0c8" : "#6f9a86"; mx.lineWidth = 2; mx.strokeRect(x + 1, y + 1, box - 2, box - 2);
+    if (id === S.at) {
+      mx.strokeStyle = "#d4495b"; mx.lineWidth = Math.max(3, cell * .06); mx.strokeRect(x - 2, y - 2, box + 4, box + 4);
+      const s = Math.round(box * .62); mx.drawImage(SPR.player, Math.round(c.x - s / 2), Math.round(c.y - s / 2), s, s);
+      const tw = Math.max(4, Math.round(cell * .09));   // facing notch: the hero always looks up
+      mx.fillStyle = "#e2b24c"; mx.beginPath(); mx.moveTo(c.x, y - 5 - tw * 1.4); mx.lineTo(c.x - tw, y - 5); mx.lineTo(c.x + tw, y - 5); mx.closePath(); mx.fill();
+    } else if (m.labels) {
+      mx.font = `500 ${fs}px "Pixelify Sans", monospace`;
+      mx.fillStyle = vis ? "#14100f" : "#8fb3a1";
+      const lbl = vis ? n.label : "?";
+      mx.fillText(lbl.length > 6 && vis ? lbl.slice(0, 5) + "." : lbl, c.x, c.y + 1);
+    }
+    const r = Math.max(3, cell * .055);
+    const dot = (col, ox) => { mx.fillStyle = "#120c0e"; mx.fillRect(x + ox - 1, y + 3, r * 2 + 2, r * 2 + 2); mx.fillStyle = col; mx.fillRect(x + ox, y + 4, r * 2, r * 2); };
+    if (vis && S.foes[id] && S.foes[id].hp > 0) dot("#d4495b", 4);
+    if (vis && (S.chests[id] === false || chestLeft(id))) dot("#e8bf55", box - 4 - r * 2);
+    if (vis && n.table) dot("#8f7ad1", box - 4 - r * 2);
+  }
+}
+// on a turn, start from the old orientation and swing into the new one; the compass needles keep pointing north
+function drawMaps() {
+  MAPS.forEach(m => { if (m.cell) drawMap(m); });
+  const hd = (Math.round(Math.atan2(S.face.dx, -S.face.dy) * 180 / Math.PI) + 360) % 360;
+  if (heading === null) spin = -hd;
+  else if (hd !== heading) {
+    const d = ((hd - heading + 540) % 360) - 180;
+    spin -= d;
+    if (!still) MAPS.forEach(m => { if (m.c.animate && m.c.offsetParent) m.c.animate([{ transform: `rotate(${d}deg)` }, { transform: "rotate(0deg)" }], { duration: 260, easing: "ease-out" }); });
+  }
+  heading = hd;
+  document.querySelectorAll(".needle").forEach(n => { n.style.transform = `rotate(${spin}deg)`; });
+}
+BIG.c.addEventListener("click", e => {
+  if (S.over || foeHere()) return;
+  const r = BIG.c.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, cell = BIG.cell;
+  const to = ADJ[S.at].find(o => { const c = ctrAt(o, cell, false); return Math.abs(px - c.x) < cell / 2 && Math.abs(py - c.y) < cell / 2; });
+  if (!to) return;
+  const dx = NODES[to].x - NODES[S.at].x, dy = NODES[to].y - NODES[S.at].y;
+  go(dx, dy, !(dx === -S.face.dx && dy === -S.face.dy));
+});
+
+/* ================= panel ================= */
+let wasFight = false, warned = "";   // for the sounds of a foe appearing and of a telegraphed throw
+function relDirs() { const { dx, dy } = S.face; return { f:[dx, dy], l:[dy, -dx], r:[-dy, dx], b:[-dx, -dy] }; }
+function renderAll() {
+  drawScene(); drawMaps();
+  $("roomname").textContent = NODES[S.at].name;
+  const rd = relDirs(), f = foeHere(), fight = !!f && !S.over;
+  if (fight && !wasFight) f.boss ? SND.roar() : SND.hiss();   // a foe shows up
+  if (fight && intentOf(f).kind === "throw" && warned !== `${S.at}:${f.step}`) { warned = `${S.at}:${f.step}`; SND.rattle(); }
+  wasFight = fight;
+  document.querySelectorAll(".go").forEach(b => {
+    const [x, y] = rd[b.dataset.rel];
+    b.hidden = S.over || fight || !nodeAtDir(S.at, x, y);
+    b.classList.toggle("pulse", S.moves === 0 && !S.intro && b.dataset.rel === "f");
+  });
+  $("foe").hidden = !fight;
+  if (f) {
+    const it = intentOf(f);
+    $("foename").textContent = `${f.name} ${f.hp}/${f.max}`;
+    $("foebar").style.width = (100 * f.hp / f.max) + "%";
+    $("intent").textContent = it.label(it.dmg); $("intent").className = "intent " + it.tone;
+  }
+  const nb = $("note"), note = !!NODES[S.at].note && !S.over;   // a DOM button laid over the floor, so it can be tapped
+  nb.hidden = !note;
+  if (note) {
+    const r = R(0.26);
+    nb.style.width = `${32 / VW * 100}%`; nb.style.left = `${(CX - 70) / VW * 100}%`; nb.style.top = `${r.b / VH * 100}%`;
+    nb.className = "floornote " + (S.noteRead ? "read" : "unread");
+  }
+  $("saytxt").textContent = S.flash;
+  $("say").hidden = S.over || fight || !S.flash;
+  $("mini").hidden = fight;
+  $("battle").hidden = !fight;
+  if (fight) renderMoves($("bmoves"), $("bcount"), true);
+  renderMoves($("mlist"), $("mcount"), false);
+
+  const acts = $("acts"), n = NODES[S.at]; acts.innerHTML = "";
+  if (!S.over) {
+    if (f) acts.appendChild(btn("Flee", flee, "ghost"));
+    else if (S.chests[S.at] === false || chestLeft(S.at)) acts.appendChild(btn(S.chests[S.at] === false ? "Open chest" : "Chest", openChest));
+    else if (n.table) acts.appendChild(btn("Alchemy table", () => openSheet("tablesheet")));
+    else if (n.exit) acts.appendChild(btn("Climb", climb));
+    else { const p = document.createElement("div"); p.className = "empty"; p.textContent = "Nothing here"; acts.appendChild(p); }
+  }
+
+  $("hpv").textContent = `${S.hp}/${S.max}`;
+  $("hpb").style.width = (100 * S.hp / S.max) + "%";
+  $("bagcount").textContent = `${S.inv.length}/6`;
+  $("bagdot").hidden = !S.bagNew;
+  $("eqname").textContent = weapon() ? weapon().name : "Nothing";
+  const lg = $("log"); lg.innerHTML = "";
+  S.log.forEach(t => { const d = document.createElement("div"); d.textContent = t; lg.appendChild(d); });
+  renderInv();
+  if (sheetOpen === "tablesheet") renderTable();
+  if (sheetOpen === "chestsheet") renderChest();
+}
+function renderMoves(box, count, live) {   // live = the battle box, where filled slots are buttons
+  const list = moves(), f = foeHere(), threat = !!f && intentOf(f).dmg >= 5;
+  box.innerHTML = ""; count.textContent = `${list.length} of ${SLOTS}`;
+  for (let i = 0; i < SLOTS; i++) {
+    const mv = list[i], el = document.createElement(live && mv ? "button" : "div");
+    el.className = "move" + (mv ? "" : " empty") + (live && mv && mv.id === "reflex" && threat ? " hot" : "");
+    if (mv) {   // the icon of the item that gives the move, as context
+      const b = document.createElement("b"), src = document.createElement("img");
+      b.textContent = mv.name;
+      src.src = iconURL(mv.src); src.alt = ""; src.title = mv.src.name;
+      el.append(b, src);
+      if (S.fresh.has(mv.id)) { const t = document.createElement("em"); t.className = "new"; t.textContent = "new"; el.appendChild(t); }
+    } else el.setAttribute("aria-label", "Empty slot");
+    if (live && mv) { el.type = "button"; el.onclick = () => act(mv.id); }
+    box.appendChild(el);
+  }
+}
+function btn(t, fn, cls) { const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (cls ? " " + cls : ""); b.textContent = t; b.onclick = fn; return b; }
+function renderInv() {
+  const slots = $("slots"); slots.innerHTML = "";
+  for (let i = 0; i < 6; i++) {
+    const it = S.inv[i], b = document.createElement("button");
+    b.type = "button"; b.className = "slot";
+    if (!it) { b.disabled = true; b.setAttribute("aria-label", "Empty slot"); slots.appendChild(b); continue; }
+    b.setAttribute("aria-label", it.name);
+    if (S.sel === it.uid) b.classList.add("sel");
+    b.innerHTML = `<img alt="" src="${iconURL(it)}">` + (S.eq && S.eq.uid === it.uid ? `<span class="eq">IN HAND</span>` : "");
+    b.onclick = () => { S.sel = S.sel === it.uid ? null : it.uid; renderInv(); };
+    slots.appendChild(b);
+  }
+  const d = $("detail"), it = S.inv.find(i => i.uid === S.sel);
+  d.innerHTML = "";
+  if (!S.inv.length) { const p = document.createElement("p"); p.textContent = "Empty"; d.appendChild(p); return; }
+  if (!it) return;
+  const b = document.createElement("b"); b.textContent = it.name; d.append(b);
+  if (it.type === "weapon") {
+    const a = document.createElement("div"); a.className = "actions";
+    const held = S.eq && S.eq.uid === it.uid;
+    a.appendChild(btn(held ? "Put away" : "Hold", () => equip(it), held ? "ghost" : ""));
+    d.appendChild(a);
+  }
+}
+function renderTable() {   // the bag lies by the table: items that fit glow, the player puts them on the table; the result shows only after fusing
+  const fit = fitting(), get = uid => S.inv.find(i => i.uid === uid);
+  const part = (it, role, onTap, res) => {
+    const el = document.createElement("div"); el.className = "part" + (res ? " res" : "");
+    const c = document.createElement(it && onTap ? "button" : "span"); c.className = "cell" + (it ? "" : " empty");
+    if (it) {
+      const img = document.createElement("img"); img.alt = it.name; img.src = iconURL(it); c.appendChild(img);
+      if (onTap) { c.type = "button"; c.onclick = onTap; }
+    } else if (res) c.textContent = "?";
+    const b = document.createElement("b"); b.textContent = it ? it.name : "";
+    const s = document.createElement("small"); s.textContent = role;
+    el.append(c, b, s); return el;
+  };
+  const op = t => { const s = document.createElement("span"); s.className = "op"; s.setAttribute("aria-hidden", "true"); s.textContent = t; return s; };
+  const base = get(S.bench.base), mod = get(S.bench.mod), bench = $("bench"); bench.innerHTML = "";
+  bench.append(part(base, "base", () => place(base)), op("+"), part(mod, "modifier", () => place(mod)), op("="), part(S.lastFused, "result", null, true));
+  $("fusebtn").hidden = !(base && mod);
+  $("tablenote").textContent = S.tableNote;
+  const inv = $("tableinv"); inv.innerHTML = "";
+  for (let i = 0; i < 6; i++) {
+    const it = S.inv[i], b = document.createElement("button");
+    b.type = "button"; b.className = "slot";
+    if (!it) { b.disabled = true; b.setAttribute("aria-label", "Empty slot"); inv.appendChild(b); continue; }
+    if (it.uid === S.bench.base || it.uid === S.bench.mod) b.classList.add("used");
+    else if (fit.has(it.uid)) b.classList.add("fit");
+    b.setAttribute("aria-label", it.name);
+    b.innerHTML = `<img alt="" src="${iconURL(it)}">`;
+    b.onclick = () => place(it);
+    inv.appendChild(b);
+  }
+}
+function renderChest() {
+  const box = $("loot"), left = S.chests[S.at]; box.innerHTML = "";
+  if (!Array.isArray(left)) return;
+  left.forEach((key, i) => {
+    const d = DEF[key], b = document.createElement("button");
+    b.type = "button"; b.className = "lootitem"; b.onclick = () => take(i);
+    const img = document.createElement("img"); img.alt = ""; img.src = iconURL(d);
+    const n = document.createElement("b"); n.textContent = d.name;
+    b.append(img, n); box.appendChild(b);
+  });
+}
+
+/* ================= sheets: satchel, full map, alchemy table ================= */
+let opener = null;
+function openSheet(id) {
+  closeSheet();
+  sheetOpen = id; opener = document.activeElement;
+  if (id === "sheet") S.bagNew = false;
+  if (id === "sheet" || id === "mapsheet" || id === "tablesheet") SND.cloth();
+  if (id === "tablesheet") { S.bench = { base: null, mod: null }; S.lastFused = null; S.tableNote = ""; }
+  $("backdrop").hidden = false;
+  const sh = $(id); sh.hidden = false; sh.scrollTop = 0;
+  if (id === "mapsheet") sizeMap(BIG, Math.min(sh.clientWidth - 46, $("app").clientHeight * 0.55));
+  if (!still && sh.classList.contains("sheet")) { sh.classList.remove("in"); void sh.offsetWidth; sh.classList.add("in"); }
+  renderAll();
+  (sh.querySelector(".sheet-head button") || sh).focus({ preventScroll: true });
+}
+function closeSheet() {
+  if (!sheetOpen) return;
+  const was = sheetOpen;
+  $(sheetOpen).hidden = true; $("backdrop").hidden = true; sheetOpen = null;
+  if (opener && opener.focus) opener.focus({ preventScroll: true });
+  if (was === "chestsheet" && S.chestTurn) {   // closing the chest ends the turn spent opening it
+    S.chestTurn = false;
+    if (S.taken.length) say(`+ ${S.taken.join(" · ")}`, true);
+    S.taken = [];
+    endTurn();
+  }
+}
+$("bagbtn").addEventListener("click", () => openSheet("sheet"));
+$("say").addEventListener("click", () => openSheet("sheet"));
+$("mini").addEventListener("click", () => openSheet("mapsheet"));
+["close", "mapclose", "tableclose", "chestclose", "backdrop"].forEach(id => $(id).addEventListener("click", closeSheet));
+$("takeall").addEventListener("click", () => { while (chestLeft(S.at) && S.inv.length < 6) take(0); });
+$("note").addEventListener("click", () => {
+  if (!S.noteRead) say("Applicants: your name is crossed out");
+  SND.paper(); S.noteRead = true; openSheet("paper");
+});
+$("paper").addEventListener("click", () => { SND.paper(); closeSheet(); });
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => SND.start()));   // sound may start only after a tap
+const sndBtn = $("snd");
+function paintSnd() { sndBtn.classList.toggle("off", !SND.isOn()); sndBtn.setAttribute("aria-pressed", SND.isOn() ? "true" : "false"); }
+sndBtn.addEventListener("click", () => { SND.setOn(!SND.isOn()); paintSnd(); });
+paintSnd();
+$("fusebtn").addEventListener("click", () => fuseBench());
+
+/* ================= input ================= */
+function step(rel) { if (S.intro || foeHere()) return; const [x, y] = relDirs()[rel]; go(x, y, rel !== "b"); }
+document.querySelectorAll(".go").forEach(b => b.addEventListener("click", () => step(b.dataset.rel)));
+const KEYS = { ArrowUp:"f", ArrowDown:"b", ArrowLeft:"l", ArrowRight:"r", w:"f", s:"b", a:"l", d:"r",
+  W:"f", S:"b", A:"l", D:"r", "ц":"f", "ы":"b", "ф":"l", "в":"r" };
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && sheetOpen) { closeSheet(); return; }
+  if (sheetOpen || S.intro) return;
+  if (e.target.closest && e.target.closest("button")) { if (e.key === "Enter" || e.key === " ") return; }
+  const mv = moves(), n = "1234".indexOf(e.key);
+  if (foeHere() && n >= 0) { e.preventDefault(); if (mv[n]) act(mv[n].id); return; }
+  if (e.key === " ") { e.preventDefault(); if (foeHere()) { if (mv[0]) act(mv[0].id); } else { const b = document.querySelector("#acts .btn"); if (b) b.click(); } return; }
+  const k = KEYS[e.key]; if (!k) return; e.preventDefault(); step(k);
+});
+const scenePane = $("scene");
+function refit() {   // the view fills its pane; the minimap takes about a third of the view's width
+  const w = scenePane.clientWidth, h = scenePane.clientHeight;
+  if (!w || !h) return;
+  sizeScene(w, h);
+  sizeMap(MINI, Math.min(w * 0.38, h * 0.3, 168));
+  if (S) { drawScene(); drawMaps(); }
+}
+if ("ResizeObserver" in window) new ResizeObserver(refit).observe(scenePane);
+else window.addEventListener("resize", refit);
+refit(); newGame(true);
+if (window.GY) window.GY.back(() => { location.href = "index.html"; });   // in Telegram, Back leaves the run for the app
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+})();
+</script>
+
+</body>
+</html>
