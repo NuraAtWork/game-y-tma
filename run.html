@@ -112,7 +112,7 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .where{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .hp{position:relative}
 
-.scene{position:absolute;inset:0;overflow:hidden;background:var(--black)}
+.scene{position:absolute;inset:0;overflow:hidden;background:var(--black);touch-action:none}
 .scene > canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 .cap{min-width:0;font-family:var(--display);font-size:16px;line-height:1.15;color:var(--torch);text-shadow:0 2px 0 var(--ink)}
 
@@ -131,6 +131,8 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .go.r{right:12px;top:42%;margin-top:-22px}
 .go.b{bottom:4px;left:50%;margin-left:-22px}
 .go.pulse{border-color:var(--torch);animation:pulse 1.6s ease-out infinite}
+.go.flash{animation:tap .3s ease-out}   /* the arrow a swipe went through */
+@keyframes tap{from{border-color:var(--torch);box-shadow:0 0 0 4px var(--torch-glow)}to{box-shadow:0 0 0 0 var(--pulse-0)}}
 .say{flex:1;min-width:0;padding:0 0 2px;border:0;background:none;font-size:13px;line-height:1.3;text-align:left;text-shadow:0 1px 0 var(--ink);cursor:pointer}
 .say span{display:block}
 /* combat numbers: rise over the foe and over the health bar, then fade */
@@ -269,7 +271,7 @@ button.cell{padding:0;cursor:pointer}
   .bottom{padding-bottom:10px}
   .sheet{padding-bottom:16px}
 }
-@media (prefers-reduced-motion:reduce){.bar>i,.foe b,.needle{transition:none}.sheet.in,.go.pulse,.move.hot,.pop,.slot.fit,.floornote.unread img{animation:none}}
+@media (prefers-reduced-motion:reduce){.bar>i,.foe b,.needle{transition:none}.sheet.in,.go.pulse,.go.flash,.move.hot,.pop,.slot.fit,.floornote.unread img{animation:none}}
 </style>
 
 <div class="stage">
@@ -1065,6 +1067,20 @@ document.addEventListener("keydown", e => {
   const k = KEYS[e.key]; if (!k) return; e.preventDefault(); step(k);
 });
 const scenePane = $("scene");
+// a swipe on the view moves like the arrows: up = forward, down = back, left and right = the side doors
+let swipe = null;
+scenePane.addEventListener("pointerdown", e => { if (!e.target.closest("button")) swipe = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId }; });
+scenePane.addEventListener("pointercancel", () => { swipe = null; });
+scenePane.addEventListener("pointerup", e => {
+  if (!swipe || e.pointerId !== swipe.id) return;
+  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, quick = performance.now() - swipe.t < 1500;
+  swipe = null;
+  if (!quick || Math.max(Math.abs(dx), Math.abs(dy)) < 32 || sheetOpen || S.over || S.intro) return;   // a tap, not a swipe
+  const rel = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "r" : "l") : (dy > 0 ? "b" : "f");
+  const arrow = document.querySelector(`.go.${rel}`);
+  if (arrow && !arrow.hidden && !still) { arrow.classList.remove("flash"); void arrow.offsetWidth; arrow.classList.add("flash"); }
+  step(rel);
+});
 function refit() {   // the view fills its pane; the minimap takes about a third of the view's width
   const w = scenePane.clientWidth, h = scenePane.clientHeight;
   if (!w || !h) return;
