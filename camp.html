@@ -1,0 +1,1697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="tg.js"></script>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#0b0a0c}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* the Telegram build is always the phone layout: no device frame, no design notes */
+.stage{display:block!important;height:100%!important;min-height:0!important;padding:0!important}
+.device{width:100%!important;height:100%!important;aspect-ratio:auto!important;padding:0!important;border-radius:0!important;box-shadow:none!important}
+.app{border-radius:0!important}
+.statusbar,.homebar,.notes{display:none!important}
+/* in full screen, stay clear of the phone's status bar and Telegram's own buttons */
+:root{--tg-top:calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));--tg-bottom:var(--tg-safe-area-inset-bottom, 0px)}
+.top{padding-top:calc(var(--tg-top) + 10px)!important}
+.bottom{padding-bottom:calc(var(--tg-bottom) + 10px)!important}
+.topbar{padding-top:calc(var(--tg-top) + 8px)!important}
+.tabbar{padding-bottom:calc(var(--tg-bottom) + 8px)!important}
+.sheet{padding-bottom:calc(var(--tg-bottom) + 16px)!important}
+</style>
+</head>
+<body>
+<title>Game Y Camp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: desktop = phone frame with design notes beside it; phone = the app itself, edge to edge.
+   Camp = top bar / scrolling view / tab bar Play · Camp · Almanac · Shop, as in state 1. The alchemy table is a sub-screen,
+   creature and item cards open as bottom sheets. Same single dark world and palette as the other states; sprites 16×16. */
+:root{
+  --stage:#0c0a0d;
+  --bg:#141216;
+  --panel:#201c22;
+  --panel-hi:#29232b;
+  --seg:#2c262d;
+  --well:#0e0c10;
+  --line:#3a3238;
+  --fg:#ece3d2;
+  --muted:#9d929a;
+  --torch:#e2b24c;
+  --torch-dim:#5b4524;
+  --torch-ink:#1a1209;
+  --blood:#cf4656;
+  --moss:#7fa48a;
+  --moss-dim:#26332b;
+  --arcane:#8f7ad1;
+  --ember:#d98a3d;
+  --star:#f3d36b;
+  --star-dim:#6a5a2a;
+  --scrim:rgba(20,18,22,.95);
+  --scrim-mid:rgba(20,18,22,.7);
+  --veil:rgba(8,6,9,.6);
+  --glow:rgba(226,178,76,.07);
+  --glow-soft:rgba(226,178,76,.14);
+  --glow-strong:rgba(226,178,76,.28);
+  --pulse:rgba(226,178,76,.55);
+  --pulse-0:rgba(226,178,76,0);
+  --shadow:rgba(0,0,0,.5);
+  --ink:#000;
+  --stone:#2a2529;
+  --slot:#161317;
+  --wood:#4a3020;
+  --wood-hi:#6e4426;
+  --wood-lo:#2a1a10;
+  --bevel-hi:rgba(255,255,255,.12);
+  --bevel-lo:rgba(0,0,0,.6);
+  --hover:rgba(255,255,255,.22);
+  --tip:rgba(16,0,16,.94);
+  --tip-edge:#4b1fa8;
+  --bezel:#050406;
+  --bezel-edge:#2c262e;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--stage);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+*{font-variant-ligatures:none!important}   /* Pixelify Sans turns "fl" into a broken glyph; !important because every font shorthand resets it */
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+img{image-rendering:pixelated}
+:focus-visible{outline:2px solid var(--torch);outline-offset:2px}
+.num{font-family:var(--body);font-variant-numeric:tabular-nums}   /* digits in Golos: Pixelify's small 2 and 5 read as 8 and S */
+
+/* ---------- stage & device (same as the other states) ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:radial-gradient(60% 55% at 50% 45%, var(--glow), transparent 70%)}
+.device{position:relative;flex:none;height:clamp(640px, calc(100vh - 48px), 864px);height:clamp(640px, calc(100dvh - 48px), 864px);aspect-ratio:410/864;padding:10px;border-radius:58px;background:var(--bezel);box-shadow:0 0 0 1px var(--bezel-edge), 0 40px 90px -30px var(--bezel)}
+.app{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.statusbar{flex:none;position:relative;height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 28px 0 36px;font:600 15px/1 var(--body);color:var(--fg)}
+.island{position:absolute;top:11px;left:50%;width:118px;height:33px;margin-left:-59px;border-radius:17px;background:var(--bezel)}
+.sys{display:flex;gap:6px;align-items:center}
+.sys svg{display:block}
+.homebar{position:absolute;bottom:8px;left:50%;z-index:30;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);opacity:.75;pointer-events:none}
+
+/* ---------- top bar ---------- */
+.topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
+.tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
+.hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
+.avatar img{width:32px;height:32px}
+.who{min-width:0;display:flex;flex-direction:column;gap:2px}
+.who b{font:500 17px/1.1 var(--display)}
+.who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 8px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:500 14px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--star)}
+.chip .ico{width:14px;height:14px}
+.tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
+.back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
+.back .ico{width:16px;height:14px}
+.tb-title{min-width:0;display:flex;flex-direction:column;gap:2px}
+.tb-title b{font:500 18px/1.1 var(--display)}
+.tb-title span{font-size:12px;color:var(--muted)}
+
+/* ---------- views ---------- */
+.main{position:relative;flex:1;min-height:0;display:flex}
+.views{flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{display:flex;flex-direction:column;gap:12px;padding-block:16px 24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.view.fwd{animation:fwd .22s ease-out}
+.view.rev{animation:rev .22s ease-out}
+@keyframes fwd{from{opacity:.3;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes rev{from{opacity:.3;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.vh{display:flex;flex-direction:column;gap:4px;padding-bottom:2px}
+.vh h2{margin:0;font:700 26px/1.05 var(--display)}
+.sec{margin:8px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec span{font:400 12px/1 var(--body);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.narr{margin:-4px 0 0;font-size:14px;font-style:italic;color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
+.btn.sm{min-height:34px;padding:0 12px;font-size:15px}
+.btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.pulse{animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--pulse)}100%{box-shadow:0 0 0 14px var(--pulse-0)}}
+.btn:active,.tile:active,.newcard button:active,.go:active,.rowcard:active,button.entry:active,button.cell:active,.where:active,.back:active{transform:translateY(1px)}
+
+/* ---------- camp: scene strip (pixel art, 3 screen px per art px) ---------- */
+.strip{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:4px;width:100%;min-height:148px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background-color:var(--panel);background-repeat:no-repeat;background-position:right bottom;image-rendering:pixelated;overflow:hidden}
+.strip::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, var(--scrim) 0%, var(--scrim) 22%, var(--scrim-mid) 40%, transparent 62%)}
+.strip>*{position:relative}
+.strip .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.strip .title{font:700 25px/1.05 var(--display);margin-top:2px}
+.strip .meta{font-size:13px;color:var(--muted)}
+
+/* one card: what opened on this return */
+.newcard{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--torch-dim)}
+.newcard .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--torch)}
+.newrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.newcard button,.newcard .nitem{min-width:0;display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:4px;background:var(--seg);font:500 15px/1.15 var(--display);text-align:left;cursor:pointer}
+.newcard .nitem{cursor:default}
+.newcard .ico{width:22px;height:22px;color:var(--torch)}
+
+/* tiles: table and almanac */
+.tile{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.tface{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--seg);color:var(--fg)}
+.tface .ico{width:26px;height:26px}
+.tbody{min-width:0;display:flex;flex-direction:column;gap:3px}
+.tbody b{font:500 18px/1.1 var(--display)}
+.tbody span{font-size:13px;color:var(--muted)}
+.badge{min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;border-radius:12px;background:var(--blood);color:var(--fg);font:600 13px/1 var(--body);font-variant-numeric:tabular-nums}
+.chev{width:10px;height:14px;color:var(--muted)}
+.pill{flex:none;padding:5px 7px;border-radius:3px;font:500 12px/1 var(--display);letter-spacing:.06em;white-space:nowrap}
+.pill.new{background:var(--torch-dim);color:var(--torch)}
+.pill.ok{background:var(--moss-dim);color:var(--moss)}
+.pill.off{background:var(--seg);color:var(--muted)}
+
+/* shelf: special items stand on a plank */
+.shelf{position:relative;display:flex;gap:8px;padding:8px 12px 0;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg, var(--panel) 0%, var(--panel) calc(100% - 12px), var(--wood-hi) calc(100% - 12px), var(--wood-hi) calc(100% - 10px), var(--wood) calc(100% - 10px), var(--wood-lo) 100%)}
+.shelf .islot{width:50px;margin-bottom:12px}
+.shelf .islot.empty{background:transparent;box-shadow:none;border:1px dashed var(--line)}
+.shelf .islot.shake{animation:shake .32s linear}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+
+/* sticky: the next floor */
+.go{position:sticky;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;margin-top:4px;padding:12px 16px;border:0;border-radius:6px;background:var(--torch);color:var(--torch-ink);cursor:pointer;box-shadow:0 -14px 22px var(--bg)}
+.go b{font:500 21px/1.05 var(--display)}
+.go span{font-size:12px;font-weight:500;opacity:.8}
+.go b .num{font-size:1.1em;font-weight:600}
+
+/* ---------- table ---------- */
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.seg button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 14px/1 var(--display);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
+.seg button.locked{opacity:.6}
+.seg .ico{width:10px;height:10px}
+.seg .dot{position:absolute;top:5px;right:6px;width:5px;height:5px;background:var(--torch)}
+
+.recs{display:flex;flex-direction:column;gap:8px}
+.rec{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.rec.can{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 18px var(--glow-soft);cursor:pointer}
+.rec.sil{background:transparent;border-style:dashed}
+.rec.sil b{color:var(--muted);letter-spacing:.1em}
+.face{flex:none;width:48px;height:48px;display:grid;place-items:center;border-radius:4px;background:var(--seg);font:700 20px/1 var(--display);color:var(--line)}
+.face img{width:32px;height:32px}
+.rec.sil .face{background:transparent;border:1px dashed var(--line)}
+.rbody{min-width:0;display:flex;flex-direction:column;gap:5px}
+.rbody b{display:flex;align-items:center;gap:8px;font:500 16px/1.15 var(--display)}
+.rbody p{margin:0;font-size:13px;color:var(--muted)}
+.tagnew{padding:3px 5px;border-radius:3px;background:var(--torch-dim);color:var(--torch);font:500 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase}
+.ings{display:flex;flex-wrap:wrap;gap:4px 10px}
+.ing{display:inline-flex;align-items:center;gap:5px;font-size:13px;white-space:nowrap}
+.ing img{width:16px;height:16px}
+.ing i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--blood)}
+.ing.ok i{color:var(--moss)}
+.where{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--torch);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.where .chev{width:6px;height:9px;color:var(--torch)}
+.known{display:flex;flex-direction:column;gap:6px}
+.krow{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+.krow img{width:20px;height:20px}
+.krow .op{color:var(--muted)}
+.krow b{margin-left:4px;font:500 14px/1.1 var(--display)}
+
+/* free fusion: two cells and the result, as at the run's table */
+.bench{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:4px;align-items:start;padding:14px 8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.part{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.cell{position:relative;width:60px;height:60px;max-width:100%;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:4px;background:var(--well);font:700 22px/1 var(--display);color:var(--line)}
+button.cell{cursor:pointer}
+.cell img:not(.n){width:40px;height:40px}
+.cell .n{position:absolute;right:3px;bottom:3px}
+.cell.empty{border-style:dashed;background:transparent}
+.cell.dim img{opacity:.4}
+.part.res .cell{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch)}
+.part.res.done .cell{box-shadow:inset 0 0 0 1px var(--torch), 0 0 22px var(--glow-strong)}
+.part b{min-height:15px;font:500 13px/1.15 var(--display)}
+.op{margin-top:20px;font:700 20px/1 var(--display);color:var(--muted)}
+.tablerow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px}
+.tablenote{font:500 15px/1.2 var(--display)}
+.tablenote.bad{color:var(--blood)}
+.tablenote.good{color:var(--torch)}
+
+/* bag: a Minecraft-style inventory, as in Builds: bevelled slots on a stone panel, stack counts in pixel digits, a purple tooltip */
+.inv{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px;border:1px solid var(--ink);background:var(--stone);box-shadow:inset 2px 2px 0 var(--bevel-hi), inset -2px -2px 0 var(--bevel-lo)}
+.islot{position:relative;min-width:0;aspect-ratio:1/1;display:grid;place-items:center;padding:0;border:0;background:var(--slot);box-shadow:inset 2px 2px 0 var(--bevel-lo), inset -2px -2px 0 var(--bevel-hi)}
+button.islot{cursor:pointer}
+.islot img:not(.n){width:32px;max-width:66%;height:auto}
+.islot .n{position:absolute;right:3px;bottom:3px}
+.islot[aria-pressed="true"]::after{content:"";position:absolute;inset:2px;background:var(--hover)}
+.islot.used img:not(.n){opacity:.25}
+.islot.hand{box-shadow:inset 0 0 0 2px var(--torch), inset 2px 2px 0 2px var(--bevel-lo)}
+.islot .hl{position:absolute;top:4px;left:0;right:0;font:500 9px/1 var(--display);letter-spacing:.06em;color:var(--torch);text-align:center;pointer-events:none}
+.islot .mk{position:absolute;top:4px;left:4px;width:6px;height:6px;background:var(--moss);pointer-events:none}
+.islot .mk.spare{background:var(--ember)}
+.tip{position:absolute;z-index:3;display:flex;flex-direction:column;gap:3px;padding:5px 8px;border:2px solid var(--tip-edge);border-radius:2px;background:var(--tip);font:500 14px/1.15 var(--display);color:var(--fg);white-space:nowrap;pointer-events:none;transform:translate(-50%,-100%)}
+.tip i{font-style:normal;font-size:13px}
+.tip .t-hand{color:var(--torch)}
+.tip .t-rec{color:var(--moss)}
+.tip .t-spare{color:var(--ember)}
+.tip .t-key{color:var(--muted)}
+
+.locknote{display:flex;gap:12px;align-items:center;padding:14px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.locknote .ico{width:16px;height:16px}
+.locknote b{font:500 16px/1.15 var(--display)}
+
+/* ---------- almanac: creatures with study stages ---------- */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.entry{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:center}
+button.entry{cursor:pointer}
+.entry img{width:32px;height:32px}
+.entry span{font-size:12px;line-height:1.2;text-wrap:balance}
+.entry.unk{justify-content:center;min-height:72px;background:transparent;border-style:dashed}
+.entry.unk i{font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
+.rows{display:flex;flex-direction:column;gap:8px}
+.rowcard{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.rowcard b{display:block;font:500 17px/1.15 var(--display)}
+.rowcard.unk{cursor:default;background:transparent;border-style:dashed}
+.rowcard.unk .face{background:transparent;border:1px dashed var(--line)}
+.rowcard .wins{font:400 13px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.new-dot::after{content:"";position:absolute;top:8px;right:8px;width:6px;height:6px;background:var(--torch)}
+.study{display:flex;align-items:center;gap:3px;margin-top:6px}
+.study i{width:18px;height:6px;border-radius:1px;background:var(--seg)}
+.study i.on{background:var(--torch)}
+.study span{margin-left:6px;font-size:12px;color:var(--muted)}
+.ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.ladder div{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted);text-align:center}
+.ladder i{height:6px;border-radius:1px;background:var(--seg)}
+.ladder .on{color:var(--fg)}
+.ladder .on i{background:var(--torch)}
+.facts{margin:0;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.facts div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0}
+.facts div+div{border-top:1px solid var(--line)}
+.facts dt{font-size:13px;color:var(--muted)}
+.facts dd{margin:0;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 10px;font:500 14px/1.2 var(--body);text-align:right;font-variant-numeric:tabular-nums}
+.facts dd span{display:inline-flex;align-items:center;gap:5px}
+.facts dd img{width:20px;height:20px}
+.intents{display:flex;flex-wrap:wrap;gap:6px}
+.intent{padding:6px 9px;border-radius:3px;background:var(--seg);font:500 13px/1 var(--display)}
+.intent.hit{color:var(--blood)}
+.intent.calm{color:var(--muted)}
+.intent.warn{color:var(--torch)}
+.lockrow{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.lockrow .ico{width:14px;height:14px}
+.lockrow b{font:500 15px/1.15 var(--display)}
+.lockrow span{font:400 13px/1 var(--body);font-variant-numeric:tabular-nums}
+.studied{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--star-dim);border-radius:6px;background:var(--panel)}
+.studied b{font:500 16px/1 var(--display);color:var(--star)}
+.studied span{font-size:13px;color:var(--muted)}
+.mini{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.mini .cell{width:52px;height:52px}
+.mini .cell img:not(.n){width:32px;height:32px}
+.mini .op{margin:0}
+
+/* ---------- tab bar, toast, sheet ---------- */
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+.tab .ico{width:30px;height:30px}
+.tab[aria-current="page"]{color:var(--torch)}
+.tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
+.toast{position:absolute;left:16px;right:16px;top:10px;z-index:30;padding:11px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:6px;background:var(--panel-hi);font:500 14px/1.25 var(--body);box-shadow:0 10px 30px var(--bezel);pointer-events:none;animation:toast .2s ease-out}
+.toast.recipe{border-left-color:var(--torch)}
+.toast.almanac{border-left-color:var(--arcane)}
+.toast.unlock{border-left-color:var(--moss)}
+@keyframes toast{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.backdrop{position:absolute;inset:0;z-index:20;background:var(--veil)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;max-height:82%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px;padding-block:8px 30px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:var(--bg);border-top:1px solid var(--line);border-radius:16px 16px 0 0}
+.sheet.in{animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{flex:none;width:40px;height:4px;margin:0 auto 2px;border-radius:2px;background:var(--line)}
+.plinth{position:relative;flex:none;height:140px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:radial-gradient(55% 60% at 50% 50%, var(--glow-soft), transparent 72%), var(--well)}
+.plinth::after{content:"";position:absolute;left:50%;bottom:18px;width:84px;height:10px;margin-left:-42px;border-radius:50%;background:var(--shadow)}
+.plinth img{position:relative;z-index:1;width:96px;height:96px}
+.plinth .q{position:relative;z-index:1;font:700 48px/1 var(--display);color:var(--line)}
+.sh-head{display:flex;align-items:center;gap:12px}
+.sh-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.sh-title b{font:500 21px/1.1 var(--display);color:var(--torch)}
+.sh-title span{font-size:12px;color:var(--muted)}
+.sheet .sec{margin-top:2px}
+
+/* ---------- notes beside the phone ---------- */
+.notes{display:none;flex:0 1 300px;max-width:300px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:thin;flex-direction:column;gap:22px}
+.brand{font:700 34px/1 var(--display);color:var(--torch)}
+.lede{margin:8px 0 0;font-size:15px;color:var(--muted)}
+.note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.note p{margin:0;font-size:14px}
+.note a{color:var(--torch);text-underline-offset:3px}
+.note .cur{color:var(--fg)}
+.dev{padding:2px 7px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--torch);font-size:13px;cursor:pointer}
+.foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (min-width:1000px){.notes{display:flex}}
+
+/* ---------- on a real phone: no frame ---------- */
+@media (max-width:599px){
+  body{background:var(--bg)}
+  .stage{display:block;height:100%;min-height:0;padding:0;background:var(--bg)}
+  .device{width:100%;height:100%;aspect-ratio:auto;padding:0;border-radius:0;background:var(--bg);box-shadow:none}
+  .app{border-radius:0}
+  .statusbar,.homebar{display:none}
+  .topbar{padding-top:10px}
+  .tabbar{padding-bottom:8px}
+  .sheet{padding-bottom:16px}
+}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.sheet.in,.toast,.btn.pulse,.shelf .islot.shake{animation:none}}
+</style>
+
+<div class="stage">
+  <div class="device">
+    <div class="app" id="app">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="island"></span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <header class="topbar">
+        <div class="tb-root" id="tbRoot">
+          <div class="hero">
+            <span class="avatar"><img data-spr="player" alt=""></span>
+            <span class="who"><b data-t="hero.name"></b><span id="heroSub"></span></span>
+          </div>
+          <span class="chip" id="stars"><i class="ico" data-ico="star" data-s="1"></i>0</span>
+        </div>
+        <div class="tb-sub" id="tbSub" hidden>
+          <button class="back" id="back" type="button" data-ta="aria.back"><i class="ico" data-ico="back" data-s="2"></i></button>
+          <div class="tb-title"><b id="tbTitle"></b><span id="tbSubt"></span></div>
+        </div>
+      </header>
+
+      <div class="main">
+        <div class="views" id="views">
+          <section class="view" data-view="camp" id="camp"></section>
+          <section class="view" data-view="table" id="table" hidden></section>
+          <section class="view" data-view="almanac" id="almanac" hidden></section>
+        </div>
+        <div class="toast" id="toast" role="status" hidden></div>
+      </div>
+
+      <nav class="tabbar" data-ta="aria.sections">
+        <a class="tab" href="index.html"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></a>
+        <button class="tab" type="button" data-tab="camp"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span></button>
+        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
+        <a class="tab" href="index.html"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></a>
+      </nav>
+
+      <div class="backdrop" id="backdrop" hidden></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
+      <span class="homebar" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  </div>
+
+<script>
+(() => {
+/* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
+const STR = {
+  "hero.name": "Human", "hero.class": "No class",
+  "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
+  "camp.basement": "Basement", "camp.landing": "Stair landing", "camp.shelter": "Shelter",
+  "camp.cleared": "Floor {n} cleared", "camp.new": "New at camp",
+  "camp.table": "Alchemy table", "camp.ready": "{n} ready", "camp.almost": "Almost: {name}",
+  "camp.shelf": "Shelf", "camp.almanac": "Almanac", "camp.creatures": "Creatures", "camp.fresh": "+{n} new",
+  "camp.next": "Floor {n} →", "camp.nextSub": "Basement · ~5 min", "camp.nextStub": "Floor {n} is not built yet",
+  "unlock.table": "Alchemy table", "unlock.almanac": "Almanac", "unlock.armor": "Armor slot", "unlock.belt": "Potion belt",
+  "unlock.feed": "Feed", "unlock.key": "Key", "unlock.shelter": "Shelter", "unlock.stars": "Floor stars", "unlock.quick": "Quick battle",
+  "table.title": "Alchemy table", "table.recipes": "Recipes", "table.feed": "Feed", "table.feedLock": "Feed opens after floor {n}",
+  "table.feedSoon": "Feeding comes with weapon levels.",
+  "book.can": "Can make", "book.almost": "Almost", "book.unknown": "Unknown", "book.known": "Known",
+  "book.new": "new", "book.make": "Make", "book.where": "{many} · Floor {n}", "book.whereChest": "Chest · Floor {n}",
+  "book.sil": "???",
+  "hint.book": "Wolf pelt + something from Floor 3", "hint.vspear": "Snake fang + a longer weapon",
+  "fuse.title": "Free fusion", "fuse.btn": "Fuse", "fuse.discovered": "Recipe discovered!", "fuse.wont": "Won't fuse",
+  "fuse.short": "Needs {name} ×{n}",
+  "bag.title": "Bag", "bag.hand": "IN HAND", "bag.inHand": "In hand", "bag.for": "For {n} recipe", "bag.forN": "For {n} recipes",
+  "bag.spare": "Spare → feed", "bag.key": "Needs a key",
+  "toast.recipe": "New recipe: {name}", "toast.almanac": "New in Almanac: {name}",
+  "alm.title": "Almanac", "alm.weapons": "Weapons", "alm.creatures": "Creatures", "alm.items": "Items",
+  "alm.met": "{n} met", "alm.found": "{n} found", "alm.basement": "Basement", "alm.at": "Basement · Floor {n}",
+  "alm.notMet": "Not met", "alm.win": "{n} win", "alm.wins": "{n} wins", "alm.met1": "Met", "alm.progress": "{a} / {b}",
+  "alm.hp": "HP", "alm.dmg": "Damage", "alm.loot": "Loot", "alm.into": "Goes into", "alm.intents": "Intents",
+  "alm.studied": "Studied", "alm.quick": "Quick battle · Floor {n}+", "alm.recipe": "Recipe", "alm.foundAt": "Found",
+  "type.weapon": "Weapon", "type.mod": "Modifier", "type.mat": "Material", "type.special": "Special", "type.armor": "Armor",
+  "intent.bite": "Bites · {d}", "intent.coil": "Coils", "intent.growl": "Growls", "intent.prep": "Readies a lunge", "intent.lunge": "Lunge · {d}",
+  "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger",
+  "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt",
+  "item.lockbox": "Locked box", "item.tail": "Rat tail", "item.jacket": "Leather jacket",
+  "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
+  "at.dagger": "Chest · Floor 1", "at.stone": "Chest · Floor 1", "at.fang": "Snake · Floor 1",
+  "at.pelt": "Dire wolf · Floor 1", "at.lockbox": "Closet · Floor 1",
+  "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat",
+  "foe.snake.many": "Snakes", "foe.wolf.many": "Dire wolves", "foe.rat.many": "Rats",
+  "close": "Close",
+  "narr.camp": "Somebody slept here before you."
+};
+const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
+
+document.documentElement.lang = "en";
+const $ = id => document.getElementById(id);
+const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const HOME = "index.html";   // relative: the Telegram build maps it to index.html
+
+/* ================= data (keys from GDE/CONTRACT.md) ================= */
+const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
+  dagger:  { type:"weapon",  spr:"dagger",  at:true },
+  stone:   { type:"mod",     spr:"stone",   at:true },
+  fang:    { type:"mod",     spr:"fang",    at:true },
+  sharp:   { type:"weapon",  spr:"sharp" },
+  viper:   { type:"weapon",  spr:"viper" },
+  pelt:    { type:"mat",     spr:"pelt",    at:true },
+  lockbox: { type:"special", spr:"lockbox", at:true },
+  tail:    { type:"mat",     spr:"tail",    from:"rat" },
+  jacket:  { type:"armor",   spr:"jacket" },
+  scroll:  { type:"weapon",  spr:"scroll",  floor:3 },   // only in the hints for now
+  spear:   { type:"weapon",  spr:"spear",   floor:8 },
+  book:    { type:"weapon",  spr:"book" },
+  vspear:  { type:"weapon",  spr:"spear" }
+};
+for (const k in ITEMS) { ITEMS[k].name = t("item." + k); ITEMS[k].at = ITEMS[k].at ? t("at." + k) : ""; }
+const item = k => ITEMS[k] || { name:k[0].toUpperCase() + k.slice(1), type:"mat", spr:k };   // a key from a newer run still shows up
+const RECIPES = [   // ingredients with counts, in the order Make lays them on the bench; hint = shown as ??? until made
+  { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
+  { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
+  { out:"jacket", in:[["pelt", 1], ["tail", 3]] },
+  { out:"book",   in:[["scroll", 1], ["pelt", 1]], hint:"hint.book" },
+  { out:"vspear", in:[["spear", 1], ["fang", 1]],  hint:"hint.vspear" }
+];
+const CREATURES = {
+  snake: { spr:"snake", floor:1, hp:6,  loot:"fang", intents:[["bite", 2], ["coil", 0]] },
+  wolf:  { spr:"wolf",  floor:1, hp:18, loot:"pelt", intents:[["bite", 2], ["growl", 0], ["bite", 2], ["prep", 0], ["lunge", 5]] },
+  rat:   { spr:"rat",   floor:2,        loot:"tail" }
+};
+for (const c in CREATURES) { CREATURES[c].name = t("foe." + c); CREATURES[c].many = t("foe." + c + ".many"); }
+const TONE = { bite:"hit", lunge:"hit", coil:"calm", growl:"calm", prep:"warn" };
+const STUDY = { stats: 1, intents: 3, studied: 5 };   // wins for stages 2, 3, 4; stage 1 = met once (GDE-04: thresholds are an open question)
+const CAMP_UNLOCKS = {   // what each cleared floor opens at camp (GDE-04); go = where the "new" card leads
+  1: [{ key:"table", ico:"flask", go:"table" }, { key:"almanac", ico:"book", go:"almanac" }],
+  2: [{ key:"armor", ico:"shield" }],                        // the first craft: Leather jacket
+  3: [{ key:"belt", ico:"flask" }, { key:"feed", ico:"fire", go:"table" }],
+  4: [{ key:"key", ico:"lock" }],                            // the locked box opens: a wick
+  5: [{ key:"shelter", ico:"fire" }, { key:"stars", ico:"star" }, { key:"quick", ico:"tower" }]
+};
+
+/* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
+const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const DEMO_SAVE = { v: 1, floor: 1,   // "after floor 1", the shape 03 writes on floor_clear
+  bag: [{ key: "viper", n: 1 }, { key: "pelt", n: 1 }, { key: "lockbox", n: 1 }], hand: "viper", moves: ["strike", "reflex"],
+  creatures: { snake: { seen: 1, wins: 1 }, wolf: { seen: 1, wins: 1 } },
+  recipes: ["sharp", "viper"], camp: ["table", "almanac"], makeable: 0, time: { 1: 241 } };
+const clone = o => JSON.parse(JSON.stringify(o));
+function readSave() {   // anything the writer left out gets the empty shape; unknown fields are kept and written back
+  const s = readJSON("gamey.save", null);
+  if (!s || s.v !== 1 || typeof s.floor !== "number" || s.floor < 1 || !Array.isArray(s.bag)) return null;
+  const arr = a => Array.isArray(a) ? a : [];
+  return { ...s, bag: s.bag.filter(x => x && typeof x.key === "string" && x.n > 0), hand: s.hand || null, moves: arr(s.moves),
+    creatures: s.creatures && typeof s.creatures === "object" ? s.creatures : {}, recipes: arr(s.recipes), camp: arr(s.camp),
+    makeable: s.makeable | 0, time: s.time && typeof s.time === "object" ? s.time : {} };
+}
+let save = readSave(), demo = !save;
+if (demo) save = clone(DEMO_SAVE);
+
+const once = {
+  has: k => { const a = readJSON("gamey.once", []); return Array.isArray(a) && a.includes(k); },
+  add(k) { try { const a = readJSON("gamey.once", []), l = Array.isArray(a) ? a : []; if (!l.includes(k)) { l.push(k); localStorage.setItem("gamey.once", JSON.stringify(l)); } } catch (e) {} }
+};
+let sid = "nosid";
+try { sid = sessionStorage.getItem("gamey.sid"); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("gamey.sid", sid); } } catch (e) {}
+
+/* GDE-00 analytics: console now, a server later */
+function track(e, props) {
+  props = props || {};
+  console.debug("[track]", e, props);
+  try {
+    const l = readJSON("gamey.events", []), log = Array.isArray(l) ? l : [];
+    log.push({ e, t: Date.now(), sid, ...props });
+    localStorage.setItem("gamey.events", JSON.stringify(log.slice(-500)));
+  } catch (err) {}
+}
+
+/* ================= sprites (16×16; block copied whole from states/05-almanac.html, palette included) ================= */
+function mk(rows, pal) {
+  const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
+  const g = c.getContext("2d");
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
+  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
+  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
+  o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1", V:"#c9bdf2", u:"#f3d36b",
+  q:"#120e14", H:"#7a4e33", S:"#b8865f", Y:"#7d5228", L:"#3a3340",
+  i:"#c98a8a", j:"#3d2f1c", J:"#6e5530",   // i, j/J: rat tail and chitin, as in Builds
+  a:"#8c7a3a", A:"#5c4f22" };              // a/A: the mother snake's ochre (o/O in the run state)
+const SPR = {
+  // items
+  dagger: mk([
+    "................", "................", "................", "...........MM...",
+    "..........mMn...", "........M.M.....", ".......MmMn.....", ".....kMMMnn.....",
+    ".....AaMn.......", "......Aan.......", ".....hjAa.......", "....Jj..........",
+    "...aJ...........", "...A............", "................", "................"
+  ], P),
+  sharp:  mk([
+    "................", "................", ".............m..", "...........em...",
+    "..........emM...", "........eemM....", ".......eemM.....", ".....ueemMn.....",
+    ".....akmMn......", "......akn.......", ".....Hjak.......", "....hh..........",
+    "..ukj...........", "...a............", "................", "................"
+  ], P),
+  viper:  mk([
+    "..............me", ".............mgG", "............mgG.", "...........mgG..",
+    "..........mGG...", "...G.....mgG....", "....k...mGG.....", "....yk.mgG......",
+    ".....yx.........", "......yk........", ".....w.yk.......", "....hh..yk......",
+    "...ww.....G.....", "..kh............", ".kky............", "..y............."
+  ], P),
+  shortsword: mk([
+    "................", "................", "............em..", "...........emM..",
+    "..........emM...", ".........emM....", "........emM.....", ".....u.emM......",
+    ".....akmM.......", "......ak........", ".....whak.......", "....wh..........",
+    "...kh...........", "...a............", "................", "................"
+  ], P),
+  sword:  mk([
+    "................", ".............em.", "............emM.", "...........emM..",
+    "..........emM...", ".........emM....", "...u....emM.....", "...u...emM......",
+    "...ak.emM.......", "....akmM........", ".....ak.........", "....Hhak........",
+    "...Hh..aak......", ".ukh............", ".ka.............", "................"
+  ], P),
+  longsword: mk([
+    "...............e", "..............eM", ".............eM.", "............eM..",
+    "...........eM...", "..........eM....", ".........eM.....", "........mM......",
+    ".......mM.......", "...u..mM........", "...akmM.........", "....ak..........",
+    "...whak.........", "..Hj..a.........", "uwh.............", "ak.............."
+  ], P),
+  greatsword: mk([
+    "..............mm", "............emmM", "...........emmM.", "..........emMMn.",
+    ".........emMMn..", "..u.....emMMn...", "..u....emMMn....", "..ak..emMMn.....",
+    "...akemMMn......", "....akmMn.......", ".....akn........", "....Hhak........",
+    "...Hh..akk......", ".ukh....aa......", "kka.............", "Aa.............."
+  ], P),
+  knife:  mk([
+    "................", "................", "................", "............e...",
+    "...........e....", "..........em....", ".........emM....", "........emM.....",
+    ".......emM......", "......yw........", ".....Yw.........", "....yw..........",
+    "...Yw...........", "................", "................", "................"
+  ], P),
+  dirk:   mk([
+    "................", "..............m.", "............em..", "...........em...",
+    "..........emM...", ".........emM....", "........emM.....", ".......emM......",
+    "....u.emM.......", "....akmM........", ".....ak.........", "....Hjak........",
+    "...hj...........", ".ukj............", ".ka.............", "................"
+  ], P),
+  assassin: mk([
+    "...............x", ".............xr.", "............rnl.", "...........xLL..",
+    "..........rLL...", ".........rnL....", "........rLLl....", "....V..rLLl.....",
+    "....V.rLnl......", "....vvLLl.......", ".....vvl........", "....Llvvv.......",
+    "...nL...........", ".Vvl............", ".vR.............", "................"
+  ], P),
+  longbow: mk([
+    "..........YYYYYS", ".......YYYwww.e.", ".....YYwww...e..", "...SSww.....e...",
+    "...St......e....", "..Yw......e.....", "..Yw.....e......", ".Yw.....e.......",
+    ".Yw....e........", ".Yw...e.........", "Yw...e..........", "Yw..e...........",
+    "Yw.e............", "Y.e.............", "Ye..............", "S..............."
+  ], P),
+  crossbow: mk([
+    "..............me", ".......Mm.....mM", "......n.Mm...S..", "......e..MmmS...",
+    "......e...Mmm...", "......e...yMm...", ".......e.yY.Mm..", ".......eyY...Mm.",
+    ".......yYe....M.", "......yY..eeen..", ".....yYk........", "....yY.k........",
+    "...yYw..........", "..yYw...........", ".yYw............", "yYw............."
+  ], P),
+  arbalest: mk([
+    "..............me", "......nMm....m.M", "......enMmm.m.M.", "......e.nMmmnn..",
+    "......e..nMmm...", "......e...nMmm..", ".......e.mMnMm..", ".......emMn.nMm.",
+    ".......mMn...nM.", "......mMn.eeeen.", ".....mMnk.......", "....mMn.k.......",
+    "...mMn..........", "..mMn...........", ".mMn............", "mMn............."
+  ], P),
+  hatchet: mk([
+    "................", "................", "........mm......", ".......emMn.....",
+    "......emMMMn.y..", ".....emMMMMnyY..", ".....mMMMMnyY...", "......mnnnyY....",
+    ".........yY.....", "........yY......", ".......yY.......", "......yY........",
+    ".....yY.........", "....yY..........", "...wY...........", "................"
+  ], P),
+  handaxe: mk([
+    ".........e......", "........emM...Yh", ".......emMMn.Yh.", "......emMMMMnnn.",
+    ".....emMMMMMnnn.", "....emMMMnnYhn..", "...emMMn..Yh....", "...emn...Yh.....",
+    "...m....Yh......", ".......Yh.......", "......Yh........", ".....Yh.........",
+    "....Yh..........", "...Yh...........", "..Yh............", ".wh............."
+  ], P),
+  battleaxe: mk([
+    "................", ".........mm.....", "........mMMn.Y..", ".......mMMMnYh..",
+    ".......mMMnYnn..", "........nnYnMMm.", ".........YhMMMm.", "........YhnMMm..",
+    ".......Yh..mm...", "......Yh........", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..Yh............", ".Yh.............", "wh.............."
+  ], P),
+  greataxe: mk([
+    "..........em....", "........eemM....", ".......eemMM.hj.", ".......emMMnhj..",
+    "......emMMnhnMMm", "......mMn.hnMMme", ".........hjMMme.", "........hjnMmee.",
+    ".......hj.Mmee..", "......hj..me....", ".....hj.........", "....hj..........",
+    "...hj...........", "..hj............", ".uk.............", "ka.............."
+  ], P),
+  club:   mk([
+    "................", "...........SSy..", "..........SyyYY.", ".........SyyYww.",
+    "........SyhyYww.", ".......SyyYYwh..", "......SSyYYw....", "......SyYhw.....",
+    "......yYw.......", ".....yYw........", "....yw..........", "...yw...........",
+    "..yw............", ".yw.............", "Yh..............", "................"
+  ], P),
+  mace:   mk([
+    "................", "...........mM.m.", "..........eMnmM.", ".........mMneM..",
+    ".........MnmMnMn", "..........mMnMn.", ".........YnnMn..", "........Yw..n...",
+    ".......Yw.......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".kw.............", "ka.............."
+  ], P),
+  flail:  mk([
+    "............m..m", "...........meMM.", "..........meMMn.", ".........mMMMnnn",
+    "..........MMnnn.", "..........nnnn..", "........mM..n...", "........Mn......",
+    ".......M........", ".....mM.........", ".....Mn.........", "....ka..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "wh.............."
+  ], P),
+  hammer: mk([
+    ".........e......", "........emm.....", "........eMMm....", ".........nMMm...",
+    "..........nMMm..", "..........nnMMm.", ".........YwnnMLn", "........Yw...LL.",
+    ".......Yw.......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".kw.............", "ka.............."
+  ], P),
+  spear:  mk([
+    "...............e", ".............em.", "............emM.", "...........emMn.",
+    "...........mMn..", "..........nM....", ".........yn.....", "........yY......",
+    ".......yY.......", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "yY.............."
+  ], P),
+  pike:   mk([
+    "...............m", "..............m.", "............emM.", "...........emM..",
+    "..........emM...", ".........emMn...", "........umMn....", "........kan.....",
+    ".......Ywk......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "nM.............."
+  ], P),
+  glaive: mk([
+    "...............e", "............eeM.", "..........emmMn.", ".........emmMn..",
+    "........emmMn...", "........emMn....", "........mMn.....", ".......ukn......",
+    ".......waa......", "......wh........", ".....wh.........", "....wh..........",
+    "...wh...........", "..wh............", ".wh.............", "wh.............."
+  ], P),
+  halberd: mk([
+    ".........ee....e", "........emm...mM", ".......emmM..mM.", "......emmMMnmM..",
+    "......emMMnnM...", ".....em..nnn....", ".........nnMM...", "........Yw..Mn..",
+    ".......Yw....n..", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "nn.............."
+  ], P),
+  rusty:  mk([
+    "................", "................", "............mt..", "...........mMH..",
+    "..........ttn...", "..........oH....", "........mMn.....", ".....t.tH.......",
+    ".....HaHH.......", "......Ha........", ".....hjHa.......", "....hj..........",
+    "...aj...........", "...A............", "................", "................"
+  ], P),
+  rose:   mk([
+    "......rrrr......", "....rrRrrrrr....", "...rRrrRRrrRr...", "...rrRRrrRrRR...",
+    "...RrrrrrRRRR...", "....RRrRRRRR....", ".....RRRRRR.....", "......GgG.......",
+    "......gGR.......", "..ggg.gG........", ".gGGGGgG........", "..GG..gG..ggg...",
+    ".....RgGgGGGG...", "......gG..GG....", "......gGR.......", "......gG........"
+  ], P),
+  ironthorn: mk([
+    "...........e..Mm", "............mMnL", "............MnLm", "........e..MnL.e",
+    ".........mMnL...", ".........MnLme..", ".....e..MnL.....", "......mMnL......",
+    "......MnLme.....", ".t...MnL........", ".Ht.MnL.........", "..HtnL..........",
+    "...Rt...........", "..RpHt..........", ".Rp..Ht.........", "nM.............."
+  ], P),
+  bentbar: mk([
+    "........emn.....", "........mMn.....", "........mtn.....", "........mMn.....",
+    "........mMn.....", "........mMn.....", ".......mMMn.....", "......mMMn......",
+    ".....mMtn.......", "....mMMn........", "...mMMn.........", "..mMtn..........",
+    ".mMMn...........", "mMMn............", "eMn.............", "................"
+  ], P),
+  hilt:   mk([
+    "................", "................", "................", "................",
+    "....uk...mM.....", ".....ak.emM.....", "......akmGn.....", ".......akM......",
+    "......YhGg......", ".....yw..aa.....", "....Yh..........", "...yw...........",
+    ".uYh............", "ukk.............", "kga.............", "aa.............."
+  ], P),
+  note:   mk([
+    "................", "................", "...e............", "...eee..eee.....",
+    "..eeeeeeeeeee...", "..eMMeMMeeMMem..", "..eeeeeeeeeeem..", ".eeMeMMeMMeeem..",
+    ".eeeeeeeeeeeem..", "..eMMeeMeeeeem..", "..eeeeeeeettem..", "..eMeMMeetHHt...",
+    "..eeeeeeetHt....", "...eee.eett.....", "....e....e......", "................"
+  ], P),
+  wolf:   mk([
+    "................", "....n.n.........", "....nMn........m", "..nMMMMnn.....mM",
+    ".nMxMMMnnnnnnnMn", "nMMMMMMnMMMMMMn.", "qeqeMMMnMMMMMMn.", ".nMMmMnMMMMMMMn.",
+    "...nmMnmMMMMMMn.", "....mmmmmmmmMn..", "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn",
+    "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn", "...nn.nn..nn.nn.", "................"
+  ], P),
+  lockbox: mk([
+    "................", "................", "................", "................",
+    "..hHHHHHHHHHHh..", "..HyyyyyyyyyyH..", "..nYYYYYYYYYYn..", "..nwwwwmmwwwwn..",
+    "..nwywmwwmwywn..", "..nwywMMMMwywn..", "..nwywMmmMwywn..", "..nwywMddMwywn..",
+    "..nwywMMMMwywn..", "..nwwwwwwwwwwn..", "..nnnnnnnnnnnn..", "................"
+  ], P),
+  paper:  mk([
+    "................", "..eeeeeeeem.....", "..eeeeeeeemm....", "..eeMMMMMemmm...",
+    "..eeeeeeeMMMMm..", "..eeeeeeeeeeem..", "..eeMMMMMMMMem..", "..eeeeeeeeeeem..",
+    "..eeMMMMMMMeem..", "..eeeeeeeeeeem..", "..eeMMMMMMMMem..", "..eeeeeeeeeeem..",
+    "..eeMMMMMeeeem..", "..eeeeeeeeeeem..", "..mmmmmmmmmmmm..", "................"
+  ], P),
+  crystal: mk([
+    "..e.....f.......", ".eee...eff......", "..e...effFF.....", "......eeffFb....",
+    ".....eeffFFb....", ".....efefFFb....", ".....fffeFFb....", ".....fffeffb....",
+    ".....ffffeFb....", "..f..ffffFFb....", "..ef.ffffFFb....", "..eff.ffFFb.....",
+    "...fF.ffFFb.....", "...fFb.fFF......", "....FF..F.......", "................"
+  ], P),
+  scrap:  mk([
+    "................", "................", "............e.e.", "...........emmMn",
+    "..........emmtMn", ".........emmmMn.", "........emmtHMn.", ".......emmmmMn..",
+    ".eeeeeemmmmMMn..", ".mmmmmmmmmMMn...", "emmtmmmmmMMn....", ".mmHtmmmmMn.....",
+    ".MMMMMMtMMn.....", ".nnnnnnnnn......", "................", "................"
+  ], P),
+  ember:  mk([
+    "................", "........x.......", ".......xo.......", "......xokx......",
+    "......okuo......", ".....xouukx.....", ".....okuuko.....", "....nnLokoLLL...",
+    "..nnnLLLxLLLLL..", ".nnLLLLxoLLLLLl.", ".nLLxxLLLxLLLLl.", ".nLxLLLLLoxLLLl.",
+    ".LLLLLLoLLLxlll.", "..lLLLLxLLLlll..", "...lllllllll....", "................"
+  ], P),
+  quiver: mk([
+    "........y.......", ".......eym......", ".....y.eym.y....", "....ryR.y.ryR...",
+    "....ryR.y.ryR...", "....hyjjyjjyh...", "....SSSSSSSSt...", ".....yHHHHHh....",
+    ".....yHHHHHh....", ".....JaJJJaj....", ".....yHHHHHh....", ".....yHHHHHh....",
+    ".....yHHHHHh....", ".....JaJJJaj....", ".....yHHHHHh....", "......hhhhh....."
+  ], P),
+  sling:  mk([
+    "............em..", "..........HmmmM.", ".........hHmmMnH", "........S.hHMnHh",
+    ".......S...hHHht", "......S.....hht.", ".....S.......t..", ".....S......t...",
+    "....S......t....", "....S.....t.....", "....S...tt......", "....tttt........",
+    ".ukt............", "u..k............", "k..a............", ".aa............."
+  ], P),   // a stone in the pouch, two cords looping down to the finger ring
+  wand:   mk([
+    "..............f.", ".............fef", "..............f.", "...........ef...",
+    "..........ffb...", ".........fbF....", ".........bF.....", "........Hh......",
+    ".......Hh.......", "......Hh........", ".....Hh.........", "....Hh..........",
+    "...Hh...........", "..ka............", "................", "................"
+  ], P),
+  staff2: mk([
+    "..............ef", "............mffF", "...........MffF.", "...........MfbF.",
+    "...........nnnn.", "..........yY....", ".........yY.....", "........yY......",
+    ".......yY.......", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "ww.............."
+  ], P),
+  scroll: mk([
+    "................", ".............S..", "............eSt.", "...........eesSt",
+    "..........eessS.", ".........eessS..", "........eessS...", ".......eessS....",
+    "......rrssS.....", ".....eerRSR.....", "....eessRr......", "...eessSR.......",
+    "..eessS.........", ".SSssS..........", "..tSS...........", "...t............"
+  ], P),
+  book:   mk([
+    "................", "..Rrrrrrrrrrr...", "..RrRpppppppRe..", "..RrRpppppppRe..",
+    "..RrRpppppppRe..", "..RrRpppupppRe..", "..RrRppkukppRe..", "..RrRpkkrkkpRe..",
+    "..RrRppkkappRe..", "..RrRpppapppRe..", "..RrRpppppppRe..", "..RrRpppppppRe..",
+    "..RrRpppppppRe..", "..RrRpppppppRe..", "..RRRRRRRRRRRe..", "...eeeeeeeeeee.."
+  ], P),
+  runeblade: mk([
+    "..............MM", "............MvnL", "...........MnVL.", "..........MVnL..",
+    ".........MnvL...", "........MvnL....", "...u...MnVL.....", "...k..MVnL......",
+    "...akMnvL.......", "....aknL........", ".....vV.........", "....Lvak........",
+    "...vl..akk......", ".Vvl............", ".vv.............", "v..............."
+  ], P),
+  trident: mk([
+    "...........e...e", ".........eeM..eM", ".........eM..eM.", "........eM..eM..",
+    ".......mM..eM..m", "........mMeM..mn", "........kmM..mnn", "........ukmMmn..",
+    ".......yYu.mM...", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "ka.............."
+  ], P),
+  kris:   mk([
+    "...............m", ".............eM.", "............em..", "............eM..",
+    ".........eemmM..", ".........mMM....", "...u....em......", "...ku...eM......",
+    "....akemmM......", ".....akmM.......", ".....rak........", "....pR.aa.......",
+    "...rR...........", "kukR............", ".ka.............", "................"
+  ], P),
+  greatbow: mk([
+    ".........yyyyyuk", "......yymYYYYYk.", "....yyYYMhhhhe..", "...mmYhhn...e...",
+    "..ymMn.....e....", "..yYn.....e.....", ".yYh.....e......", ".yYh....e.......",
+    ".mMn...e........", "yYh...e.........", "yYh..e..........", "yYh.e...........",
+    "yYhe............", "yYe.............", "uk..............", "k..............."
+  ], P),
+  elvenbow: mk([
+    "..............kk", "..........gggg.u", "........ggkkkV..", "......ggkk..V...",
+    ".....ukk...V....", "....uk....V.....", "...gk....V......", "...gk...V.......",
+    "..gk...V........", "..gk..V.........", ".gk..V..........", ".gk.V...........",
+    ".gkV............", ".gV.............", "k...............", "ku.............."
+  ], P),
+  handxbow: mk([
+    "................", "..............e.", ".........Mm..m..", "........n.MmS...",
+    "........e..Mm...", "........e.yYMm..", "........eyY..M..", "........yYeen...",
+    ".......yY.......", "......yY........", "......Hhn.......", "......Hh........",
+    ".....Hh.........", ".....Hh.........", ".....nn.........", "................"
+  ], P),
+  lightxbow: mk([
+    "...............e", ".......Yy.....m.", "......w.Yy...S..", "......e..YyyS...",
+    "......e...Yyy...", "......e...HYy...", ".......e.Hh.Yy..", ".......eHh...Yy.",
+    ".......Hhe....Y.", "......Hh..eeew..", ".....Hh.........", "....Hh..........",
+    "...Hh...........", "..Hh............", ".Hh.............", "Hh.............."
+  ], P),
+  repeater: mk([
+    "..............me", ".......Mm.....mM", "......k.Mm...S..", "...ukkkk.MmmS...",
+    "...HyHHh..Mmm...", "...HyHHh..yMm...", "...HHHHh.yY.Mm..", "...HHHHhyY...Mm.",
+    "...akkkaYe....M.", "......yY..eeek..", ".....yYk........", "....yY.k........",
+    "...yYw..........", "..yYw...........", ".yYw............", "yYw............."
+  ], P),
+  labrys: mk([
+    "........eeem...e", ".......emMk...e.", "......emMk...mM.", "......eMkk.kka..",
+    "......mk..kua..m", "......m...ka..km", ".........hj.kknm", "........hj..knMm",
+    ".......hj..knMm.", "......hj..MMmm..", ".....hj.........", "....hj..........",
+    "...hj...........", "..ka............", ".uk.............", "ka.............."
+  ], P),
+  maul:   mk([
+    ".........mm.....", "........mMMm....", ".......mMnnMm...", ".......MnnMnMm..",
+    "........LnnnnMm.", ".........LnnMnML", ".........hLnnnLL", "........hj.LnLL.",
+    ".......hj...LL..", "......hj........", ".....HH.........", "....hj..........",
+    "...HH...........", "..hj............", ".hj.............", "nn.............."
+  ], P),
+  scepter: mk([
+    "........u..u..u.", "........k.kkk.k.", "........ukkkkkk.", "........kkirRka.",
+    "........kkrRRka.", "........aaaaaaa.", ".........ka.....", "........ka......",
+    ".......ka.......", "......ka........", ".....ka.........", "....ka..........",
+    "...uk...........", "...ka...........", "................", "................"
+  ], P),
+  archstaff: mk([
+    "..............Ve", "......u.....VeeV", "......ku...VVeVv", "......kku..VVvv.",
+    "......kkkukvvv..", "......a.a.ka....", ".........Yhu....", "........Yhaku...",
+    ".......Yh..kku..", "......ka..akkku.", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..ka............", ".Yh.............", "uk.............."
+  ], P),
+  tome:   mk([
+    "................", ".yyyyyyyyyyy....", ".hyhHHHHHHHHhe..", ".hHhHHHHHHHHhem.",
+    ".kukkkkkkkkkkkm.", ".hHhHHHHHHHHhem.", ".hHhHHHyyHHHhem.", ".hHhHHykkhHHhem.",
+    ".hHhHHykkhHHhem.", ".hHhHHHhhHHHhem.", ".hHhHHHHHHHHhem.", ".kukkkkkkkkkkkm.",
+    ".hHhHHHHHHHHhem.", ".hhhhhhhhhhhhem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  atlas:  mk([
+    "................", ".kkbbbbbbbbkk...", ".kFFFFFFFFFFke..", ".bFFFFffFFFFbem.",
+    ".bFFFfgffFFFbem.", ".bFFfggffgFFbem.", ".bFfeggfffgFbem.", ".bFffgffggfFbem.",
+    ".bFfffffgffFbem.", ".bFFfffgffFFbem.", ".bFFFffffFFFbem.", ".bFFFFffFFFFbem.",
+    ".kFFFFFFFFFFkem.", ".kkbbbbbbbbkkem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  grimoire: mk([
+    "................", ".kkVVVVVVVVkk...", ".kvvvvvvvvvvke..", ".Vvvvvvvvvvvvem.",
+    ".VvvvVVVVvvvvem.", ".VvvVeeeeVvvvem.", ".VvVeexdxeVvkkk.", ".VvVeexxxeVvkuk.",
+    ".VvvVeeeeVvvkkk.", ".VvvvVVVVvvvvem.", ".Vvvvvvvvvvvvem.", ".Vvvvvvvvvvvvem.",
+    ".kvvvvvvvvvvkem.", ".kkvvvvvvvvkkem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  longstaff: mk([
+    "............VVv.", "...........VeVvv", "..........kVVvvv", "..........kvvvvv",
+    "..........akvvv.", "..........Yakk..", ".........Yh.....", "........Yh......",
+    ".......Yh.......", "......Yh........", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..Yh............", ".Yh.............", "kk.............."
+  ], P),
+  bow:    mk([
+    "................", "..........yyyyk.", "........yyYYYe..", "......yyYY..e...",
+    ".....wYY...e....", "....ww....e.....", "...yY....e......", "...yY...e.......",
+    "..yY...e........", "..yY..e.........", ".yY..e..........", ".yY.e...........",
+    ".yYe............", ".ye.............", ".k..............", "................"
+  ], P),
+  jacket: mk([
+    "................", ".....SS..SS.....", "...yySSjjSSyY...", "..yyyySjjSyyYY..",
+    ".SyyyyySYyyyYYY.", ".SyyyyytYyyyYYY.", ".Syy.yytYyy.YYY.", ".Syy.yytYyy.YYY.",
+    ".Syy.yytYyy.YYY.", ".Syy.yykYyy.YYY.", ".Syy.wwtYhh.YYY.", ".Syy.yytYyy.YYY.",
+    ".www.yytYyy.hhh.", ".....yytYyy.....", ".....wwtYhh.....", "................"
+  ], P),
+  ring:   mk([
+    "................", "................", "......irrR......", ".....ixrrRR.....",
+    ".....rrrrRR.....", ".....kRRRRa.....", "....ukk..kka....", "...uk......ka...",
+    "...u........a...", "..uk........aa..", "..uk........aa..", "..kk........aA..",
+    "...ka......aA...", "...kaa....aaA...", "....kaaaaaAA....", "......aaAA......"
+  ], P),
+  oldboots: mk([
+    "................", ".........HtHtH..", ".tSStS...Hhhhj..", ".yYYYH...Hhhhj..",
+    ".yYYYH...HJJhj..", ".yYqqH...HJJhj..", ".yYqqH...Hhhhj..", ".yYYYH...Hhhhj..",
+    ".yYYYH...Hhhhjj.", ".yYYYYH..Hhhhhhj", ".yYYYYYYHhhhhhhj", ".yYYYYYYYYHjjjjj",
+    ".yYYYYYYYYH.....", "jjjjjjjjjjj.....", "................", "................"
+  ], P),
+  boots:  mk([
+    "................", "................", "......SSSSt.....", "m.....tyyyY.....",
+    "Mm....yyyyY.....", "MMmm..yyyyY.....", "MMMMmmyyyyY.....", "MnMMnMyyyyYY....",
+    "n..n.MyyyyyYY...", "......yyyyyyyY..", "......yyyyyyyyY.", "......YYYYYYYYY.",
+    "......jjjjjjjjj.", "................", "................", "................"
+  ], P),
+  lid:    mk([
+    "................", "................", "................", "......nmMn......",
+    "......n..n......", "....emnmmnmM....", "..eemmmmmmmmMM..", ".emmmMMMMMMmmMM.",
+    ".emmMmmmnMmMmMMn", ".mmmMmmmMemnMMMn", ".MmmeeeeeeeeMMMn", "..MnnmmmmmmMMMn.",
+    "......MMMMMMMn..", ".......nnnnnn...", "................", "................"
+  ], P),
+  stone:  mk([
+    "................", "................", "................", "................",
+    ".....mmmmmmmmm..", "...mmeeemmmmmmMn", "..mmmmmmmmmMmMMn", ".MmmmmmmmmmmMMnn",
+    ".MMMMMMMMMMMMnnL", ".MMnMMMMMMnMMnnL", ".nMMMMMMMMMMnnL.", ".nnMMMMnMMMnnLL.",
+    "..nnnnnnnnnnLL..", "................", "................", "................"
+  ], P),
+  fang:   mk([
+    ".....tttt.......", "....tSSSSt......", "....tttttt......", ".....eeeeem.....",
+    ".....eeeeem.....", "......eeeem.....", "......eeeem.....", ".......eeem.....",
+    ".......eeem.....", "........eem.....", "........eem.....", ".........em.....",
+    ".........em.....", "..........m.....", "..........g.....", "................"
+  ], P),
+  tail:   mk([
+    "................", "............ii..", "..............ip", ".............ii.",
+    "...........iiip.", "..........ii....", ".........ii.....", ".........ii.....",
+    "..........ii....", "..........iip...", ".........ii.....", ".......iii......",
+    "...nMnni........", "..nMnnn.........", "...nnn..........", "................"
+  ], P),
+  chitin: mk([
+    "................", "................", ".....JJJJJJ.....", "...JeeeJJJJJJ...",
+    "..JeeeJJJJJJJJ..", ".JjjjjjjjjjjjjJ.", ".JJaaJJJJJJJJJJ.", ".JJJJJJJJJJJJJJ.",
+    ".JjjjjjjjjjjjjJ.", "..JJJJJJJJJJjJ..", "..JJJJJJJJJJJj..", "..jjjjjjjjjjjj..",
+    ".....JJJJJJ.....", "................", "................", "................"
+  ], P),
+  pelt:   mk([
+    "................", ".mm..........Mn.", ".mMM...mm...MMn.", "..mMMmmMMMnMMn..",
+    "...mMMMMMMMMMn..", "...mMmmMMMMMMn..", "..mMMMMmMMMMMMn.", "..mMMMMMMMMMnMn.",
+    "..mMmmMMMMMMMMn.", "...mMMmMMMMnMn..", "...mMMMMMMMMMn..", "..mMMMMMMMMnMMn.",
+    ".mMMn.nMMMn.nMn.", ".mMn...nMn...nn.", "........Mn......", ".........m......"
+  ], P),
+  sticks: mk([
+    "...............S", ".hY...........SY", "..wY.........yY.", "...wY.......yY..",
+    "....wY.....yY...", ".....wYsS.yY....", "......wstyY.....", ".....sssSSt.....",
+    ".....SSSttt.Y...", "...y..yStwYw....", "....YyYSt.wY....", "....yY.....wY...",
+    "...yY.......wY..", "..yY.........wY.", ".SY...........wY", "................"
+  ], P),
+  silk:   mk([
+    ".......m........", ".......m........", "......mem.......", "......eeM.......",
+    ".....eeemM......", ".....mmeeM......", "....eeemmmM.....", "....eeeeemM.....",
+    "....mmeeemmM....", "....eemmeemM....", "....eeeemmmM....", "....emeeeemM....",
+    ".....emmeemM....", ".....eeemmM.....", "......eemM......", "........m......."
+  ], P),
+  gland:  mk([
+    ".......G........", "........g.......", "........G.......", "......gggg......",
+    "....gggggggg....", "...ggeegggggg...", "...ggegggGGGg...", "..ggVgggggGGGg..",
+    "..ggggggggGGGg..", "..gggggggggGGG..", "...ggggggggGGG..", "...gggggggGGG...",
+    "....gggggGGG....", "......GGGG......", ".......g........", ".......G........"
+  ], P),
+  wing:   mk([
+    "................", "..........e.....", "..........mm....", ".......mmenmm...",
+    "......mnmmnmnm..", ".....mnmnmnmnnm.", "....mnmnnmnmnnnm", "..mmLLmLLmLLmLL.",
+    ".mLLLmLLmLLLmL..", "mLLLmLLLmLLLmL..", "LLLmLLLLmLLLm...", "LLLmLLLLmL..Lm..",
+    "..mL..LmL....m..", ".......m........", ".......m........", "................"
+  ], P),
+  shaft:  mk([
+    "..............yw", ".............Sy.", "............SyY.", "...........SyY..",
+    "..........SyY...", ".........SyY....", "........SyY.....", ".......SyY......",
+    "......SyY.......", ".....SyY........", "....SyY.........", "...SyY..........",
+    "..SyY...........", ".SyY............", "MyY.............", "nM.............."
+  ], P),
+  pet:    mk([
+    "................", "................", "................", "................",
+    "....Mi..........", "...Miim.mmmm....", "..mMMMrmMMMMm...", ".mMdMMrMMMMMMm..",
+    "imMMMMrMMMMMMMn.", ".nnMMnRMMMMMMMn.", "..nnnnRnMMMMMn.i", "...i..kinnnnn.i.",
+    "........i..iii..", "................", "................", "................"
+  ], P),   // the Builds companion: dark eye, red collar
+  potion: mk([
+    "......SyyY......", "......yYYw......", ".....mmmmmM.....", "......mLLM......",
+    ".....mLLLLM.....", "....mLLLLLLM....", "...meLLLLLLLM...", "..meLLLLLLLLLM..",
+    "..mxxxxxxrrrrM..", "..mirrrrrrrrRM..", "..mirrrrrrrrRM..", "..mrrrrrrrrRRM..",
+    "..MrrrrrrrrRRM..", "...MrrrrrrRRM...", "....MRRRRRRM....", ".....MMMMMM....."
+  ], P),
+  arrows: mk([
+    ".........mee.mee", "..........mM..mM", ".........y.M.y.M", "........y...y...",
+    ".......y...y....", "......y...y.....", ".....y...y......", "....y...y.......",
+    "..ry...y........", ".ryR..y.........", "ryR..y..........", "mR..y...........",
+    "..ry............", ".ryR............", "ryR.............", "mR.............."
+  ], P),
+  // foes
+  snake:  mk([
+    "................", "......gggg......", ".....geegggg...r", ".....gexgggggrr.",
+    ".....ggggGGGG..r", "......gGGGG.....", ".......ggG......", ".......ggG......",
+    "....ggggggGgg...", "..ggGGGGGGGGGgg.", ".geGG.......GGgg", ".gg..........Ggg",
+    ".egg........gggG", "..egggggggggggG.", "...GGGGGGGGGGGG.", "..............gG"
+  ], P),
+  mother: mk([
+    ".....k.kk.k.....", ".....kukkuk.....", "...A.akkkka.A...", "..AAaeaaaaaaAA..",
+    ".AAaeaaaaaaaaAA.", ".AkaxxaaaaxxakA.", "AAkAaaaaaaaaAkAA", "AAAkAaaRRaaAkAAA",
+    "AAAAkAeRReAkAAAA", ".AAAAAarraAAAAA.", "..AAAAakkaAAAA..", "....aakkkaAA....",
+    "..aeaaakkaaaaA..", ".AAAAAAAAAAAAAA.", "aeaakaaaaakaaaaA", ".AAAAAAAAAAAAAA."
+  ], P),
+  rat:    mk([
+    "................", "................", "................", "................",
+    "................", "..........mM....", ".........miiM...", ".....mmmmmiiMn..",
+    "...mmMMMMMMMMMn.", "..mMMMMMMMMMxMMn", "..MMMMMMMMMMMMMi", ".nMMMMMMMMMMMnn.",
+    "inMMMMMMMMMnn...", "i.nnnnnnnnnn....", ".i..ii...ii.....", "..ii............"
+  ], P),
+  roach:  mk([
+    ".J............J.", "..J..........J..", "...J........J...", "....J.hhhh.J....",
+    ".....JhHHhJ.....", "h...hSyyyyYh...h", ".h.hSeyyyyyYh.h.", "..hHyyyyyyyYHh..",
+    "...HHHHHHHHHH...", "h.HyyYYYhYYYYH.h", ".hHyYYYYhYYYYHh.", "..HySYYYhYYYYH..",
+    ".hHyYYYYhYYYYHh.", "h.HyYYYYhYYYHH.h", "...HHYYYhYYHH...", ".....HHHhHHH...."
+  ], P),
+  shadow: mk([
+    "......nnnn......", "....nnLLLLll....", "...nLLLLLLLLl...", "..nLLLlllllLLl..",
+    "..nLLlqqqqqlLl..", ".nLLlqqqqqqqlLl.", ".nLLqqxqqxqqLLl.", ".nLLqqqqqqqqLLl.",
+    ".nLLlqqqqqqlLLl.", "nLLLLlqqqqlLLLll", "nLLLLLLllLLLLlll", "nLLLLLLLLLLLLll.",
+    ".nLLLLLLLLLLlll.", ".nLLLlLLLLlLlll.", "..nLl.LLl.Lll.l.", "..n...Ll...l...."
+  ], P),
+  mimic:  mk([
+    "................", "..kyyyykkyyyyk..", ".kSSyyykkyyyyYk.", ".kyyyyykkyyyyYk.",
+    ".akkkkkkkkkkkka.", ".hReeRReeRReeRh.", ".hqqeqqeeqqeqqh.", ".hqeqqrrrrqqeqh.",
+    ".hReeRrrrrReeRh.", ".akkkkrrrpkkkka.", ".kyyyyyrrpyyyYk.", ".kSyyyyyrpyyyYk.",
+    ".kyyyyykrpkyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+  ], P),
+  swarm:  mk([
+    "................", "...........mM...", "..i....mmmmmiM..", ".i...mMMMMMMMMn.",
+    ".i.mmMMMMMMMMxMn", "..iMMMMMMMMMMMMi", "..Mi.nnnnnnnnnn.", ".MMMMMMMM..mi...",
+    "nxnnnnnmmmmmmmM.", "innnnnnmmmmmmxmM", ".nnnnnnmmmmmmmmi", "..LLLLLMmmmmmMM.",
+    "..i.i.iMMMMMMM..", "....ii..i.i.i.i.", "..ii............", "................"
+  ], P),
+  spider: mk([
+    "..M..........M..", "...M........M...", "....n.nLLl.n....", ".MM..nLLLLl..MM.",
+    "M..MnLxLLxlnM..M", ".....nLxxLn.....", ".....nlLLln.....", "...MnnLLLLlnM...",
+    ".MM.nnLLLLLl.MM.", "M...nLLLLLLl...M", "...MLLLLLLllM...", "...MLLLLLlllM...",
+    "..M..LLLlll..M..", "..M...llll...M..", ".M............M.", "................"
+  ], P),
+  bat:    mk([
+    "................", "................", "................", ".....n....n.....",
+    ".....ni..in.....", "m....nnnnnn....m", "mm...nxnnxn...mm", "MMm..nnnnnn..mMM",
+    "MMMmmnnnnnnmmMMM", "MMMMMMnnnnMMMMMM", "MnMMnMnnnnMnMMnM", "n..n.M.nn.M.n..n",
+    "......n..n......", "................", "................", "................"
+  ], P),
+  mold:   mk([
+    "....v......V....", ".V.....v.......v", "......g.g.v.....", "..v..gggggg.....",
+    "....gggVggggg...", "...ggeggggggGg..", "..gggggggggggGg.", ".ggggxggggxgggG.",
+    ".gegxxgggxxgvGG.", "ggggggggggggGGGg", "gggvgggggGgggGGG", "ggggGGGGGGGgGGGG",
+    ".gGgggggggggVGG.", "GGgGGgGGgGGGGGGG", ".G.GG.G..G.GG.G.", "................"
+  ], P),
+  bucket: mk([
+    "................", "....nMMMMMMn....", "...n........n...", "..n..........n..",
+    ".emmmmmmmmmmmmM.", ".mllllllllllllM.", ".emmmmmmmmmmmMn.", "..emmmmmmmmmMn..",
+    "..emnmmmmmmnMn..", "..emmnnmmnnmMn..", "..emmxxmmxxmMn..", "..emmmmmmmmmMn..",
+    "..emmmddddmmMn..", "..emmdededdmMn..", "...emmmmmmmMn...", "...MMMMMMMMMn..."
+  ], P),
+  mop:    mk([
+    "..............yY", ".............yY.", "............yY..", "...........yY...",
+    "..........yY....", ".........yY.....", "........yY......", ".....akkkkka....",
+    "....akkkkkkka...", "...mmmMmmMmmMn..", "..mmxdmmmmxdMMn.", "..mmmMmmmMmmMMn.",
+    ".mmMmmMmmMmmMmMn", ".mMmmMmmMmMmMmMn", ".m.mM.mMm.mMm.M.", "m..m..M..m..M..n"
+  ], P),
+  // classes and races
+  shield: mk([
+    "................", ".emmmmmmmmmmmmM.", ".mmMMMMrRMMMMnM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mrrrrrrrrrrrRM.", ".mRRRRRrRRRRRRM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mMMMMMrRMMMnnM.", "..mMMMMrRMMMnM..", "..mMMMMrRMMnnM..",
+    "...mMMMrRMMnM...", "....mMMrRMnM....", ".....mMrRnM.....", "......mMMM......"
+  ], P),
+  staff:  mk([
+    "............VVv.", "...........VeVvv", "..........kVVvvv", "..........kvvvvv",
+    "..........kkvvv.", ".........yYkk...", "........yY......", ".......yY.......",
+    "......yY........", ".....yY.........", "....yY..........", "...yY...........",
+    "..yY............", ".yY.............", "yY..............", "k..............."
+  ], P),
+  orb:    mk([
+    "................", ".....VVVVvv.....", "....VeeVvvvv....", "...VeVVvvvvvv...",
+    "...VVVvvvvvvv...", "...VVvvvVvvvL...", "...vvvvVVvvvL...", "...vvvvvvvvLL...",
+    "....vvvvvvLL....", ".....vvvvLL.....", "....kkkkkkkk....", ".....yyyyYY.....",
+    "......yyYY......", ".....yyyyYYY....", "....yyyyyyYYY...", "....wwwwwwwww..."
+  ], P),
+  player: mk([
+    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
+    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
+    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
+  ], P),
+  cat:    mk([
+    "....o......y....", "....oi....iy....", "....oooooooy....", "....oooooooy....",
+    "....oodoodoy....", "....ooeiieoy....", "......oeey......", "....bbbbbbFF....",
+    "...obbbbbbFFy...", "...obbbbbbFFy...", "...obbbbbbFFy...", ".....LLLLLly.o..",
+    ".....LL..Ll.oo..", ".....LL..Ll.....", ".....LL..Ll.....", "....ooo..ooo...."
+  ], P),
+  dwarf:  mk([
+    "......mmmM......", "....emmmmmMn....", "....mmmmmmMn....", "...MMMMMMMMMn...",
+    "....ysdssdsy....", "....yyysSyyY....", "....yyyyyyyY....", "...rryyyyyYRR...",
+    "...rrryyyYRRR...", "...rrrryYRRRR...", "...skkkkkkkkS...", ".....nnnnnn.....",
+    ".....nn..nn.....", ".....nn..nn.....", ".....nn..nn.....", "....hhh..hhh...."
+  ], P),
+  elf:    mk([
+    "................", ".....ukkkkk.....", "....ukkkkkka....", "..s.kssssssa.s..",
+    "...sksdssdsas...", "....ksssssSa....", "....kkssSSaa....", "....gggggGGG....",
+    "...ggggggGGGG...", "...ggggggGGGG...", "...sYYYYYYYYS...", ".....GGGGGG.....",
+    ".....GG..GG.....", ".....GG..GG.....", ".....GG..GG.....", "....hhh..hhh...."
+  ], P),
+  fish:   mk([
+    ".......bb.......", ".....fbffbf.....", "..b.ffffffFF.b..", "..bbeeffffeebb..",
+    "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
+    "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
+    ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
+  ], P)
+};
+const urls = {};
+const sprURL = k => urls[k] || (urls[k] = SPR[k].toDataURL());
+const img = (k, cls) => SPR[k] ? `<img${cls ? ` class="${cls}"` : ""} src="${sprURL(k)}" alt="">` : "";
+const SIL = "#463d46", SIL_MET = "#6c6170";   // unknown recipe / creature met once
+const sils = {};
+function silURL(k, col) {   // the sprite's shape in one flat colour
+  const id = k + col;
+  if (!sils[id]) {
+    const s = SPR[k], c = document.createElement("canvas"); c.width = s.width; c.height = s.height;
+    const g = c.getContext("2d"); g.drawImage(s, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = col; g.fillRect(0, 0, c.width, c.height);
+    sils[id] = c.toDataURL();
+  }
+  return sils[id];
+}
+const sil = (k, col) => SPR[k] ? `<img src="${silURL(k, col)}" alt="">` : "?";
+document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+
+// stack counts in a 3×5 pixel font with a drop shadow, as in Builds (Pixelify's small 2 and 5 read as 8 and S)
+const DIGITS = ["#####.##.##.###", ".#.##..#..#.###", "###..#####..###", "###..#.##..####", "#.##.####..#..#",
+                "####..###..####", "####..####.####", "###..#..#.#..#.", "####.#####.####", "####.####..####"];
+const counts = {};
+function countImg(q) {
+  if (!counts[q]) {
+    const s = String(q), c = document.createElement("canvas"); c.width = s.length * 4; c.height = 6;
+    const g = c.getContext("2d");
+    [["#000", 1], ["#ece3d2", 0]].forEach(([col, o]) => {   // shadow first, then the digit
+      g.fillStyle = col;
+      [...s].forEach((d, k) => [...DIGITS[d]].forEach((p, j) => { if (p === "#") g.fillRect(k * 4 + j % 3 + o, (j / 3 | 0) + o, 1, 1); }));
+    });
+    counts[q] = { src: c.toDataURL(), w: c.width * 2, h: c.height * 2 };
+  }
+  const n = counts[q];
+  return `<img class="n" src="${n.src}" width="${n.w}" height="${n.h}" alt="">`;
+}
+
+/* ================= mask icons (take currentColor) ================= */
+const MASK = {
+  tower:  [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
+  fire:   ["....#.....","....##....","...####...","..##.###..","..#...##..","..##..##..","...####...","##......##","..######..","##......##"],
+  book:   ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
+  bag:    ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
+  flask:  ["...####...","....##....","....##....","...####...","..##..##..",".##....##.",".#......#.",".########.",".########.","..######.."],
+  shield: [".########.","##########","####..####","####..####","##......##","####..####",".###..###.",".########.","..######..","....##...."],
+  star:   ["....##....","....##....","...####...","##########",".########.","..######..","..######..",".###..###.",".##....##.","##......##"],
+  lock:   ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
+  back:   ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
+  chev:   ["##...",".##..","..##.","...##","..##.",".##..","##..."]
+};
+const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1)), masks = {};
+function maskURL(k, cell) {
+  const id = k + cell;
+  if (!masks[id]) {
+    const rows = MASK[k], s = cell * DPR;
+    const c = document.createElement("canvas"); c.width = rows[0].length * s; c.height = rows.length * s;
+    const g = c.getContext("2d"); g.fillStyle = "#fff";
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === "#") g.fillRect(x * s, y * s, s, s); }));
+    masks[id] = c.toDataURL();
+  }
+  return masks[id];
+}
+const ico = (k, cls, s) => `<i class="ico${cls ? " " + cls : ""}" style="--m:url('${maskURL(k, s || 2)}')" aria-hidden="true"></i>`;
+document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
+document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+document.querySelectorAll("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
+
+/* ================= shared: narrator, toasts (GDE-00) ================= */
+function narrate(key, text, host) {   // italic, muted, under the scene; once per player
+  if (once.has("narrate." + key)) return false;
+  once.add("narrate." + key);
+  const p = document.createElement("p"); p.className = "narr"; p.textContent = text; host.after(p);
+  return true;
+}
+let toastT = 0, toastNext = null;
+function toast(type, text) {   // almanac | recipe | unlock: at the top for 2 s; one waits at most, a newer one takes its place
+  if (toastT) { toastNext = [type, text]; return; }
+  const el = $("toast");
+  el.className = "toast " + type; el.textContent = text; el.hidden = false;
+  toastT = setTimeout(() => { el.hidden = true; toastT = 0; const n = toastNext; toastNext = null; if (n) toast(...n); }, 2000);
+}
+const haptic = k => { if (window.GY && window.GY.haptic) window.GY.haptic(k); };
+
+/* ================= rules ================= */
+const unlockFloor = key => { for (const f in CAMP_UNLOCKS) if (CAMP_UNLOCKS[f].some(u => u.key === key)) return +f; return Infinity; };
+const isOpen = key => save.camp.includes(key) || unlockFloor(key) <= save.floor;
+const have = k => save.bag.reduce((s, x) => s + (x.key === k ? x.n : 0), 0);
+const known = r => save.recipes.includes(r.out);
+const revealed = r => known(r) || !r.hint;
+const short = r => r.in.filter(([k, n]) => have(k) < n);
+const reach = k => (item(k).floor || (CREATURES[item(k).from] || {}).floor || 1) <= save.floor + 1;   // findable on the next floor
+const canMake = () => RECIPES.filter(r => !short(r).length);
+function book() {   // the recipe book's groups, in GDE-04 order
+  const can = canMake();
+  const almost = RECIPES.filter(r => !can.includes(r) && revealed(r) && r.in.some(([k]) => have(k)) && short(r).length <= 2 && short(r).every(([k]) => reach(k)));
+  const unknown = RECIPES.filter(r => r.hint && !known(r) && !can.includes(r)).slice(0, 2);
+  const rest = RECIPES.filter(r => known(r) && !can.includes(r) && !almost.includes(r));
+  return { can, almost, unknown, rest };
+}
+const usedFor = k => RECIPES.filter(r => revealed(r) && r.in.some(([x]) => x === k)).length;   // known or partial recipes, not the ??? ones
+function stage(c) {
+  const s = save.creatures[c] || {}, w = s.wins | 0;
+  if (!(s.seen > 0) && !w) return 0;
+  return w >= STUDY.studied ? 4 : w >= STUDY.intents ? 3 : w >= STUDY.stats ? 2 : 1;
+}
+const nextWins = st => st >= 4 ? 0 : [STUDY.stats, STUDY.stats, STUDY.intents, STUDY.studied][st];
+const metList = () => Object.keys(CREATURES).filter(c => stage(c) > 0);
+const freshNow = () => metList().filter(c => !once.has("camp.almanac." + c));
+const freshCards = new Set(freshNow());   // dots stay on the cards for this visit
+function found() {   // what the player has held: the bag, made items and what went into them, loot of beaten foes
+  const f = new Set(save.bag.map(x => x.key));
+  RECIPES.filter(known).forEach(r => { f.add(r.out); r.in.forEach(([k]) => f.add(k)); });
+  Object.keys(CREATURES).forEach(c => { if (stage(c) >= 2) f.add(CREATURES[c].loot); });
+  return Object.keys(ITEMS).filter(k => f.has(k));
+}
+const N = n => `<span class="num">${n}</span>`;   // a number inside Pixelify text
+const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/* ================= strip scenes (pixel art, 3 screen px per art px) ================= */
+const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
+function glow(g, x, y, r, rgb, a) {
+  const gr = g.createRadialGradient(x, y, 1, x, y, r);
+  gr.addColorStop(0, `rgba(${rgb},${a})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+}
+function campfire(g, x, fy) {
+  glow(g, x, fy - 5, 42, "255,150,60", .5);
+  g.fillStyle = "#4a4048"; for (const dx of [-6, -4, 4, 6]) g.fillRect(x + dx, fy - 1, 2, 1);
+  g.fillStyle = "#5c3a26"; g.fillRect(x - 4, fy - 2, 9, 1); g.fillStyle = "#7a4e33"; g.fillRect(x - 3, fy - 3, 7, 1);
+  g.fillStyle = "#cf4656"; g.fillRect(x - 2, fy - 6, 5, 3);
+  g.fillStyle = "#ff7a3a"; g.fillRect(x - 1, fy - 8, 3, 5); g.fillRect(x - 2, fy - 5, 1, 1);
+  g.fillStyle = "#ffd36a"; g.fillRect(x, fy - 10, 1, 6); g.fillRect(x + 1, fy - 6, 1, 2);
+  g.fillStyle = "rgba(255,200,120,.8)"; for (let i = 0; i < 5; i++) { const h = hash(i + 31); g.fillRect(x - 3 + (h % 7), fy - 13 - ((h >> 5) % 9), 1, 1); }
+}
+const SCENES = {
+  landing(g, W, H) {   // floors 1–4: a niche by the stairs, a small fire, a shelf with the box
+    const fy = H - 7;
+    g.fillStyle = "#1a1518"; g.fillRect(0, 0, W, H);
+    const bricks = ["#3a2e31", "#342a2d", "#2f2629", "#3d3235"];
+    for (let r = 0; r * 5 < fy; r++) { const off = r % 2 ? 5 : 0; for (let x = -off; x < W; x += 10) { g.fillStyle = bricks[hash(r * 977 + x + 40) % 4]; g.fillRect(x, r * 5, 9, 4); } }
+    g.fillStyle = "#141013"; g.fillRect(0, fy, W, H - fy);
+    g.fillStyle = "#211a1d"; for (let x = 0; x < W; x += 11) g.fillRect(x, fy + 3, 9, 1);
+    const sx = W - 24;   // stairs climbing up to the right, light from the floor above
+    for (let i = 0; i < 9; i++) { const x = sx + i * 4, y = fy - (i + 1) * 6; if (x >= W) break; g.fillStyle = "#3f342c"; g.fillRect(x, y, W - x, fy - y); g.fillStyle = "#8a765c"; g.fillRect(x, y, 4, 1); g.fillStyle = "#2a221d"; g.fillRect(x, y + 1, 1, 5); }
+    glow(g, W - 2, 0, 56, "255,214,140", .4);
+    const nw = 36, nx = sx - nw - 9, nt = Math.max(4, fy - 37);   // the niche
+    g.fillStyle = "#0e0b0d"; g.fillRect(nx + 4, nt, nw - 8, 1); g.fillRect(nx + 2, nt + 1, nw - 4, 2); g.fillRect(nx + 1, nt + 3, nw - 2, 1); g.fillRect(nx, nt + 4, nw, fy - nt - 4);
+    const sy = nt + 14;  // shelf with the locked box and a jar
+    g.fillStyle = "#6e4426"; g.fillRect(nx + 3, sy, nw - 6, 1); g.fillStyle = "#4a3020"; g.fillRect(nx + 3, sy + 1, nw - 6, 1); g.fillRect(nx + 5, sy + 2, 1, 2); g.fillRect(nx + nw - 6, sy + 2, 1, 2);
+    g.fillStyle = "#6e4426"; g.fillRect(nx + 6, sy - 5, 8, 5); g.fillStyle = "#a3713c"; g.fillRect(nx + 6, sy - 5, 8, 1); g.fillStyle = "#83869a"; g.fillRect(nx + 9, sy - 3, 2, 2); g.fillStyle = "#07060a"; g.fillRect(nx + 9, sy - 2, 1, 1);
+    g.fillStyle = "#3f6f7a"; g.fillRect(nx + 19, sy - 4, 4, 4); g.fillStyle = "#c4c6cf"; g.fillRect(nx + 19, sy - 5, 4, 1); g.fillStyle = "#5f9aa6"; g.fillRect(nx + 19, sy - 4, 1, 3);
+    g.fillStyle = "#5c3a26"; g.fillRect(nx + 3, fy - 3, 15, 3); g.fillStyle = "#7a4e33"; g.fillRect(nx + 3, fy - 3, 15, 1); g.fillStyle = "#b8865f"; g.fillRect(nx + 3, fy - 4, 5, 3);   // bedroll
+    campfire(g, nx + nw + 4, fy);
+    g.drawImage(SPR.player, nx + nw - 17, fy - 16);   // the hero by the fire, inside the niche
+  },
+  shelter(g, W, H) {   // from floor 5: planks, a hearth, a door
+    const fy = H - 7;
+    const planks = ["#3b2f23", "#35291f", "#40332a", "#382c21"];
+    for (let x = 0, i = 0; x < W; x += 7, i++) { g.fillStyle = planks[hash(i + 3) % 4]; g.fillRect(x, 0, 6, fy); g.fillStyle = "#241b14"; g.fillRect(x + 6, 0, 1, fy); }
+    g.fillStyle = "#1c1511"; g.fillRect(0, fy, W, H - fy);
+    const dx = W - 18;   // door
+    g.fillStyle = "#2a1a10"; g.fillRect(dx, fy - 30, 14, 30); g.fillStyle = "#6e4426"; g.fillRect(dx + 1, fy - 29, 12, 29); g.fillStyle = "#e8bf55"; g.fillRect(dx + 3, fy - 15, 1, 2);
+    const hx = dx - 40;  // stone hearth
+    g.fillStyle = "#4a4048"; g.fillRect(hx, fy - 22, 28, 22); g.fillStyle = "#5e5f6a"; g.fillRect(hx, fy - 22, 28, 2); g.fillStyle = "#0e0b0d"; g.fillRect(hx + 5, fy - 14, 18, 14);
+    campfire(g, hx + 14, fy);
+    g.drawImage(SPR.player, hx - 18, fy - 16);
+  }
+};
+function paintStrip(el) {
+  const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
+  const S = 3, W = Math.ceil(w / S), H = Math.ceil(h / S), key = W + "x" + H;
+  if (el._key === key) return; el._key = key;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  SCENES[el.dataset.scene](g, W, H);
+  el.style.backgroundImage = `url(${c.toDataURL()})`;
+  el.style.backgroundSize = `${W * S}px ${H * S}px`;
+}
+const ro = "ResizeObserver" in window ? new ResizeObserver(es => es.forEach(e => paintStrip(e.target))) : null;
+
+/* ================= camp ================= */
+const freshUnlock = () => (CAMP_UNLOCKS[save.floor] || []).length && !once.has("camp.new." + save.floor);
+const showNew = freshUnlock();   // decided on arrival; the card stays for this visit
+function renderCamp() {
+  const f = save.floor, shelter = f >= unlockFloor("shelter"), b = book(), n = b.can.length, fresh = freshNow().length;
+  const time = save.time && save.time[f] > 0 ? ` · <span class="num">${mmss(save.time[f] | 0)}</span>` : "";
+  const specials = save.bag.filter(x => item(x.key).type === "special");
+  const shelf = Array.from({ length: Math.max(4, specials.length) }, (_, i) => specials[i]
+    ? `<button class="islot" type="button" data-shelf="${specials[i].key}" aria-label="${item(specials[i].key).name}" aria-pressed="${tip.where === "shelf" && tip.key === specials[i].key}">${img(item(specials[i].key).spr)}</button>`
+    : '<span class="islot empty"></span>').join("");
+  const news = showNew ? `<div class="newcard"><span class="eyebrow">${t("camp.new")}</span><div class="newrow">${CAMP_UNLOCKS[f].map(u => u.go
+    ? `<button type="button" data-go="${u.go}">${ico(u.ico)}${t("unlock." + u.key)}</button>`
+    : `<span class="nitem">${ico(u.ico)}${t("unlock." + u.key)}</span>`).join("")}</div></div>` : "";
+  const sub = n ? t("camp.ready", { n }) : b.almost.length ? t("camp.almost", { name: item(b.almost[0].out).name }) : "";
+  $("camp").innerHTML = `
+    <div class="strip" data-scene="${shelter ? "shelter" : "landing"}" id="scene">
+      <span class="eyebrow">${t("camp.basement")}</span>
+      <span class="title">${t(shelter ? "camp.shelter" : "camp.landing")}</span>
+      <span class="meta">${t("camp.cleared", { n: f })}${time}</span>
+    </div>
+    ${news}
+    <button class="tile" type="button" data-go="table">
+      <span class="tface">${ico("flask")}</span>
+      <span class="tbody"><b>${t("camp.table")}</b>${sub ? `<span>${sub}</span>` : ""}</span>
+      ${n ? `<span class="badge">${n}</span>` : ico("chev", "chev")}
+    </button>
+    <h3 class="sec">${t("camp.shelf")}</h3>
+    <div class="shelf" id="shelf">${shelf}<span class="tip" id="shelftip" hidden></span></div>
+    <button class="tile" type="button" data-go="almanac">
+      <span class="tface">${ico("book")}</span>
+      <span class="tbody"><b>${t("camp.almanac")}</b><span>${t("camp.creatures")}</span></span>
+      ${fresh ? `<span class="pill new">${t("camp.fresh", { n: N(fresh) })}</span>` : ico("chev", "chev")}
+    </button>
+    <button class="go" type="button" id="next"><b>${t("camp.next", { n: N(f + 1) })}</b><span id="nextSub">${t("camp.nextSub")}</span></button>`;
+  const sc = $("scene"); paintStrip(sc); if (ro) ro.observe(sc);
+  if (sc.dataset.scene === "landing") narrate("camp", t("narr.camp"), sc);
+  placeTip("shelf");
+}
+
+/* ================= table: the recipe book, free fusion, the bag ================= */
+let ttab = "recipes";
+let bench = { a: null, b: null, auto: false, out: null, note: "", tone: "" };
+const match = (a, b) => RECIPES.find(r => r.in.length === 2 && ((r.in[0][0] === a && r.in[1][0] === b) || (r.in[0][0] === b && r.in[1][0] === a)));
+const face = inner => `<span class="face">${inner}</span>`;
+function recRow(r, group) {
+  const it = item(r.out), name = revealed(r) ? it.name : t("book.sil");
+  if (group === "unknown") return `<div class="rec sil">${face(sil(it.spr, SIL))}<div class="rbody"><b>${name}</b><p>${t(r.hint)}</p></div></div>`;
+  const ings = r.in.map(([k, n]) => {
+    const h = have(k), ok = h >= n;
+    return `<span class="ing${ok ? " ok" : ""}">${img(item(k).spr)}${item(k).name} <i>${ok ? "✓" : `<span class="num">${h}/${n}</span>`}</i></span>`;
+  }).join("");
+  const where = group === "almost" ? short(r).map(([k]) => {
+    const c = item(k).from;
+    return c ? `<button class="where" type="button" data-foe="${c}">${t("book.where", { many: CREATURES[c].many, n: CREATURES[c].floor })}${ico("chev", "chev", 1)}</button>`
+             : item(k).floor ? `<p>${t("book.whereChest", { n: item(k).floor })}</p>` : "";
+  }).join("") : "";
+  const fresh = group === "can" && !known(r) ? `<span class="tagnew">${t("book.new")}</span>` : "";
+  return `<div class="rec${group === "can" ? " can" : ""}"${group === "can" ? ` data-make="${r.out}"` : ""}>
+    ${face(revealed(r) ? img(it.spr) : sil(it.spr, SIL))}
+    <div class="rbody"><b>${name}${fresh}</b><div class="ings">${ings}</div>${where}</div>
+    ${group === "can" ? `<button class="btn sm" type="button" data-make="${r.out}">${t("book.make")}</button>` : ""}
+  </div>`;
+}
+function renderTable() {
+  const feedOpen = isOpen("feed"), feedAt = unlockFloor("feed");
+  let h = `<div class="seg two" role="tablist" aria-label="${t("table.title")}">
+    <button type="button" role="tab" data-ttab="recipes" aria-selected="${ttab === "recipes"}">${t("table.recipes")}</button>
+    <button type="button" role="tab" data-ttab="feed" aria-selected="${ttab === "feed"}"${feedOpen ? "" : ` class="locked" aria-label="${t("aria.locked", { name: t("table.feed") })}"`}>${t("table.feed")}${feedOpen ? "" : ico("lock", "", 1)}</button>
+  </div>`;
+  if (ttab === "feed") {
+    h += `<div class="locknote">${ico("fire")}<b>${t("table.feedSoon")}</b></div>`;
+  } else {
+    const b = book();
+    const group = (key, list) => list.length ? `<h3 class="sec">${t("book." + key)} <span>${list.length}</span></h3><div class="recs">${list.map(r => recRow(r, key)).join("")}</div>` : "";
+    h += group("can", b.can) + group("almost", b.almost) + group("unknown", b.unknown);
+    if (b.rest.length) h += `<h3 class="sec">${t("book.known")} <span>${b.rest.length}</span></h3><div class="known">${b.rest.map(r =>
+      `<div class="krow">${r.in.map(([k, n]) => img(item(k).spr) + (n > 1 ? `<span class="num">×${n}</span>` : "")).join('<span class="op">+</span>')}<span class="op">=</span>${img(item(r.out).spr)}<b>${item(r.out).name}</b></div>`).join("")}</div>`;
+    h += `<h3 class="sec">${t("fuse.title")}</h3>${benchHTML()}
+      <h3 class="sec">${t("bag.title")} <span>${save.bag.length}</span></h3>${bagHTML()}`;
+  }
+  $("table").innerHTML = h;
+  placeTip("bag");
+}
+function benchHTML() {
+  const cell = (side) => {
+    const k = bench[side];
+    if (!k) return `<div class="part"><span class="cell empty"></span><b></b></div>`;
+    const n = have(k);
+    return `<div class="part"><button class="cell" type="button" data-cell="${side}" aria-label="${item(k).name}">${img(item(k).spr) || "?"}${n > 1 ? countImg(n) : ""}</button><b>${item(k).name}</b></div>`;
+  };
+  const r = bench.a && bench.b ? match(bench.a, bench.b) : null;
+  let res = `<span class="cell">?</span><b></b>`;
+  if (bench.out) res = `<span class="cell">${img(item(bench.out).spr)}</span><b>${item(bench.out).name}</b>`;
+  else if (r && revealed(r)) res = `<span class="cell dim">${img(item(r.out).spr)}</span><b></b>`;
+  const ready = bench.a && bench.b;
+  return `<div class="bench" id="bench">${cell("a")}<span class="op" aria-hidden="true">+</span>${cell("b")}<span class="op" aria-hidden="true">=</span><div class="part res${bench.out ? " done" : ""}">${res}</div></div>
+    ${ready || bench.note ? `<div class="tablerow"><span class="tablenote ${bench.tone}" role="status">${bench.note}</span>${ready ? `<button class="btn${bench.auto ? " pulse" : ""}" type="button" id="fuse">${t("fuse.btn")}</button>` : ""}</div>` : ""}`;
+}
+function tagOf(k) {   // the line under the name in the tooltip
+  if (k === save.hand) return ["t-hand", t("bag.inHand")];
+  const it = item(k);
+  if (it.type === "special") return ["t-key", t("bag.key")];
+  if (it.type !== "mat") return null;
+  const n = usedFor(k);
+  if (n) return ["t-rec", t(n > 1 ? "bag.forN" : "bag.for", { n })];
+  return isOpen("feed") ? ["t-spare", t("bag.spare")] : null;
+}
+function bagHTML() {
+  const cells = Math.max(12, Math.ceil(save.bag.length / 6) * 6);
+  let h = "";
+  for (let i = 0; i < cells; i++) {
+    const x = save.bag[i];
+    if (!x) { h += '<span class="islot"></span>'; continue; }
+    const it = item(x.key), hand = x.key === save.hand, tag = tagOf(x.key);
+    const used = bench.a === x.key || bench.b === x.key;
+    const mark = !hand && tag && tag[0] === "t-rec" ? '<i class="mk"></i>' : !hand && tag && tag[0] === "t-spare" ? '<i class="mk spare"></i>' : "";
+    h += `<button class="islot${hand ? " hand" : ""}${used ? " used" : ""}" type="button" data-bag="${x.key}" aria-label="${it.name}${x.n > 1 ? ` ×${x.n}` : ""}${tag ? `, ${tag[1]}` : ""}" aria-pressed="${tip.where === "bag" && tip.key === x.key}">${img(it.spr) || "?"}${hand ? `<span class="hl">${t("bag.hand")}</span>` : ""}${mark}${x.n > 1 ? countImg(x.n) : ""}</button>`;
+  }
+  return `<div class="inv" id="bag">${h}<span class="tip" id="bagtip" hidden></span></div>`;
+}
+let tip = { where: null, key: null };
+function placeTip(where) {   // the purple tooltip over the pressed slot; stays inside its panel
+  const box = $(where === "bag" ? "bag" : "shelf"), el = $(where === "bag" ? "bagtip" : "shelftip");
+  if (!box || !el) return;
+  const sel = tip.where === where && box.querySelector(`[data-${where}="${tip.key}"]`);
+  if (!sel) { el.hidden = true; return; }
+  const tag = tagOf(tip.key);
+  el.innerHTML = `<span>${item(tip.key).name}</span>${tag ? `<i class="${tag[0]}">${tag[1]}</i>` : ""}`;
+  el.hidden = false;
+  const w = el.offsetWidth, x = sel.offsetLeft + sel.offsetWidth / 2;
+  el.style.left = `${Math.min(Math.max(x, w / 2 + 4), box.clientWidth - w / 2 - 4)}px`;
+  el.style.top = `${sel.offsetTop - 4}px`;
+}
+function place(k) {   // tap a stack: onto the first free cell; tap it again to take it back
+  if (bench.a === k) bench.a = null;
+  else if (bench.b === k) bench.b = null;
+  else if (!bench.a) bench.a = k;
+  else bench.b = k;
+  bench.auto = false; bench.out = null; bench.note = ""; bench.tone = "";
+  haptic("tick");
+}
+function make(out) {
+  const r = RECIPES.find(x => x.out === out);
+  bench = { a: r.in[0][0], b: r.in[1][0], auto: true, out: null, note: "", tone: "" };
+  track("recipe_view", { tab: "recipes", entry: out });
+  haptic("tick");
+  renderTable();
+  const bh = $("bench"); if (bh) bh.scrollIntoView({ block: "center", behavior: still ? "auto" : "smooth" });   // the bench and Fuse in view
+}
+function take(k, n) { save.bag.forEach(x => { if (x.key === k && n > 0) { const d = Math.min(n, x.n); x.n -= d; n -= d; } }); save.bag = save.bag.filter(x => x.n > 0); }
+function give(k) { const x = save.bag.find(y => y.key === k); if (x) x.n++; else save.bag.push({ key: k, n: 1 }); }
+function fuse() {
+  const { a, b } = bench; if (!a || !b) return;
+  const r = match(a, b);
+  if (!r) { bench.note = t("fuse.wont"); bench.tone = "bad"; haptic("error"); renderTable(); return; }
+  const miss = short(r)[0];
+  if (miss) { bench.note = t("fuse.short", { name: item(miss[0]).name, n: N(miss[1]) }); bench.tone = "bad"; haptic("error"); renderTable(); return; }
+  const discovered = !known(r), hand = save.hand;
+  r.in.forEach(([k, n]) => take(k, n));
+  give(r.out);
+  if (hand && !have(hand)) save.hand = item(r.out).type === "weapon" ? r.out : null;   // the weapon in hand went into it
+  if (discovered) save.recipes.push(r.out);
+  save.makeable = canMake().length;
+  save.camp = [...new Set([...save.camp, ...Object.keys(CAMP_UNLOCKS).filter(f => +f <= save.floor).flatMap(f => CAMP_UNLOCKS[f].map(u => u.key))])];
+  writeJSON("gamey.save", save); demo = false; noteSource();
+  track("fuse", { recipe: r.out, auto: bench.auto, discovered });
+  bench = { a: null, b: null, auto: false, out: r.out, note: discovered ? t("fuse.discovered") : "", tone: "good" };
+  tip = { where: null, key: null };
+  haptic("ok");
+  if (discovered) toast("recipe", t("toast.recipe", { name: item(r.out).name }));
+  renderTable(); renderCamp();
+}
+
+/* ================= almanac: Weapons · Creatures · Items ================= */
+let aseg = "creatures";
+function stageBar(st) { return `<div class="study" aria-label="${t("aria.stage", { n: st })}">${[1, 2, 3, 4].map(i => `<i${i <= st ? ' class="on"' : ""}></i>`).join("")}</div>`; }
+function renderAlmanac() {
+  const met = metList();
+  let body = "";
+  if (aseg === "creatures") {
+    body = `<h3 class="sec">${t("alm.basement")} <span>${t("alm.met", { n: met.length })}</span></h3><div class="rows">${Object.keys(CREATURES).map(c => {
+      const st = stage(c), cr = CREATURES[c];
+      if (!st) return `<div class="rowcard unk" role="img" aria-label="${t("alm.notMet")}"><span class="face">?</span><b></b><span></span></div>`;
+      const s = save.creatures[c] || {}, nw = nextWins(st);
+      return `<button class="rowcard${freshCards.has(c) ? " new-dot" : ""}" type="button" data-foe="${c}">
+        ${face(st >= 2 ? img(cr.spr) : sil(cr.spr, SIL_MET))}
+        <div><b>${cr.name}</b>${stageBar(st)}</div>
+        ${nw ? `<span class="wins">${t("alm.progress", { a: s.wins | 0, b: nw })}</span>` : `<span class="pill ok">${t("alm.studied")}</span>`}
+      </button>`;
+    }).join("")}</div>`;
+  } else {
+    const list = found().filter(k => aseg === "weapons" ? item(k).type === "weapon" : item(k).type !== "weapon");
+    const cards = list.map(k => `<button class="entry" type="button" data-item="${k}">${img(item(k).spr)}<span>${item(k).name}</span></button>`);
+    while (cards.length < 8 || cards.length % 4) cards.push('<div class="entry unk" role="img" aria-label="?"><i aria-hidden="true">?</i></div>');
+    body = `<h3 class="sec">${t("alm.basement")} <span>${t("alm.found", { n: list.length })}</span></h3><div class="cards">${cards.join("")}</div>`;
+  }
+  $("almanac").innerHTML = `<div class="vh"><h2>${t("alm.title")}</h2></div>
+    <div class="seg" role="tablist" aria-label="${t("alm.title")}">${["weapons", "creatures", "items"].map(s =>
+      `<button type="button" role="tab" data-seg="${s}" aria-selected="${aseg === s}">${t("alm." + s)}${s === "creatures" && freshNow().length ? '<i class="dot"></i>' : ""}</button>`).join("")}</div>
+    ${body}`;
+}
+function seenCreatures() {   // opening the tab puts out the "+N new" on the camp tile
+  metList().forEach(c => once.add("camp.almanac." + c));
+}
+
+/* ================= sheets: creature card, item card ================= */
+let lastFocus = null;
+function openSheet(pic, title, sub, body) {
+  const sh = $("sheet"), open = !sh.hidden;
+  if (!open) lastFocus = document.activeElement;
+  sh.innerHTML = `<div class="grab"></div><div class="plinth">${pic}</div>
+    <div class="sh-head"><div class="sh-title"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div><button class="btn ghost sm" type="button" data-close>${t("close")}</button></div>
+    ${body}`;
+  sh.setAttribute("aria-label", title);
+  sh.hidden = $("backdrop").hidden = false;
+  sh.scrollTop = 0;
+  if (!open && !still) { sh.classList.remove("in"); void sh.offsetWidth; sh.classList.add("in"); }
+  sh.querySelector("[data-close]").focus({ preventScroll: true });
+  syncBack();
+}
+function closeSheet() {
+  $("sheet").hidden = $("backdrop").hidden = true;
+  if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
+  syncBack();
+}
+const winsLabel = n => t(n === 1 ? "alm.win" : "alm.wins", { n });
+const lockrow = (label, a, b) => `<div class="lockrow">${ico("lock", "", 1)}<b>${label}</b><span>${b ? `${t("alm.progress", { a, b })} ${t(b === 1 ? "alm.win" : "alm.wins", { n: "" }).trim()}` : ""}</span></div>`;
+function openCreature(c) {
+  const cr = CREATURES[c], st = stage(c), w = (save.creatures[c] || {}).wins | 0;
+  track("almanac_view", { tab: "creatures", entry: c });
+  if (freshCards.delete(c) && aseg === "creatures" && !$("almanac").hidden) renderAlmanac();
+  const pic = st >= 2 ? img(cr.spr) : SPR[cr.spr] ? sil(cr.spr, st ? SIL_MET : SIL) : '<span class="q">?</span>';
+  const ladder = `<div class="ladder">${[t("alm.met1"), winsLabel(STUDY.stats), winsLabel(STUDY.intents), winsLabel(STUDY.studied)].map((l, i) =>
+    `<div${i < st ? ' class="on"' : ""}><i></i>${l}</div>`).join("")}</div>`;
+  let body = ladder;
+  if (!st) body += lockrow(t("alm.notMet"));
+  if (st >= 2) {
+    const dmg = cr.intents.map(i => i[1]).filter(Boolean), lo = Math.min(...dmg), hi = Math.max(...dmg);
+    const into = RECIPES.filter(r => revealed(r) && r.in.some(([k]) => k === cr.loot) && (known(r) || book().almost.includes(r) || book().can.includes(r)));
+    body += `<dl class="facts">
+      <div><dt>${t("alm.hp")}</dt><dd>${cr.hp}</dd></div>
+      <div><dt>${t("alm.dmg")}</dt><dd>${lo === hi ? lo : `${lo}–${hi}`}</dd></div>
+      <div><dt>${t("alm.loot")}</dt><dd><span>${img(item(cr.loot).spr)}${item(cr.loot).name}</span></dd></div>
+      ${into.length ? `<div><dt>${t("alm.into")}</dt><dd>${into.map(r => `<span>${img(item(r.out).spr)}${item(r.out).name}</span>`).join("")}</dd></div>` : ""}
+    </dl>`;
+  } else if (st) body += lockrow(`${t("alm.hp")} · ${t("alm.loot")}`, w, STUDY.stats);
+  if (st >= 3) body += `<h3 class="sec">${t("alm.intents")}</h3><div class="intents">${cr.intents.map(([k, d]) => `<span class="intent ${TONE[k]}">${t("intent." + k, { d: N(d) })}</span>`).join("")}</div>`;
+  else if (st) body += lockrow(t("alm.intents"), w, STUDY.intents);
+  if (st >= 4) body += `<div class="studied"><b>${t("alm.studied")}</b><span>${t("alm.quick", { n: unlockFloor("quick") })}</span></div>`;
+  else if (st) body += lockrow(t("alm.studied"), w, STUDY.studied);
+  openSheet(pic, st ? cr.name : cr.name, t("alm.at", { n: cr.floor }), body);
+}
+function openItem(k) {
+  const it = item(k), r = RECIPES.find(x => x.out === k && known(x));
+  track("almanac_view", { tab: it.type === "weapon" ? "weapons" : "items", entry: k });
+  let body = "";
+  if (r) body = `<h3 class="sec">${t("alm.recipe")}</h3><div class="mini">${r.in.map(([x, n]) =>
+    `<span class="cell">${img(item(x).spr)}${n > 1 ? countImg(n) : ""}</span>`).join('<span class="op">+</span>')}<span class="op">=</span><span class="cell">${img(it.spr)}</span></div>`;
+  else if (it.at) body = `<dl class="facts"><div><dt>${t("alm.foundAt")}</dt><dd>${it.at}</dd></div></dl>`;
+  if (it.type === "special") body += `<div class="lockrow">${ico("lock", "", 1)}<b>${t("bag.key")}</b><span></span></div>`;
+  openSheet(img(it.spr), it.name, t("type." + it.type), body);
+}
+
+/* ================= navigation ================= */
+let tab = "camp", sub = null;
+const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
+function syncBack() {   // Telegram's own back button: sheet → sub-screen → almanac → home
+  if (!window.GY) return;
+  if (!$("sheet").hidden) window.GY.back(closeSheet);
+  else if (sub) window.GY.back(() => { sub = null; show("rev"); });
+  else if (tab !== "camp") window.GY.back(() => { tab = "camp"; show("rev"); });
+  else window.GY.back(() => { location.href = HOME; });
+}
+function show(dir) {
+  const id = sub || tab, cur = views.find(v => v.dataset.view === id);
+  views.forEach(v => { v.hidden = v !== cur; });
+  if (dir && !still) { cur.classList.remove("fwd", "rev"); void cur.offsetWidth; cur.classList.add(dir); }
+  $("tbRoot").hidden = !!sub; $("tbSub").hidden = !sub;
+  if (sub === "table") { $("tbTitle").textContent = t("table.title"); $("tbSubt").textContent = t(save.floor >= unlockFloor("shelter") ? "camp.shelter" : "camp.landing"); }
+  document.querySelectorAll(".tab[data-tab]").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
+  tip = { where: null, key: null };
+  if (id === "camp") renderCamp();
+  if (id === "table") renderTable();
+  if (id === "almanac") renderAlmanac();
+  viewsEl.scrollTop = 0;
+  syncBack();
+}
+function go(where) {
+  if (showNew) once.add("camp.new." + save.floor);   // the "new" card has done its job
+  if (where === "table") { sub = "table"; ttab = "recipes"; track("recipe_view", { tab: "recipes", entry: null }); }
+  else { sub = null; tab = "almanac"; aseg = "creatures"; track("almanac_view", { tab: "creatures", entry: null }); seenCreatures(); }
+  show("fwd");
+}
+
+/* ================= input ================= */
+document.addEventListener("click", e => {
+  const el = e.target.closest("button, [data-make]");
+  const prevTip = tip.key;
+  if (!el || !(el.dataset.bag || el.dataset.shelf)) {   // a tap anywhere else lets the tooltip go
+    if (tip.where) { const w = tip.where; tip = { where: null, key: null }; if (w === "bag" && !$("table").hidden && $("bag")) $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip(w); if (w === "shelf" && $("shelf")) $("shelf").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); }
+  }
+  if (!el) return;
+  const d = el.dataset;
+  if (d.go) go(d.go);
+  else if (d.tab) {
+    if (d.tab === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
+    tab = d.tab; sub = null;
+    if (tab === "almanac") { if (showNew) once.add("camp.new." + save.floor); track("almanac_view", { tab: aseg, entry: null }); if (aseg === "creatures") seenCreatures(); }
+    show("fwd");
+  }
+  else if (d.make) make(d.make);
+  else if (d.bag) {
+    place(d.bag);
+    tip = prevTip === d.bag && !(bench.a === d.bag || bench.b === d.bag) ? { where: null, key: null } : { where: "bag", key: d.bag };
+    renderTable();
+  }
+  else if (d.cell) { bench[d.cell] = null; bench.auto = false; bench.note = ""; bench.out = null; renderTable(); }
+  else if (el.id === "fuse") fuse();
+  else if (d.ttab) {
+    if (d.ttab === "feed" && !isOpen("feed")) { toast("unlock", t("table.feedLock", { n: unlockFloor("feed") })); haptic("error"); return; }
+    ttab = d.ttab; track("recipe_view", { tab: ttab, entry: null }); renderTable();
+  }
+  else if (d.foe) openCreature(d.foe);
+  else if (d.item) openItem(d.item);
+  else if (d.seg) {
+    aseg = d.seg; track("almanac_view", { tab: aseg, entry: null });
+    if (aseg === "creatures") seenCreatures();
+    renderAlmanac();
+  }
+  else if (d.shelf) {
+    tip = prevTip === d.shelf ? { where: null, key: null } : { where: "shelf", key: d.shelf };
+    $("shelf").querySelectorAll("[data-shelf]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.shelf === tip.key)));
+    if (item(d.shelf).type === "special" && tip.key) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); haptic("error"); }
+    placeTip("shelf");
+  }
+  else if (el.id === "next") {
+    const s = $("nextSub"); s.textContent = t("camp.nextStub", { n: save.floor + 1 });
+    clearTimeout(s._t); s._t = setTimeout(() => { s.textContent = t("camp.nextSub"); }, 2000);
+  }
+  else if (el.hasAttribute("data-close")) closeSheet();
+  else if (el.id === "back") { sub = null; show("rev"); }
+  else if (d.dev) dev(d.dev);
+});
+$("backdrop").addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("sheet").hidden) closeSheet();
+  else if (sub) { sub = null; show("rev"); }
+});
+
+/* ================= design-notes helpers (the Telegram build drops the notes) ================= */
+function noteSource() {
+  const n = $("srcNote"); if (!n) return;
+  n.innerHTML = demo ? "Сейчас: встроенное демо «после этажа 1» (<code>gamey.save</code> нет)." : "Сейчас: <code>gamey.save</code> из забега или после крафта.";
+}
+function dev(k) {
+  if (k === "demo") { save = clone(DEMO_SAVE); demo = true; }
+  if (k === "tails") { const x = save.bag.find(y => y.key === "tail"); if (x) x.n += 3; else save.bag.push({ key: "tail", n: 3 }); }
+  if (k === "fresh") { try { const a = readJSON("gamey.once", []); localStorage.setItem("gamey.once", JSON.stringify((Array.isArray(a) ? a : []).filter(x => !/^(camp\.|narrate\.camp)/.test(x)))); } catch (e) {} location.reload(); return; }
+  bench = { a: null, b: null, auto: false, out: null, note: "", tone: "" };
+  noteSource(); show();
+}
+
+/* ================= init ================= */
+$("heroSub").textContent = t("hero.class");
+noteSource();
+const from = /03-run|run\.html/.test(document.referrer) ? "run" : /01-first|index\.html/.test(document.referrer) ? "home" : "direct";
+track("camp_open", { tab: "camp", entry: from });
+show();
+})();
+</script>
+
+</body>
+</html>

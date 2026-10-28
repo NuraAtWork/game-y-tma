@@ -24,6 +24,7 @@ img{max-width:100%}
 </style>
 </head>
 <body>
+<meta charset="utf-8">
 <title>Game Y First Touch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +52,6 @@ img{max-width:100%}
   --scrim:rgba(20,18,22,.95);
   --scrim-mid:rgba(20,18,22,.7);
   --glow:rgba(226,178,76,.07);
-  --glow-strong:rgba(226,178,76,.28);
   --scrim-lock:rgba(20,18,22,.5);
   --pulse:rgba(226,178,76,.55);
   --pulse-0:rgba(226,178,76,0);
@@ -65,6 +65,7 @@ img{max-width:100%}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--stage);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+*{font-variant-ligatures:none!important}   /* Pixelify Sans turns "fl" into a broken glyph; !important because every font shorthand resets it */
 button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 img{image-rendering:pixelated}
 :focus-visible{outline:2px solid var(--torch);outline-offset:2px}
@@ -90,7 +91,7 @@ img{image-rendering:pixelated}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .purse{display:flex;gap:6px}
-.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 7px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:500 14px/1 var(--display);font-variant-numeric:tabular-nums}
+.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 7px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
 .chip img{width:16px;height:16px}
 .chip.star{color:var(--star)}
 .tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
@@ -112,15 +113,11 @@ img{image-rendering:pixelated}
 
 .vh{display:flex;flex-direction:column;gap:4px;padding-bottom:2px}
 .vh h2{margin:0;font:700 26px/1.05 var(--display);text-wrap:balance}
-.vh p,.intro{margin:0;font-size:14px;color:var(--muted);text-wrap:pretty}
-.sec{margin:8px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.sec span{font:400 12px/1 var(--body);letter-spacing:0;text-transform:none}
+.vh p{margin:0;font-size:14px;color:var(--muted);text-wrap:pretty}
+.sec{margin:8px 0 0;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .stub{display:inline-block;vertical-align:1px;margin-left:4px;padding:2px 6px;border:1px dashed var(--muted);border-radius:3px;font:500 10px/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
-.btn.sm{min-height:34px;padding:0 12px;font-size:14px}
-.btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
-.btn.wide{width:100%}
 .btn:active,.strip:active,.price:active{transform:translateY(1px)}
 
 .ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
@@ -132,18 +129,19 @@ img{image-rendering:pixelated}
 .strip .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .strip .title{font:700 25px/1.05 var(--display);margin-top:2px}
 .strip .meta{font-size:13px;color:var(--muted);max-width:26ch}
-.strip .chev{position:absolute;right:16px;top:50%;width:10px;height:14px;margin-top:-7px;color:var(--muted)}
-.strip .badge{position:absolute;top:12px;right:14px;min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;border-radius:11px;background:var(--blood);color:var(--fg);font:500 13px/1 var(--display)}
 .strip.main{min-height:224px;border-color:var(--torch-dim)}
 .strip.main .eyebrow{color:var(--torch)}
 .strip.main .title{font-size:32px}
-.floors{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;width:min(210px,100%);margin-top:8px}
+.prog{display:flex;align-items:center;gap:10px;margin-top:8px}
+.floors{flex:none;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;width:180px}
 .floors i{height:6px;border-radius:1px;background:var(--seg)}
 .floors i.done{background:var(--moss)}
 .floors i.now{background:var(--torch)}
+.prog b{font:600 13px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
 .cta{display:inline-flex;align-items:center;min-height:40px;margin-top:12px;padding:0 18px;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display)}
+.num{font-family:var(--body);font-weight:600}   /* digits that matter: Pixelify's 2 and 5 read as 8 and S */
 
-/* ---------- first touch ---------- */
+/* ---------- first touch & locks ---------- */
 .strip.first{min-height:300px}
 .strip.first .meta{max-width:30ch;font-size:14px;color:var(--fg)}
 .cta.pulse{animation:pulse 1.8s ease-out infinite}
@@ -151,14 +149,12 @@ img{image-rendering:pixelated}
 .strip.locked{min-height:108px}
 .strip.locked::before{background:linear-gradient(90deg, var(--scrim) 0%, var(--scrim) 40%, var(--scrim-mid) 70%, var(--scrim-lock) 100%)}
 .strip.locked .title{color:var(--muted)}
+.strip.static{min-height:224px;cursor:default}
+.strip.static:active{transform:none}
 .strip .lockmark{position:absolute;right:15px;top:50%;width:16px;height:16px;margin-top:-8px;color:var(--muted)}
 .tab.locked{opacity:.5}
 .tab .ico.tablock{position:absolute;top:4px;left:50%;width:8px;height:8px;margin-left:12px;color:var(--fg)}
-.cell.empty{border-style:dashed;background:transparent;font:700 22px/1 var(--display);color:var(--line)}
-.locknote{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px dashed var(--line);border-radius:6px}
-.locknote .ico{width:16px;height:16px;margin-top:2px;color:var(--muted)}
-.locknote b{display:block;font:500 17px/1.15 var(--display)}
-.locknote p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.tab .tbadge{position:absolute;top:0;left:50%;min-width:18px;height:18px;margin-left:8px;padding:0 5px;border-radius:9px;background:var(--blood);color:var(--fg);font:600 11px/18px var(--body);letter-spacing:0;font-variant-numeric:tabular-nums}
 
 /* ---------- campaign: tower ---------- */
 .tower{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
@@ -167,16 +163,18 @@ img{image-rendering:pixelated}
 .node{position:relative;width:14px;height:14px;margin:4px 5px;background:var(--bg);border:2px solid var(--line)}
 .b-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .b-head b{font:500 18px/1.15 var(--display)}
-.range{font:500 13px/1 var(--display);color:var(--muted);font-variant-numeric:tabular-nums}
+.range{font:500 13px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
 .b-body p{margin:4px 0 0;font-size:13px;color:var(--muted)}
 .biome.lock .b-head b{color:var(--muted)}
 .biome .lockico{width:16px;height:16px;margin-top:3px;color:var(--muted)}
 .biome.now .node{border-color:var(--torch);background:var(--torch)}
 .biome.now .b-body{padding:12px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel)}
 .floorgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:12px}
-.fl{height:38px;display:grid;place-items:center;border-radius:3px;background:var(--seg);color:var(--muted);font:500 15px/1 var(--display);font-variant-numeric:tabular-nums}
+.fl{height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:3px;background:var(--seg);color:var(--muted);font:600 15px/1 var(--body);font-variant-numeric:tabular-nums}
+button.fl{cursor:pointer}
 .fl.done{background:var(--moss-dim);color:var(--moss)}
 .fl.now{background:var(--torch);color:var(--torch-ink)}
+.fl.sel{box-shadow:0 0 0 2px var(--panel), 0 0 0 4px var(--fg)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:6px}
 .sw{width:10px;height:10px;border-radius:2px;background:var(--seg)}
@@ -184,82 +182,36 @@ img{image-rendering:pixelated}
 .sw.now{background:var(--torch)}
 .go{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 12px 16px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel-hi);box-shadow:0 -16px 24px var(--bg)}
 .go b{display:block;font:500 20px/1.1 var(--display)}
-.go span{font-size:12px;color:var(--muted)}
+.go div>span{font-size:12px;color:var(--muted)}
 
-/* ---------- quests & farm ---------- */
-.quest{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
-.quest.locked{cursor:default;background:transparent;border-style:dashed}
+/* ---------- hero: classes & races ---------- */
 .face{width:48px;height:48px;display:grid;place-items:center;border-radius:4px;background:var(--seg)}
 .face img{width:32px;height:32px}
 .face .q{font:700 22px/1 var(--display);color:var(--muted)}
-.q-body{display:flex;flex-direction:column;gap:4px;min-width:0}
-.q-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.q-head b{font:500 17px/1.15 var(--display)}
-.q-text{font-size:13px;color:var(--muted)}
-.qmeta{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;font-size:12px;color:var(--muted)}
-.qmeta b{font-weight:500;color:var(--fg)}
-.qbar{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.qbar i{flex:1;height:6px;border-radius:1px;background:var(--seg);overflow:hidden}
-.qbar i::after{content:"";display:block;height:100%;width:var(--p);background:var(--torch)}
 .pill{flex:none;padding:4px 6px;border-radius:3px;font:500 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .pill.ok{background:var(--moss-dim);color:var(--moss)}
-.pill.go{background:var(--torch-dim);color:var(--torch)}
 .pill.paid{background:var(--star-dim);color:var(--star)}
 .pill.off{background:var(--seg);color:var(--muted)}
-
-.frow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.frow.next{background:transparent;border-style:dashed}
-.fnum{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--moss-dim);color:var(--moss);font:700 20px/1 var(--display)}
-.frow.next .fnum{background:var(--seg);color:var(--muted)}
-.f-body{min-width:0}
-.f-body b{display:block;font:500 16px/1.15 var(--display)}
-.f-body .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-.loot{display:flex;gap:4px;margin-top:6px}
-.loot img{width:22px;height:22px;padding:3px;border-radius:3px;background:var(--seg)}
-
-/* ---------- alchemy ---------- */
-.bench{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:4px;align-items:start;padding:16px 10px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.part{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
-.cell{width:64px;height:64px;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--seg)}
-.cell img{width:40px;height:40px}
-.part.res .cell{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 22px var(--glow-strong)}
-.part b{font:500 13px/1.15 var(--display)}
-.part small{font-size:11px;color:var(--muted)}
-.op{margin-top:20px;font:700 20px/1 var(--display);color:var(--muted)}
-.yield{display:flex;flex-wrap:wrap;gap:6px}
-.tag{padding:4px 9px;border-radius:12px;background:var(--seg);font-size:12px}
-.tag.up{color:var(--moss)}
-.pathnote{margin:0;font-size:13px;color:var(--muted)}
-.pathnote b{font-weight:500;color:var(--torch)}
-.bag{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
-.bag span{position:relative;aspect-ratio:1/1;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--seg)}
-.bag img{width:66%;height:66%}
-.bag .eq{position:absolute;top:2px;right:3px;font:500 8px/1 var(--display);letter-spacing:.06em;color:var(--moss)}
-.recipes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.recipes li{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:14px}
-.recipes img{width:22px;height:22px}
-.recipes .arrow{color:var(--muted)}
-.recipes .unk{background:transparent;border-style:dashed;color:var(--muted);font-family:var(--display)}
-
-/* ---------- almanac ---------- */
-.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.seg button{padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 13px/1 var(--display);cursor:pointer}
-.seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
-.count{margin:0;font-size:13px;color:var(--muted)}
-.count b{font:700 18px/1 var(--display);color:var(--fg)}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.entry{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:10px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:center}
-.entry img{width:36px;height:36px}
-.entry span{font-size:11px;line-height:1.2}
-.entry.unk{background:transparent;border-style:dashed}
-.entry.unk i{width:36px;height:36px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
-.entry.unk span{color:var(--muted)}
 .rows{display:flex;flex-direction:column;gap:6px}
-.rowcard{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.rowcard{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left}
 .rowcard .face{width:44px;height:44px}
 .rowcard b{display:block;font:500 16px/1.15 var(--display)}
 .rowcard .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-.rowcard.unk{background:transparent;border-style:dashed}
+.rowcard.unk{background:transparent;border-style:dashed;cursor:pointer}
+
+/* ---------- almanac ---------- */
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.seg button{padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 13px/1 var(--display);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
+.count{margin:0;font-size:13px;color:var(--muted)}
+.count b{font:600 17px/1 var(--body);color:var(--fg);font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.entry{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:10px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:center}
+.entry img{width:40px;height:40px}
+.entry span{font-size:11px;line-height:1.2}
+.entry.unk{background:transparent;border-style:dashed}
+.entry.unk i{width:40px;height:40px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
+.entry.unk span{color:var(--muted)}
 
 /* ---------- shop ---------- */
 .offer{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
@@ -270,10 +222,10 @@ img{image-rendering:pixelated}
 .offer.feat .row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .slots4{display:flex;gap:6px}
 .slots4 span{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--seg);font:700 20px/1 var(--display);color:var(--muted)}
-.slots4 img{width:30px;height:30px}
+.slots4 img{width:32px;height:32px}
 .slots4 .plus{background:transparent;border:1px dashed var(--star);color:var(--star)}
 .price{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 14px;border:1px solid var(--star-dim);border-radius:18px;background:transparent;color:var(--star);font:500 15px/1 var(--display);cursor:pointer}
-.price img{width:14px;height:14px}
+.price img{width:16px;height:16px}
 .linkbtn{align-self:flex-start;padding:0;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* ---------- tab bar & toast ---------- */
@@ -282,9 +234,14 @@ img{image-rendering:pixelated}
 .tab .ico{width:30px;height:30px}
 .tab[aria-current="page"]{color:var(--torch)}
 .tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
-.toast{position:absolute;left:16px;right:16px;bottom:12px;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel-hi);font-size:13px;box-shadow:0 10px 30px var(--bezel);pointer-events:none}
+/* GDE-00 toast: on top of the view, 2 s, at most one waiting, never takes input */
+.toast{position:absolute;z-index:5;top:10px;left:16px;right:16px;padding:11px 14px;border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:6px;background:var(--panel-hi);font-size:13px;box-shadow:0 10px 30px var(--bezel);pointer-events:none}
+.toast[data-type="almanac"]{border-left-color:var(--moss)}
+.toast[data-type="recipe"]{border-left-color:var(--torch)}
+.toast[data-type="unlock"]{border-left-color:var(--star)}
+.toast[data-type="stub"]{border-style:dashed;border-left-style:solid;color:var(--muted)}
 .toast.in{animation:toast .2s ease-out}
-@keyframes toast{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes toast{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
 /* ---------- notes beside the phone ---------- */
 .notes{display:none;flex:0 1 300px;max-width:300px;flex-direction:column;gap:22px}
@@ -293,8 +250,9 @@ img{image-rendering:pixelated}
 .note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
 .note p{margin:0;font-size:14px}
-.foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-.note a{color:var(--torch);text-underline-offset:3px}
+.note code{font-size:12px;color:var(--muted)}
+.note a,.note .dev{color:var(--torch);text-underline-offset:3px}
+.note .dev{padding:0;border:0;background:none;font-size:14px;text-decoration:underline;cursor:pointer}
 .note .cur{color:var(--fg)}
 @media (min-width:1000px){.notes{display:flex}}
 
@@ -324,17 +282,16 @@ img{image-rendering:pixelated}
 
       <header class="topbar">
         <div class="tb-root" id="tbRoot">
-          <button class="hero" type="button" data-stub="Hero screen: gear in six slots and the class path. Placeholder.">
+          <button class="hero" type="button" data-open="hero">
             <span class="avatar"><img data-spr="player" alt=""></span>
-            <span class="who"><b>Human</b><span>No class</span></span>
+            <span class="who"><b data-t="hero.name"></b><span data-t="hero.class"></span></span>
           </button>
           <div class="purse">
-            <span class="chip" aria-label="Gold: 0"><img data-spr="coin" alt="">0</span>
-            <span class="chip star" aria-label="Telegram Stars: 0"><img data-spr="star" alt="">0</span>
+            <span class="chip star" id="stars"><img data-spr="star" alt=""><span>0</span></span>
           </div>
         </div>
         <div class="tb-sub" id="tbSub" hidden>
-          <button class="back" id="back" type="button" aria-label="Back"><i class="ico" data-ico="back" data-s="2"></i></button>
+          <button class="back" id="back" type="button" data-ta="aria.back"><i class="ico" data-ico="back" data-s="2"></i></button>
           <div class="tb-title"><b id="tbTitle"></b><span id="tbSubt"></span></div>
         </div>
       </header>
@@ -342,161 +299,101 @@ img{image-rendering:pixelated}
       <div class="main">
         <div class="views" id="views">
 
-          <!-- PLAY -->
-          <section class="view" data-view="game" aria-label="Play">
-            <button class="strip main first" type="button" data-scene="campaign" data-open="campaign">
-              <span class="eyebrow">Main campaign</span>
-              <span class="title">Tower I</span>
-              <span class="meta">You wake in the tower's basement. Somewhere above: the academy and its entrance trial.</span>
-              <span class="floors" data-floors="0/15" aria-hidden="true"></span>
-              <span class="cta pulse">Start</span>
+          <!-- PLAY: first touch without a save, the climb so far with one -->
+          <section class="view" data-view="game" data-ta="tab.play">
+            <button class="strip main" type="button" data-scene="campaign" id="mainStrip">
+              <span class="eyebrow" data-t="play.eyebrow"></span>
+              <span class="title" data-t="play.title"></span>
+              <span class="meta" data-t="play.intro" id="mainMeta"></span>
+              <span class="prog"><span class="floors" id="floors" aria-hidden="true"></span><b id="floorCount"></b></span>
+              <span class="cta" id="mainCta"></span>
             </button>
-            <button class="strip locked" type="button" data-scene="quests" data-stub="Errands unlock after the tutorial.">
-              <span class="eyebrow">Side quests</span>
-              <span class="title">Errands</span>
-              <span class="meta">Unlock after the tutorial</span>
+            <button class="strip locked" type="button" data-scene="quests" data-stub="errands.lock">
+              <span class="eyebrow" data-t="errands.eyebrow"></span>
+              <span class="title" data-t="errands.title"></span>
+              <span class="meta"><span data-t="errands.lock"></span> <span class="stub" data-t="stub"></span></span>
               <i class="ico lockmark" data-ico="lock" data-s="2"></i>
             </button>
-            <button class="strip locked" type="button" data-scene="farm" data-stub="Farm unlocks after the tutorial, once there are cleared floors.">
-              <span class="eyebrow">Farm</span>
-              <span class="title">Cleared floors</span>
-              <span class="meta">Unlocks after the tutorial</span>
-              <i class="ico lockmark" data-ico="lock" data-s="2"></i>
+            <button class="strip locked" type="button" data-scene="farm" id="farmStrip" data-stub="farm.lock">
+              <span class="eyebrow" data-t="farm.eyebrow"></span>
+              <span class="title" data-t="farm.title"></span>
+              <span class="meta" data-t="farm.lock" id="farmMeta"></span>
+              <i class="ico lockmark" data-ico="lock" data-s="2" id="farmLock"></i>
             </button>
           </section>
 
-          <!-- CAMPAIGN -->
-          <section class="view" data-view="campaign" aria-label="Tower I" hidden>
-            <ol class="tower">
-              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Exam</b><span class="range">91–100</span></div><p>The academy's final trial.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
-              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>School</b><span class="range">71–90</span></div><p>Classes, students and rivals.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
-              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Undead</b><span class="range">31–70</span></div><p>Crypts and catacombs. The longest biome.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
-              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Slimes and poison plants</b><span class="range">16–30</span></div><p>Damp, slime and poisonous growth.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
-              <li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>Interlude</b><span class="range">story</span></div><p>A scene after leaving the basement.</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>
-              <li class="biome now"><span class="node"></span><div class="b-body">
-                <div class="b-head"><b>Basement</b><span class="range">1–15</span></div>
-                <p>The hero climbs out of the basement. Tutorial and first mechanics.</p>
-                <div class="floorgrid" id="floorgrid" data-done="0" aria-label="Basement floors: floor 1 current"></div>
-                <div class="legend"><span><i class="sw done"></i>cleared</span><span><i class="sw now"></i>current</span><span><i class="sw"></i>locked</span></div>
-              </div></li>
-            </ol>
+          <!-- CAMPAIGN: the tower, read bottom-up -->
+          <section class="view" data-view="campaign" data-ta="tower.title" hidden>
+            <ol class="tower" id="tower"></ol>
             <div class="go">
-              <div><b>Floor 1</b><span>Basement · tutorial</span></div>
-              <a class="btn" href="run.html">Start</a>
+              <div><b id="goTitle"></b><span id="goSub"></span></div>
+              <button class="btn" type="button" id="goBtn" data-t="play.start"></button>
             </div>
           </section>
 
-          <!-- ALCHEMY -->
-          <section class="view" data-view="alchemy" aria-label="Alchemy" hidden>
-            <div class="vh"><h2>Alchemy</h2><p>A base and a modifier fuse into a new item. Properties stack, the look changes.</p></div>
-            <div class="bench">
-              <div class="part"><span class="cell empty">?</span><b>Base</b><small>weapon</small></div>
-              <span class="op" aria-hidden="true">+</span>
-              <div class="part"><span class="cell empty">?</span><b>Modifier</b><small>property</small></div>
-              <span class="op" aria-hidden="true">=</span>
-              <div class="part"><span class="cell empty">?</span><b>New item</b><small>result</small></div>
-            </div>
-            <div class="locknote">
-              <i class="ico" data-ico="lock" data-s="2"></i>
-              <div><b>Unlocks in the tutorial</b><p>Find a weapon and a modifier in the basement and fuse them once. Then alchemy opens here.</p></div>
+          <!-- HERO: gear is still a stub; classes and races moved here from the almanac -->
+          <section class="view" data-view="hero" data-ta="hero.name" hidden>
+            <button class="rowcard unk" type="button" data-stub="stub.gear"><span class="face"><span class="q">?</span></span><div><b data-t="hero.gear"></b><span class="sub" data-t="hero.gear.sub"></span></div><span class="stub" data-t="stub"></span></button>
+            <h3 class="sec" data-t="hero.classes"></h3>
+            <div class="rows" id="classes"></div>
+            <h3 class="sec" data-t="hero.races"></h3>
+            <div class="rows" id="races"></div>
+          </section>
+
+          <!-- CAMP while locked (once open, the tab goes to the camp screen) -->
+          <section class="view" data-view="camp" data-ta="tab.camp" hidden>
+            <div class="strip locked static" data-scene="camp">
+              <span class="eyebrow" data-t="camp.eyebrow"></span>
+              <span class="title" data-t="camp.title"></span>
+              <span class="meta" data-t="camp.lock"></span>
+              <i class="ico lockmark" data-ico="lock" data-s="2"></i>
             </div>
           </section>
 
           <!-- ALMANAC -->
-          <section class="view" data-view="almanac" aria-label="Almanac" hidden>
-            <div class="vh"><h2>Almanac</h2><p>Everything met in the tower. Entries appear as you discover them.</p></div>
-            <div class="seg" role="tablist" aria-label="Almanac sections">
-              <button type="button" role="tab" data-seg="items" aria-selected="true">Items</button>
-              <button type="button" role="tab" data-seg="foes" aria-selected="false">Foes</button>
-              <button type="button" role="tab" data-seg="classes" aria-selected="false">Classes</button>
-              <button type="button" role="tab" data-seg="races" aria-selected="false">Races</button>
+          <section class="view" data-view="almanac" data-ta="tab.almanac" hidden>
+            <div class="vh"><h2 data-t="alm.title"></h2><p data-t="alm.lede"></p></div>
+            <div class="seg" role="tablist" data-ta="alm.sections">
+              <button type="button" role="tab" data-seg="weapons" aria-selected="true" data-t="alm.weapons"></button>
+              <button type="button" role="tab" data-seg="creatures" aria-selected="false" data-t="alm.creatures"></button>
+              <button type="button" role="tab" data-seg="items" aria-selected="false" data-t="alm.items"></button>
             </div>
-
-            <div data-panel="items">
-              <div class="rows" style="gap:10px">
-                <p class="count"><b>0</b> of 48 found <span class="stub">placeholder</span></p>
-                <div class="cards">
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                  <div class="entry unk"><i>?</i><span>Not found</span></div>
-                </div>
-              </div>
-            </div>
-
-            <div data-panel="foes" hidden>
-              <div class="rows" style="gap:10px">
-                <p class="count"><b>0</b> of 30 met <span class="stub">placeholder</span></p>
-                <div class="cards">
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                  <div class="entry unk"><i>?</i><span>Not met</span></div>
-                </div>
-              </div>
-            </div>
-
-            <div data-panel="classes" hidden>
-              <div class="rows">
-                <p class="intro">No class to pick at the start: it grows out of what you find and craft. You can take several.</p>
-                <div class="rowcard"><span class="face"><img data-spr="shield" alt=""></span><div><b>Warrior</b><span class="sub">Free · unlocked by items</span></div><span class="pill off">Not started</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="dagger" alt=""></span><div><b>Rogue</b><span class="sub">Free · unlocked by items</span></div><span class="pill off">Not started</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="orb" alt=""></span><div><b>Summoner</b><span class="sub">For Stars</span></div><span class="pill paid">★ Paid</span></div>
-                <div class="rowcard unk"><span class="face"><span class="q">?</span></span><div><b>Fourth class</b><span class="sub">Not designed yet</span></div><span class="stub">placeholder</span></div>
-              </div>
-            </div>
-
-            <div data-panel="races" hidden>
-              <div class="rows">
-                <div class="rowcard"><span class="face"><img data-spr="player" alt=""></span><div><b>Human</b><span class="sub">First hero</span></div><span class="pill ok">Unlocked</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="cat" alt=""></span><div><b>Catfolk</b><span class="sub">Free after the tutorial</span></div><span class="pill off">Locked</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="dwarf" alt=""></span><div><b>Dwarf</b><span class="sub">For Stars · race TBD</span></div><span class="pill paid">★ Paid</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="elf" alt=""></span><div><b>Elf</b><span class="sub">Met in the tower, later for Stars</span></div><span class="pill off">NPC</span></div>
-                <div class="rowcard"><span class="face"><img data-spr="fish" alt=""></span><div><b>Fishfolk</b><span class="sub">Met in the tower · TBD</span></div><span class="pill off">NPC</span></div>
-              </div>
-            </div>
+            <p class="count" id="almCount"></p>
+            <div class="cards" id="almCards"></div>
           </section>
 
-          <!-- SHOP -->
-          <section class="view" data-view="shop" aria-label="Shop" hidden>
-            <div class="vh"><h2>Shop</h2><p>Purchases with Telegram Stars. Range and prices are not decided yet. <span class="stub">placeholder</span></p></div>
+          <!-- SHOP: open on the first visit, no badges or animation -->
+          <section class="view" data-view="shop" data-ta="tab.shop" hidden>
+            <div class="vh"><h2 data-t="shop.title"></h2><p><span data-t="shop.lede"></span> <span class="stub" data-t="stub"></span></p></div>
 
             <div class="offer feat">
-              <div class="slots4"><span><img data-spr="player" alt="Human"></span><span>?</span><span>?</span><span class="plus">+</span></div>
+              <div class="slots4"><span><img data-spr="player" alt=""></span><span>?</span><span>?</span><span class="plus">+</span></div>
               <div class="row">
-                <div><b>Hero slot</b><span class="sub">Fourth hero onward. The first three unlock as you play.</span></div>
-                <button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button>
+                <div><b data-t="shop.slot"></b><span class="sub" data-t="shop.slot.sub"></span></div>
+                <button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button>
               </div>
             </div>
 
-            <h3 class="sec">Races</h3>
-            <div class="offer"><span class="face"><img data-spr="dwarf" alt=""></span><div><b>Dwarf</b><span class="sub">Race for a new hero</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
+            <h3 class="sec" data-t="hero.races"></h3>
+            <div class="offer"><span class="face"><img data-spr="dwarf" alt=""></span><div><b data-t="race.dwarf"></b><span class="sub" data-t="shop.race.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
 
-            <h3 class="sec">Classes</h3>
-            <div class="offer"><span class="face"><img data-spr="orb" alt=""></span><div><b>Summoner</b><span class="sub">Opens the summoner path</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
+            <h3 class="sec" data-t="hero.classes"></h3>
+            <div class="offer"><span class="face"><img data-spr="orb" alt=""></span><div><b data-t="class.summoner"></b><span class="sub" data-t="shop.class.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
 
-            <h3 class="sec">Components</h3>
-            <div class="offer"><span class="face"><img data-spr="pouch" alt=""></span><div><b>Modifier pouch</b><span class="sub">A random rare modifier for alchemy</span></div><button class="price" type="button" data-stub="Stars purchases come with the bot."><img data-spr="star" alt="">—</button></div>
-            <button class="linkbtn" type="button" data-stub="Odds table — placeholder. Odds will have to be shown openly.">Drop odds</button>
+            <h3 class="sec" data-t="shop.parts"></h3>
+            <div class="offer"><span class="face"><img data-spr="pouch" alt=""></span><div><b data-t="shop.pouch"></b><span class="sub" data-t="shop.pouch.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
+            <button class="linkbtn" type="button" data-stub="stub.odds" data-t="shop.odds"></button>
           </section>
 
         </div>
         <div class="toast" id="toast" role="status" hidden></div>
       </div>
 
-      <nav class="tabbar" aria-label="Sections">
-        <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span>Play</span></button>
-        <button class="tab locked" type="button" data-tab="alchemy" aria-label="Alchemy, locked"><i class="ico" data-ico="flask"></i><span>Alchemy</span><i class="ico tablock" data-ico="lock" data-s="1"></i></button>
-        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span>Almanac</span></button>
-        <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span>Shop</span></button>
+      <nav class="tabbar" data-ta="aria.sections">
+        <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></button>
+        <button class="tab" type="button" data-tab="camp" id="campTab"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span><i class="ico tablock" data-ico="lock" data-s="1" id="campLock"></i><b class="tbadge" id="campBadge" hidden></b></button>
+        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
+        <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></button>
       </nav>
       <span class="homebar" aria-hidden="true"></span>
     </div>
@@ -506,10 +403,103 @@ img{image-rendering:pixelated}
 
 <script>
 (() => {
+/* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
+const STR = {
+  "hero.name": "Human", "hero.class": "No class",
+  "hero.gear": "Gear and builds", "hero.gear.sub": "Six slots", "hero.classes": "Classes", "hero.races": "Races",
+  "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.stars": "Telegram Stars: {n}",
+  "aria.campLocked": "Camp, locked", "aria.campMake": "Camp, {n} to make",
+  "play.eyebrow": "Main campaign", "play.title": "Tower I",
+  "play.intro": "You wake in the tower's basement. Somewhere above: the academy and its entrance trial.",
+  "play.start": "Start", "play.continue": "Continue · Floor {n}", "play.count": "{n}/15",
+  "errands.eyebrow": "Side quests", "errands.title": "Errands", "errands.lock": "Opens after the tutorial",
+  "farm.eyebrow": "Farm", "farm.title": "Cleared floors", "farm.lock": "Opens after floor 5",
+  "camp.eyebrow": "Base", "camp.title": "Stairs camp", "camp.lock": "Opens after floor 1",
+  "tower.title": "Tower I", "tower.sub": "Trial of Applicants · {n} of 100 cleared",
+  "tower.floor": "Floor {n}", "tower.tutorial": "Basement · tutorial", "tower.basement": "Basement",
+  "tower.cleared": "cleared", "tower.current": "current", "tower.locked": "locked",
+  "biome.exam": "Exam", "biome.exam.p": "The academy's final trial.",
+  "biome.school": "School", "biome.school.p": "Classes, students and rivals.",
+  "biome.undead": "Undead", "biome.undead.p": "Crypts and catacombs. The longest biome.",
+  "biome.slimes": "Slimes and poison plants", "biome.slimes.p": "Damp, slime and poisonous growth.",
+  "biome.interlude": "Interlude", "biome.interlude.range": "story", "biome.interlude.p": "A scene after leaving the basement.",
+  "biome.basement": "Basement", "biome.basement.p": "The hero climbs out of the basement. Tutorial and first mechanics.",
+  "alm.title": "Almanac", "alm.lede": "Everything met in the tower.", "alm.sections": "Almanac sections",
+  "alm.weapons": "Weapons", "alm.creatures": "Creatures", "alm.items": "Items",
+  "alm.found": "found", "alm.met": "met", "alm.notFound": "Not found", "alm.notMet": "Not met",
+  "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger",
+  "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt",
+  "item.lockbox": "Locked box", "item.tail": "Rat tail", "item.jacket": "Leather jacket",
+  "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat",
+  "class.warrior": "Warrior", "class.rogue": "Rogue", "class.mage": "Mage", "class.summoner": "Summoner",
+  "class.free": "Free · unlocked by items", "class.paid": "For Stars",
+  "race.human": "Human", "race.human.sub": "First hero",
+  "race.cat": "Catfolk", "race.cat.sub": "Free after the tutorial",
+  "race.dwarf": "Dwarf", "race.dwarf.sub": "For Stars · race TBD",
+  "race.elf": "Elf", "race.elf.sub": "Met in the tower, later for Stars",
+  "race.fish": "Fishfolk", "race.fish.sub": "Met in the tower · TBD",
+  "pill.notStarted": "Not started", "pill.paid": "★ Paid", "pill.unlocked": "Unlocked", "pill.locked": "Locked", "pill.npc": "NPC",
+  "shop.title": "Shop", "shop.lede": "Purchases with Telegram Stars. Range and prices are not decided yet.",
+  "shop.slot": "Hero slot", "shop.slot.sub": "Fourth hero onward. The first three unlock as you play.",
+  "shop.race.sub": "Race for a new hero", "shop.class.sub": "Opens the summoner path",
+  "shop.parts": "Components", "shop.pouch": "Modifier pouch", "shop.pouch.sub": "A random rare modifier for the table",
+  "shop.odds": "Drop odds",
+  "stub": "placeholder",
+  "stub.gear": "Hero screen: gear in six slots and builds. Placeholder.",
+  "stub.stars": "Stars purchases come with the bot.",
+  "stub.odds": "Odds table — placeholder. Odds will have to be shown openly.",
+  "stub.floor": "Floor {n} is not built yet.",
+  "stub.farm": "Farm — placeholder."
+};
+const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
+
 document.documentElement.lang = "en";
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LINK = { run: "run.html", camp: "camp.html" };   // relative: the Telegram build maps them to run.html / camp.html
 
-/* ================= sprites (same palette as the run prototype) ================= */
+/* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
+const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const save = (s => s && s.v === 1 && typeof s.floor === "number" ? s : null)(readJSON("gamey.save", null));
+const once = {
+  has: k => readJSON("gamey.once", []).includes(k),
+  add(k) { try { const a = readJSON("gamey.once", []); if (!a.includes(k)) { a.push(k); localStorage.setItem("gamey.once", JSON.stringify(a)); } } catch (e) {} }
+};
+let sid = "nosid";
+try { sid = sessionStorage.getItem("gamey.sid"); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("gamey.sid", sid); } } catch (e) {}
+
+/* GDE-00 analytics: console now, a server later */
+function track(e, props) {
+  props = props || {};
+  console.debug("[track]", e, props);
+  try {
+    const log = readJSON("gamey.events", []);
+    log.push({ e, t: Date.now(), sid, ...props });
+    localStorage.setItem("gamey.events", JSON.stringify(log.slice(-500)));
+  } catch (err) {}
+}
+function source() {   // Telegram start_param or ?ref=, else the referring site, else direct
+  const tg = window.Telegram && window.Telegram.WebApp, q = new URLSearchParams(location.search);
+  const p = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || q.get("tgWebAppStartParam") || q.get("ref");
+  if (p) return p;
+  try { const r = document.referrer && new URL(document.referrer); if (r && r.host && r.host !== location.host) return r.host; } catch (e) {}
+  return "direct";
+}
+
+/* demo save "after floor 1", same shape 03 writes on floor_clear (used by the links in the notes) */
+const DEMO_SAVE = { v: 1, floor: 1,
+  bag: [{ key: "viper", n: 1 }, { key: "pelt", n: 1 }, { key: "lockbox", n: 1 }], hand: "viper", moves: ["strike", "reflex"],
+  creatures: { snake: { seen: 1, wins: 1 }, wolf: { seen: 1, wins: 1 } },
+  recipes: ["sharp", "viper"], camp: ["table", "almanac"], makeable: 0, time: { 1: 241 } };
+
+/* ================= state from the save ================= */
+const DONE = save ? Math.max(0, Math.min(15, save.floor | 0)) : 0;
+const UNLOCK = { camp: 1, farm: 5 };                     // floor after which each part opens
+const campOpen = DONE >= UNLOCK.camp, farmOpen = DONE >= UNLOCK.farm;
+const makeable = campOpen ? Math.max(0, save.makeable | 0) : 0;
+const firstRun = !save && !once.has("home.start");     // the very first Start skips the tower screen (GDE-01 P2)
+
+/* ================= sprites (8×8, same palette as the run prototype) ================= */
 function mk(rows, pal, base) {
   const w = rows[0].length, h = rows.length;
   const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -523,39 +513,48 @@ const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"
   o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1", V:"#c9bdf2", u:"#f3d36b" };
 const SPR = {
   player: mk(["..hhhh..","..hssh..","..ssss..",".bbbbbb.","s.bbbb.s","..bbbb..","..l..l..","..l..l.."], P),
+  snake:  mk(["....gg..","...gxgg.","...ggr..","...gg...","..gg....",".gGGgg..","gGggggg.",".ggggg.."], P),
+  wolf:   mk(["..M.....",".MMM...M","MxMMMMMM","MMMMMMM.","..MMMMM.","..nMMMn.","..n...n.","..n...n."], P),
   rat:    mk(["........","........","...nn...","..nnnnx.",".nnnnnnn","nnnnnnn.",".t.t.t..","t......."], P),
-  slime:  mk(["........","...gg...","..gggg..",".gggggg.",".gxggxg.","gggggggg","GGGGGGGG","........"], P),
-  chest:  mk(["........",".wwwwww.","wyyyyyyw","wwwkkwww","wyykkyyw","wyyyyyyw","wwwwwwww","........"], P),
+  dagger: mk(["........","......n.",".....nn.","....nn..","..knn...","...k....","..h.k...",".h......"], P),
+  sharp:  mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
+  viper:  mk(["........","......g.",".....gm.","....gm..","..kgm...","...k....","..G.k...",".G......"], P),
+  stone:  mk(["........","........","..nnnn..",".nMMMMn.",".nMmmMn.",".nnnnnn.","........","........"], P),
+  fang:   mk(["........","..ee....","..eee...","...ee...","...ee...","....e...","....e...","........"], P),
+  pelt:   mk(["M......M",".MMMMMM.","..MmmM..",".MmmmmM.",".MmmmmM.","..MmmM..",".MMMMMM.","M......M"], P),
+  lockbox:mk(["........",".MwwwwM.",".wyyyyw.",".MwkkwM.",".wykdyw.",".wyyyyw.",".MwwwwM.","........"], P),
+  tail:   mk(["......nn","......tn",".....t..","....t...","...t....","..t.....","..t.....","...t...."], P),
+  jacket: mk([".ww..ww.","wyywwyyw","wyyhhyyw","wyyhhyyw",".yyhhyy.",".yyhhyy.",".yyhhyy.",".wwwwww."], P),
   open:   mk(["........","wwwwwwww","w.dddd.w","wddddddw","wyyyyyyw","wyyyyyyw","wwwwwwww","........"], P),
-  shadow: mk(["..dddd..",".dddddd.",".dxddxd.",".dddddd.","dddddddd","dddddddd","d.dd.dd.","d..d..d."], P),
   blade:  mk([".......m","......mM",".....mM.","....mM..",".k.mM...","..kM....",".hkk....","h......."], P),
-  rose:   mk(["..rr....",".rRrr...",".rrRr...","..rr....","...G.G..","...GG...","..G.....","..G....."], P),
-  potion: mk(["...cc...","...ee...","..eppe..",".eppppe.",".epppre.",".eppppe.","..eeee..","........"], P),
   elf:    mk(["..kkkk..",".kkkkkk.","skdssdks",".kssssk.","..gGGg..",".gggggg.",".gggggg.","..g..g.."], P),
   cat:    mk([".o....o.",".oo..oo.",".oooooo.",".odoodo.",".ooeeoo.","..bbbb..",".obbbbo.","..l..l.."], P),
   dwarf:  mk(["..MMMM..",".MmmmmM.",".sdssds.",".yyyyyy.","yyyyyyyy",".ryyyyr.",".rrrrrr.",".l....l."], P),
   fish:   mk(["...ff...","..ffff..",".feffef.",".ffffff.","F.ffff.F","..FFFF..",".FFFFFF.","..F..F.."], P),
   shield: mk([".mmmmmm.","mMMrrMMm","mMMrrMMm","mrrrrrrm","mMMrrMMm",".mMrrMm.","..mMMm..","...mm..."], P),
-  dagger: mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
+  staff:  mk(["......v.",".....vVv","......v.",".....y..","....y...","...y....","..y.....",".y......"], P),
   orb:    mk(["..vvvv..",".vVvvvv.",".vVvvvv.",".vvvvvv.","..vvvv..","...yy...","..yyyy..",".yyyyyy."], P),
-  coin:   mk(["..kkkk..",".kkkkkk.","kkyyyykk","kkykkykk","kkykkykk","kkyyyykk",".kkkkkk.","..kkkk.."], P),
   star:   mk(["...uu...","...uu...","uuuuuuuu",".uuuuuu.","..uuuu..",".uuuuuu.",".uu..uu.","u......u"], P),
   pouch:  mk(["..r..r..","...rr...","..wwww..",".wyyyyw.","wyykkyyw","wykyykyw","wyykkyyw",".wwwwww."], P)
 };
-SPR.thorns = mk(["......r.",".....G.r","....G.G.","...G.G..","..G.....","........","........","........"], P, SPR.blade);
 const urls = {};
 const sprURL = k => urls[k] || (urls[k] = SPR[k].toDataURL());
-document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+function silURL(k) {   // a met creature shows only its outline (almanac stage 1)
+  if (urls["sil." + k]) return urls["sil." + k];
+  const s = SPR[k], c = document.createElement("canvas"); c.width = s.width; c.height = s.height;
+  const g = c.getContext("2d"); g.drawImage(s, 0, 0);
+  g.globalCompositeOperation = "source-in"; g.fillStyle = "#5d535c"; g.fillRect(0, 0, c.width, c.height);
+  return (urls["sil." + k] = c.toDataURL());
+}
 
 /* ================= mask icons (take currentColor) ================= */
 const MASK = {
   tower: [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
-  flask: ["...####...","....##....","....##....","...####...","..##..##..",".##....##.",".#......#.",".########.",".########.","..######.."],
+  fire:  ["....#.....","....##....","...####...","..##.###..","..#...##..","..##..##..","...####...","##......##","..######..","##......##"],
   book:  ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
   bag:   ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
   lock:  ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
-  back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
-  chev:  ["##...",".##..","..##.","...##","..##.",".##..","##..."]
+  back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1));
 function maskURL(k, cell) {
@@ -565,19 +564,98 @@ function maskURL(k, cell) {
   rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === "#") g.fillRect(x * s, y * s, s, s); }));
   return c.toDataURL();
 }
-document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
 
-/* ================= generated bits ================= */
-document.querySelectorAll("[data-floors]").forEach(el => {
-  const [done, total] = el.dataset.floors.split("/").map(Number);
-  for (let i = 1; i <= total; i++) { const s = document.createElement("i"); if (i <= done) s.className = "done"; else if (i === done + 1) s.className = "now"; el.appendChild(s); }
-});
-const fg = document.getElementById("floorgrid"), DONE = +(fg.dataset.done || 0);
-for (let row = 2; row >= 0; row--) for (let col = 0; col < 5; col++) {   // tower climbs up: floor 1 bottom-left
-  const n = row * 5 + col + 1, s = document.createElement("span");
-  s.className = "fl" + (n <= DONE ? " done" : n === DONE + 1 ? " now" : "");
-  s.textContent = n; fg.appendChild(s);
+/* ================= data ================= */
+const $ = id => document.getElementById(id);
+const num = n => `<span class="num">${n}</span>`;
+const ITEMS = { dagger: "weapon", sharp: "weapon", viper: "weapon", stone: "mod", fang: "mod", pelt: "mat", lockbox: "special", tail: "mat", jacket: "armor" };   // CONTRACT keys → type
+const RECIPES = { sharp: ["dagger", "stone"], viper: ["sharp", "fang"], jacket: ["pelt", "tail"] };   // a made recipe means its parts were found too
+const CREATURES = ["snake", "wolf", "rat"];
+const CARDS = 8;                                         // grid slots per almanac tab; the rest stay anonymous "?"
+const BIOMES = [
+  { k: "exam", range: "91–100" }, { k: "school", range: "71–90" }, { k: "undead", range: "31–70" },
+  { k: "slimes", range: "16–30" }, { k: "interlude" }, { k: "basement", range: "1–15", now: true }
+];
+const CLASSES = [["warrior", "shield"], ["rogue", "sharp"], ["mage", "staff"], ["summoner", "orb", true]];
+const RACES = [["human", "player", "ok", "pill.unlocked"], ["cat", "cat", "off", "pill.locked"], ["dwarf", "dwarf", "paid", "pill.paid"],
+  ["elf", "elf", "off", "pill.npc"], ["fish", "fish", "off", "pill.npc"]];
+
+const found = new Set();
+if (save) {
+  (save.bag || []).forEach(i => i && found.add(i.key));
+  if (save.hand) found.add(save.hand);
+  (save.recipes || []).forEach(r => { found.add(r); (RECIPES[r] || []).forEach(k => found.add(k)); });
 }
+const met = k => !!(save && save.creatures && save.creatures[k] && save.creatures[k].seen > 0);
+
+/* ================= build the screens ================= */
+// Play: main strip
+const mainStrip = $("mainStrip");
+mainStrip.classList.toggle("first", !save);
+$("mainMeta").hidden = !!save;
+$("mainCta").innerHTML = `<span>${save ? t("play.continue", { n: num(Math.min(15, DONE + 1)) }) : t("play.start")}</span>`;   // one flex item, so the space before the number stays
+$("mainCta").classList.toggle("pulse", firstRun);
+$("floorCount").textContent = t("play.count", { n: DONE });
+for (let i = 1; i <= 15; i++) { const s = document.createElement("i"); if (i <= DONE) s.className = "done"; else if (i === DONE + 1) s.className = "now"; $("floors").appendChild(s); }
+if (farmOpen) { const f = $("farmStrip"); f.classList.remove("locked"); f.dataset.stub = "stub.farm"; $("farmMeta").hidden = true; $("farmLock").remove(); }
+
+// Tower
+$("tower").innerHTML = BIOMES.map(b => b.now
+  ? `<li class="biome now"><span class="node"></span><div class="b-body">
+      <div class="b-head"><b>${t("biome." + b.k)}</b><span class="range">${b.range}</span></div>
+      <p>${t("biome." + b.k + ".p")}</p>
+      <div class="floorgrid" id="floorgrid"></div>
+      <div class="legend"><span><i class="sw done"></i>${t("tower.cleared")}</span><span><i class="sw now"></i>${t("tower.current")}</span><span><i class="sw"></i>${t("tower.locked")}</span></div>
+    </div></li>`
+  : `<li class="biome lock"><span class="node"></span><div class="b-body"><div class="b-head"><b>${t("biome." + b.k)}</b><span class="range">${b.range || t("biome." + b.k + ".range")}</span></div><p>${t("biome." + b.k + ".p")}</p></div><i class="ico lockico" data-ico="lock" data-s="2"></i></li>`
+).join("");
+let pick = Math.min(15, DONE + 1);                       // floor on the Start card; a cleared floor can be picked to replay it
+for (let row = 2; row >= 0; row--) for (let col = 0; col < 5; col++) {   // tower climbs up: floor 1 bottom-left
+  const n = row * 5 + col + 1, open = n <= DONE + 1;
+  const s = document.createElement(open ? "button" : "span");
+  s.className = "fl" + (n <= DONE ? " done" : n === DONE + 1 ? " now" : "");
+  if (open) { s.type = "button"; s.dataset.floor = n; s.setAttribute("aria-label", t("tower.floor", { n })); s.addEventListener("click", () => { pick = n; renderGo(); }); }
+  s.textContent = n; $("floorgrid").appendChild(s);
+}
+function renderGo() {
+  $("goTitle").innerHTML = t("tower.floor", { n: num(pick) });
+  $("goSub").textContent = t(pick === 1 ? "tower.tutorial" : "tower.basement");
+  document.querySelectorAll("#floorgrid button").forEach(b => { b.classList.toggle("sel", DONE > 0 && +b.dataset.floor === pick); b.setAttribute("aria-pressed", +b.dataset.floor === pick); });
+}
+renderGo();
+
+// Hero: classes and races
+const rowcard = (spr, name, sub, pill, pillText) => `<div class="rowcard"><span class="face"><img data-spr="${spr}" alt=""></span><div><b>${name}</b><span class="sub">${sub}</span></div><span class="pill ${pill}">${pillText}</span></div>`;
+$("classes").innerHTML = CLASSES.map(([k, spr, paid]) => rowcard(spr, t("class." + k), t(paid ? "class.paid" : "class.free"), paid ? "paid" : "off", t(paid ? "pill.paid" : "pill.notStarted"))).join("");
+$("races").innerHTML = RACES.map(([k, spr, pill, label]) => rowcard(spr, t("race." + k), t("race." + k + ".sub"), pill, t(label))).join("");
+
+// Almanac
+let seg = "weapons";
+function renderAlm() {
+  const foes = seg === "creatures";
+  const keys = foes ? CREATURES : Object.keys(ITEMS).filter(k => (ITEMS[k] === "weapon") === (seg === "weapons"));
+  const known = foes ? met : k => found.has(k);
+  const unk = `<div class="entry unk"><i>?</i><span>${t(foes ? "alm.notMet" : "alm.notFound")}</span></div>`;
+  const cards = keys.map(k => known(k) ? `<div class="entry"><img src="${foes ? silURL(k) : sprURL(k)}" alt=""><span>${t((foes ? "foe." : "item.") + k)}</span></div>` : unk);
+  while (cards.length < CARDS) cards.push(unk);
+  $("almCards").innerHTML = cards.join("");
+  $("almCount").innerHTML = `<b>${keys.filter(known).length}</b> ${t(foes ? "alm.met" : "alm.found")}`;
+}
+renderAlm();
+
+// Camp tab: locked until floor 1, then a link to the camp with a "can make" badge
+const campTab = $("campTab");
+campTab.classList.toggle("locked", !campOpen);
+$("campLock").hidden = campOpen;
+if (makeable) { $("campBadge").textContent = makeable; $("campBadge").hidden = false; }
+campTab.setAttribute("aria-label", !campOpen ? t("aria.campLocked") : makeable ? t("aria.campMake", { n: makeable }) : t("tab.camp"));
+$("stars").setAttribute("aria-label", t("aria.stars", { n: 0 }));
+
+// strings, sprites and icons for everything above
+document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+document.querySelectorAll("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
+document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
 
 /* ================= strip scenes (pixel art, 3 screen px per art px) ================= */
 const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
@@ -650,6 +728,23 @@ const SCENES = {
     g.fillRect(cx + 2, fy - 7, 4, 1);
     g.drawImage(SPR.blade, W - 12, fy - 9);
     g.fillStyle = "#d8ccb0"; g.fillRect(W - 72, fy + 1, 5, 1); g.fillRect(W - 73, fy, 1, 1); g.fillRect(W - 67, fy + 2, 1, 1);
+  },
+  camp(g, W, H) {
+    const fy = H - 8;
+    const stones = ["#2e2a2d", "#2a2629", "#332e31", "#2b272a"];
+    for (let r = 0; r * 6 < fy; r++) { const off = (r * 5) % 9; for (let x = -off; x < W; x += 9) { g.fillStyle = stones[hash(r * 211 + x + 300) % 4]; g.fillRect(x, r * 6, 8, 5); } }
+    g.fillStyle = "#151215"; g.fillRect(0, fy, W, H - fy);
+    g.fillStyle = "#211b1e"; for (let x = 0; x < W; x += 13) g.fillRect(x, fy + 3, 10, 1);
+    const nw = 46, nx = W - nw - 8, ny = Math.max(3, fy - 40);   // a niche in the wall
+    g.fillStyle = "#19151a"; g.fillRect(nx, ny + 4, nw, fy - ny - 4); g.fillRect(nx + 2, ny + 2, nw - 4, 2); g.fillRect(nx + 6, ny, nw - 12, 2);
+    g.fillStyle = "#5a3a22"; g.fillRect(nx + 4, ny + 14, 18, 2);                       // shelf with two jars, nothing found on it yet
+    g.fillStyle = "#3a2616"; g.fillRect(nx + 6, ny + 16, 1, 2); g.fillRect(nx + 19, ny + 16, 1, 2);
+    g.fillStyle = "#4a4046"; g.fillRect(nx + 8, ny + 10, 3, 4); g.fillRect(nx + 9, ny + 9, 1, 1); g.fillRect(nx + 14, ny + 11, 4, 3);
+    const cx = nx + 32;                                     // cold campfire: logs in a ring of stones
+    g.fillStyle = "#4a3020"; g.fillRect(cx - 5, fy - 2, 10, 2);
+    g.fillStyle = "#6e4426"; g.fillRect(cx - 3, fy - 4, 6, 2);
+    g.fillStyle = "#3d373b"; for (const dx of [-8, -6, 6, 8]) g.fillRect(cx + dx - 1, fy - 2, 2, 2);
+    g.fillStyle = "rgba(170,160,165,.25)"; g.fillRect(cx, fy - 7, 1, 2); g.fillRect(cx + 1, fy - 10, 1, 2); g.fillRect(cx, fy - 13, 1, 2);
   }
 };
 function paintStrip(el) {
@@ -667,53 +762,80 @@ if ("ResizeObserver" in window) { const ro = new ResizeObserver(es => es.forEach
 else { strips.forEach(paintStrip); window.addEventListener("resize", () => strips.forEach(paintStrip)); }
 
 /* ================= navigation ================= */
-const TABS = ["game", "alchemy", "almanac", "shop"];
+const TABS = ["game", "camp", "almanac", "shop"];
 const SUB = {
-  campaign: { title: "Tower I", sub: "Trial of Applicants · 0 of 100 cleared" },
-  quests:   { title: "Errands", sub: "Side quests" },
-  farm:     { title: "Farm", sub: "Cleared floors" }
+  campaign: { title: t("tower.title"), sub: t("tower.sub", { n: DONE }) },
+  hero:     { title: t("hero.name"), sub: t("hero.class") }
 };
-const views = [...document.querySelectorAll(".view")], viewsEl = document.getElementById("views");
+const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 let tab = "game", sub = null;
-try { const t = localStorage.getItem("gamey.tab"); if (TABS.includes(t)) tab = t; } catch (e) {}
+try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !(v === "camp" && campOpen)) tab = v; } catch (e) {}
 
 function show(dir) {
   const id = sub || tab, cur = views.find(v => v.dataset.view === id);
   views.forEach(v => { v.hidden = v !== cur; });
   if (dir && !still) { cur.classList.remove("fwd", "rev"); void cur.offsetWidth; cur.classList.add(dir); }
-  document.getElementById("tbRoot").hidden = !!sub;
-  document.getElementById("tbSub").hidden = !sub;
+  $("tbRoot").hidden = !!sub;
+  $("tbSub").hidden = !sub;
   if (window.GY) window.GY.back(sub ? () => { sub = null; show("rev"); } : null);   // Telegram's own back button closes a sub-screen
-  if (sub) { document.getElementById("tbTitle").textContent = SUB[sub].title; document.getElementById("tbSubt").textContent = SUB[sub].sub; }
+  if (sub) { $("tbTitle").textContent = SUB[sub].title; $("tbSubt").textContent = SUB[sub].sub; }
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
   viewsEl.scrollTop = sub === "campaign" ? viewsEl.scrollHeight : 0;   // the tower is read bottom-up
   cur.querySelectorAll("[data-scene]").forEach(paintStrip);
 }
+const almView = () => track("almanac_view", { tab: seg, entry: null });
+function goRun() { once.add("home.start"); location.href = LINK.run; }
+
 document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.tab === "camp" && campOpen) { location.href = LINK.camp; return; }
   if (b.dataset.tab === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
   tab = b.dataset.tab; sub = null;
   try { localStorage.setItem("gamey.tab", tab); } catch (e) {}
   show("fwd");
+  if (tab === "almanac") almView();
 }));
+mainStrip.addEventListener("click", () => { if (firstRun) goRun(); else { sub = "campaign"; show("fwd"); } });
+$("goBtn").addEventListener("click", () => { if (pick === 1) goRun(); else toast("stub", t("stub.floor", { n: pick })); });
 document.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { sub = b.dataset.open; show("fwd"); }));
-document.getElementById("back").addEventListener("click", () => { sub = null; show("rev"); });
+$("back").addEventListener("click", () => { sub = null; show("rev"); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && sub) { sub = null; show("rev"); } });
 
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.seg === seg) return;
+  seg = b.dataset.seg;
   document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
-  document.querySelectorAll("[data-panel]").forEach(p => { p.hidden = p.dataset.panel !== b.dataset.seg; });
+  renderAlm(); almView();
 }));
 
-/* ================= stubs ================= */
-const toastEl = document.getElementById("toast"); let tt;
-function toast(msg) {
-  toastEl.textContent = msg; toastEl.hidden = false;
+/* ================= toast (GDE-00: almanac | recipe | unlock; "stub" marks prototype placeholders) ================= */
+const toastEl = $("toast"); let toastBusy = false, toastNext = null;
+function toast(type, text) {
+  if (toastBusy) { toastNext = [type, text]; return; }   // at most one waits; a newer one replaces it
+  toastBusy = true;
+  toastEl.dataset.type = type; toastEl.textContent = text; toastEl.hidden = false;
   toastEl.classList.remove("in"); void toastEl.offsetWidth; toastEl.classList.add("in");
-  clearTimeout(tt); tt = setTimeout(() => { toastEl.hidden = true; }, 2600);
+  setTimeout(() => { toastEl.hidden = true; toastBusy = false; if (toastNext) { const n = toastNext; toastNext = null; toast(...n); } }, 2000);
 }
-document.addEventListener("click", e => { const s = e.target.closest("[data-stub]"); if (s) toast(s.dataset.stub); });
+document.addEventListener("click", e => { const s = e.target.closest("[data-stub]"); if (s) toast("stub", t(s.dataset.stub)); });
 
+/* ================= design-note links: new player / demo save after floor 1 (the Telegram build drops the notes) ================= */
+document.querySelectorAll("[data-dev]").forEach(b => b.addEventListener("click", () => {
+  try {
+    const d = b.dataset.dev;
+    if (d === "clear") { ["gamey.save", "gamey.once", "gamey.tab"].forEach(k => localStorage.removeItem(k)); sessionStorage.removeItem("gamey.sid"); }
+    if (d === "demo") localStorage.setItem("gamey.save", JSON.stringify(DEMO_SAVE));
+    if (d === "make") { const s = save || DEMO_SAVE; s.makeable = (s.makeable | 0) + 1; localStorage.setItem("gamey.save", JSON.stringify(s)); }
+  } catch (e) {}
+  location.reload();
+}));
+
+/* ================= session ================= */
+if (!readJSON("gamey.events", []).some(ev => ev && ev.e === "session_start" && ev.sid === sid)) {   // once per sid, whichever screen made it
+  track("session_start", { is_first: !save && !once.has("home.session"), source: source() });
+  once.add("home.session");
+}
 show();
+if (tab === "almanac") almView();
 })();
 </script>
 
