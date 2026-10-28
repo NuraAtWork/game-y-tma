@@ -207,10 +207,10 @@ button.fl{cursor:pointer}
 .count b{font:600 17px/1 var(--body);color:var(--fg);font-variant-numeric:tabular-nums}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .entry{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:10px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:center}
-.entry img{width:40px;height:40px}
+.entry img{width:48px;height:48px}
 .entry span{font-size:11px;line-height:1.2}
 .entry.unk{background:transparent;border-style:dashed}
-.entry.unk i{width:40px;height:40px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
+.entry.unk i{width:48px;height:48px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
 .entry.unk span{color:var(--muted)}
 
 /* ---------- shop ---------- */
@@ -499,7 +499,7 @@ const campOpen = DONE >= UNLOCK.camp, farmOpen = DONE >= UNLOCK.farm;
 const makeable = campOpen ? Math.max(0, save.makeable | 0) : 0;
 const firstRun = !save && !once.has("home.start");     // the very first Start skips the tower screen (GDE-01 P2)
 
-/* ================= sprites (8×8, same palette as the run prototype) ================= */
+/* ================= sprites (16×16, the almanac set from 05: keep the whole palette, i j J a A included) ================= */
 function mk(rows, pal, base) {
   const w = rows[0].length, h = rows.length;
   const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -507,35 +507,156 @@ function mk(rows, pal, base) {
   rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
   return c;
 }
-const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
-  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
-  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
-  o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1", V:"#c9bdf2", u:"#f3d36b" };
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55", g:"#7aa266",
+  G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838", p:"#bf4155", c:"#6e4426",
+  d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a", o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1",
+  V:"#c9bdf2", u:"#f3d36b", q:"#120e14", H:"#7a4e33", S:"#b8865f", Y:"#7d5228", L:"#3a3340", i:"#c98a8a",
+  j:"#3d2f1c", J:"#6e5530", a:"#8c7a3a", A:"#5c4f22" };
 const SPR = {
-  player: mk(["..hhhh..","..hssh..","..ssss..",".bbbbbb.","s.bbbb.s","..bbbb..","..l..l..","..l..l.."], P),
-  snake:  mk(["....gg..","...gxgg.","...ggr..","...gg...","..gg....",".gGGgg..","gGggggg.",".ggggg.."], P),
-  wolf:   mk(["..M.....",".MMM...M","MxMMMMMM","MMMMMMM.","..MMMMM.","..nMMMn.","..n...n.","..n...n."], P),
-  rat:    mk(["........","........","...nn...","..nnnnx.",".nnnnnnn","nnnnnnn.",".t.t.t..","t......."], P),
-  dagger: mk(["........","......n.",".....nn.","....nn..","..knn...","...k....","..h.k...",".h......"], P),
-  sharp:  mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
-  viper:  mk(["........","......g.",".....gm.","....gm..","..kgm...","...k....","..G.k...",".G......"], P),
-  stone:  mk(["........","........","..nnnn..",".nMMMMn.",".nMmmMn.",".nnnnnn.","........","........"], P),
-  fang:   mk(["........","..ee....","..eee...","...ee...","...ee...","....e...","....e...","........"], P),
-  pelt:   mk(["M......M",".MMMMMM.","..MmmM..",".MmmmmM.",".MmmmmM.","..MmmM..",".MMMMMM.","M......M"], P),
-  lockbox:mk(["........",".MwwwwM.",".wyyyyw.",".MwkkwM.",".wykdyw.",".wyyyyw.",".MwwwwM.","........"], P),
-  tail:   mk(["......nn","......tn",".....t..","....t...","...t....","..t.....","..t.....","...t...."], P),
-  jacket: mk([".ww..ww.","wyywwyyw","wyyhhyyw","wyyhhyyw",".yyhhyy.",".yyhhyy.",".yyhhyy.",".wwwwww."], P),
-  open:   mk(["........","wwwwwwww","w.dddd.w","wddddddw","wyyyyyyw","wyyyyyyw","wwwwwwww","........"], P),
-  blade:  mk([".......m","......mM",".....mM.","....mM..",".k.mM...","..kM....",".hkk....","h......."], P),
-  elf:    mk(["..kkkk..",".kkkkkk.","skdssdks",".kssssk.","..gGGg..",".gggggg.",".gggggg.","..g..g.."], P),
-  cat:    mk([".o....o.",".oo..oo.",".oooooo.",".odoodo.",".ooeeoo.","..bbbb..",".obbbbo.","..l..l.."], P),
-  dwarf:  mk(["..MMMM..",".MmmmmM.",".sdssds.",".yyyyyy.","yyyyyyyy",".ryyyyr.",".rrrrrr.",".l....l."], P),
-  fish:   mk(["...ff...","..ffff..",".feffef.",".ffffff.","F.ffff.F","..FFFF..",".FFFFFF.","..F..F.."], P),
-  shield: mk([".mmmmmm.","mMMrrMMm","mMMrrMMm","mrrrrrrm","mMMrrMMm",".mMrrMm.","..mMMm..","...mm..."], P),
-  staff:  mk(["......v.",".....vVv","......v.",".....y..","....y...","...y....","..y.....",".y......"], P),
-  orb:    mk(["..vvvv..",".vVvvvv.",".vVvvvv.",".vvvvvv.","..vvvv..","...yy...","..yyyy..",".yyyyyy."], P),
-  star:   mk(["...uu...","...uu...","uuuuuuuu",".uuuuuu.","..uuuu..",".uuuuuu.",".uu..uu.","u......u"], P),
-  pouch:  mk(["..r..r..","...rr...","..wwww..",".wyyyyw.","wyykkyyw","wykyykyw","wyykkyyw",".wwwwww."], P)
+  player: mk([
+    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
+    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
+    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
+  ], P),
+  snake:  mk([
+    "................", "......gggg......", ".....geegggg...r", ".....gexgggggrr.",
+    ".....ggggGGGG..r", "......gGGGG.....", ".......ggG......", ".......ggG......",
+    "....ggggggGgg...", "..ggGGGGGGGGGgg.", ".geGG.......GGgg", ".gg..........Ggg",
+    ".egg........gggG", "..egggggggggggG.", "...GGGGGGGGGGGG.", "..............gG"
+  ], P),
+  wolf:   mk([
+    "................", "....n.n.........", "....nMn........m", "..nMMMMnn.....mM",
+    ".nMxMMMnnnnnnnMn", "nMMMMMMnMMMMMMn.", "qeqeMMMnMMMMMMn.", ".nMMmMnMMMMMMMn.",
+    "...nmMnmMMMMMMn.", "....mmmmmmmmMn..", "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn",
+    "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn", "...nn.nn..nn.nn.", "................"
+  ], P),
+  rat:    mk([
+    "................", "................", "................", "................",
+    "................", "..........mM....", ".........miiM...", ".....mmmmmiiMn..",
+    "...mmMMMMMMMMMn.", "..mMMMMMMMMMxMMn", "..MMMMMMMMMMMMMi", ".nMMMMMMMMMMMnn.",
+    "inMMMMMMMMMnn...", "i.nnnnnnnnnn....", ".i..ii...ii.....", "..ii............"
+  ], P),
+  dagger: mk([
+    "................", "................", "................", "...........MM...",
+    "..........mMn...", "........M.M.....", ".......MmMn.....", ".....kMMMnn.....",
+    ".....AaMn.......", "......Aan.......", ".....hjAa.......", "....Jj..........",
+    "...aJ...........", "...A............", "................", "................"
+  ], P),
+  sharp:  mk([
+    "................", "................", ".............m..", "...........em...",
+    "..........emM...", "........eemM....", ".......eemM.....", ".....ueemMn.....",
+    ".....akmMn......", "......akn.......", ".....Hjak.......", "....hh..........",
+    "..ukj...........", "...a............", "................", "................"
+  ], P),
+  viper:  mk([
+    "..............me", ".............mgG", "............mgG.", "...........mgG..",
+    "..........mGG...", "...G.....mgG....", "....k...mGG.....", "....yk.mgG......",
+    ".....yx.........", "......yk........", ".....w.yk.......", "....hh..yk......",
+    "...ww.....G.....", "..kh............", ".kky............", "..y............."
+  ], P),
+  stone:  mk([
+    "................", "................", "................", "................",
+    ".....mmmmmmmmm..", "...mmeeemmmmmmMn", "..mmmmmmmmmMmMMn", ".MmmmmmmmmmmMMnn",
+    ".MMMMMMMMMMMMnnL", ".MMnMMMMMMnMMnnL", ".nMMMMMMMMMMnnL.", ".nnMMMMnMMMnnLL.",
+    "..nnnnnnnnnnLL..", "................", "................", "................"
+  ], P),
+  fang:   mk([
+    ".....tttt.......", "....tSSSSt......", "....tttttt......", ".....eeeeem.....",
+    ".....eeeeem.....", "......eeeem.....", "......eeeem.....", ".......eeem.....",
+    ".......eeem.....", "........eem.....", "........eem.....", ".........em.....",
+    ".........em.....", "..........m.....", "..........g.....", "................"
+  ], P),
+  pelt:   mk([
+    "................", ".mm..........Mn.", ".mMM...mm...MMn.", "..mMMmmMMMnMMn..",
+    "...mMMMMMMMMMn..", "...mMmmMMMMMMn..", "..mMMMMmMMMMMMn.", "..mMMMMMMMMMnMn.",
+    "..mMmmMMMMMMMMn.", "...mMMmMMMMnMn..", "...mMMMMMMMMMn..", "..mMMMMMMMMnMMn.",
+    ".mMMn.nMMMn.nMn.", ".mMn...nMn...nn.", "........Mn......", ".........m......"
+  ], P),
+  lockbox: mk([
+    "................", "................", "................", "................",
+    "..hHHHHHHHHHHh..", "..HyyyyyyyyyyH..", "..nYYYYYYYYYYn..", "..nwwwwmmwwwwn..",
+    "..nwywmwwmwywn..", "..nwywMMMMwywn..", "..nwywMmmMwywn..", "..nwywMddMwywn..",
+    "..nwywMMMMwywn..", "..nwwwwwwwwwwn..", "..nnnnnnnnnnnn..", "................"
+  ], P),
+  tail:   mk([
+    "................", "............ii..", "..............ip", ".............ii.",
+    "...........iiip.", "..........ii....", ".........ii.....", ".........ii.....",
+    "..........ii....", "..........iip...", ".........ii.....", ".......iii......",
+    "...nMnni........", "..nMnnn.........", "...nnn..........", "................"
+  ], P),
+  jacket: mk([
+    "................", ".....SS..SS.....", "...yySSjjSSyY...", "..yyyySjjSyyYY..",
+    ".SyyyyySYyyyYYY.", ".SyyyyytYyyyYYY.", ".Syy.yytYyy.YYY.", ".Syy.yytYyy.YYY.",
+    ".Syy.yytYyy.YYY.", ".Syy.yykYyy.YYY.", ".Syy.wwtYhh.YYY.", ".Syy.yytYyy.YYY.",
+    ".www.yytYyy.hhh.", ".....yytYyy.....", ".....wwtYhh.....", "................"
+  ], P),
+  open:   mk([
+    "..kkkkkkkkkkkk..", ".kjhhhhhhhhhhjA.", ".kjwwwwwwwwwwjA.", ".akkkkkkkkkkkkA.",
+    ".kqqqqqqqqquqqa.", ".kqqqqqqqqueuqa.", ".kqqqqqqqqquqqa.", ".akkkkuuuukkkka.",
+    ".kyyyyukkayyyYk.", ".kSyyyukqayyyYk.", ".kyyyyukqayyyYk.", ".kyyyyaaaAyyyYk.",
+    ".kyyyyyyyyyyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+  ], P),
+  blade:  mk([
+    "................", "................", "............mt..", "...........mMH..",
+    "..........ttn...", "..........oH....", "........mMn.....", ".....t.tH.......",
+    ".....HaHH.......", "......Ha........", ".....hjHa.......", "....hj..........",
+    "...aj...........", "...A............", "................", "................"
+  ], P),
+  elf:    mk([
+    "................", ".....ukkkkk.....", "....ukkkkkka....", "..s.kssssssa.s..",
+    "...sksdssdsas...", "....ksssssSa....", "....kkssSSaa....", "....gggggGGG....",
+    "...ggggggGGGG...", "...ggggggGGGG...", "...sYYYYYYYYS...", ".....GGGGGG.....",
+    ".....GG..GG.....", ".....GG..GG.....", ".....GG..GG.....", "....hhh..hhh...."
+  ], P),
+  cat:    mk([
+    "....o......y....", "....oi....iy....", "....oooooooy....", "....oooooooy....",
+    "....oodoodoy....", "....ooeiieoy....", "......oeey......", "....bbbbbbFF....",
+    "...obbbbbbFFy...", "...obbbbbbFFy...", "...obbbbbbFFy...", ".....LLLLLly.o..",
+    ".....LL..Ll.oo..", ".....LL..Ll.....", ".....LL..Ll.....", "....ooo..ooo...."
+  ], P),
+  dwarf:  mk([
+    "......mmmM......", "....emmmmmMn....", "....mmmmmmMn....", "...MMMMMMMMMn...",
+    "....ysdssdsy....", "....yyysSyyY....", "....yyyyyyyY....", "...rryyyyyYRR...",
+    "...rrryyyYRRR...", "...rrrryYRRRR...", "...skkkkkkkkS...", ".....nnnnnn.....",
+    ".....nn..nn.....", ".....nn..nn.....", ".....nn..nn.....", "....hhh..hhh...."
+  ], P),
+  fish:   mk([
+    ".......bb.......", ".....fbffbf.....", "..b.ffffffFF.b..", "..bbeeffffeebb..",
+    "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
+    "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
+    ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
+  ], P),
+  shield: mk([
+    "................", ".emmmmmmmmmmmmM.", ".mmMMMMrRMMMMnM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mrrrrrrrrrrrRM.", ".mRRRRRrRRRRRRM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mMMMMMrRMMMnnM.", "..mMMMMrRMMMnM..", "..mMMMMrRMMnnM..",
+    "...mMMMrRMMnM...", "....mMMrRMnM....", ".....mMrRnM.....", "......mMMM......"
+  ], P),
+  staff:  mk([
+    "............VVv.", "...........VeVvv", "..........kVVvvv", "..........kvvvvv",
+    "..........kkvvv.", ".........yYkk...", "........yY......", ".......yY.......",
+    "......yY........", ".....yY.........", "....yY..........", "...yY...........",
+    "..yY............", ".yY.............", "yY..............", "k..............."
+  ], P),
+  orb:    mk([
+    "................", ".....VVVVvv.....", "....VeeVvvvv....", "...VeVVvvvvvv...",
+    "...VVVvvvvvvv...", "...VVvvvVvvvL...", "...vvvvVVvvvL...", "...vvvvvvvvLL...",
+    "....vvvvvvLL....", ".....vvvvLL.....", "....kkkkkkkk....", ".....yyyyYY.....",
+    "......yyYY......", ".....yyyyYYY....", "....yyyyyyYYY...", "....wwwwwwwww..."
+  ], P),
+  star:   mk([
+    "................", ".......u........", "......uuk.......", "......uuk.......",
+    ".....uuukk......", ".....ueukk......", "uuuuuuuukkkkkkk.", ".uuuuuuukkkkka..",
+    "..uuuuuukkkka...", "...uuuuukkka....", "...uuuukkkkk....", "..uuuukkkkkkk...",
+    "..uuuka..akkka..", ".uuuka.....akka.", ".uua.........aa.", "................"
+  ], P),
+  pouch:  mk([
+    ".............e..", "............eue.", ".............e..", ".....SSHHHh.....",
+    "....SSSHSHHh....", ".....SHSHHh.....", "......hHHh......", ".....rrrrrRR....",
+    "....HHrRrRHh....", "...HHSrHHRHHh...", "..HSSSrHHRHHHh..", ".HSSSHHHHHHHHhh.",
+    ".HSSHHHHHHHHHhh.", ".HHHHHHHHHHHhhh.", "..hHHHHHHHHhhh..", "...hhhhhhhhhh..."
+  ], P)
 };
 const urls = {};
 const sprURL = k => urls[k] || (urls[k] = SPR[k].toDataURL());
@@ -688,7 +809,7 @@ const SCENES = {
     g.fillStyle = "#4a3a2a"; g.fillRect(tx - 1, ty + 2, 2, 6); g.fillRect(tx - 2, ty + 2, 4, 1);
     g.fillStyle = "#ff7a3a"; g.fillRect(tx - 1, ty - 1, 2, 3);
     g.fillStyle = "#ffd36a"; g.fillRect(tx, ty - 3, 1, 3); g.fillRect(tx - 1, ty, 1, 1);
-    g.drawImage(SPR.player, sx - 12, fy - 8);
+    g.drawImage(SPR.player, sx - 16, fy - 16);
     g.fillStyle = "rgba(255,230,180,.6)";
     for (let i = 0; i < 10; i++) { const h = hash(i + 7); g.fillRect(W - 6 - (h % 34), 2 + ((h >> 8) % 30), 1, 1); }
   },
@@ -711,7 +832,7 @@ const SCENES = {
     g.fillStyle = "#2a2018"; g.fillRect(lx, 0, 1, ly);
     g.fillStyle = "#6e4426"; g.fillRect(lx - 2, ly, 5, 1); g.fillRect(lx - 2, ly + 6, 5, 1);
     g.fillStyle = "#ffd36a"; g.fillRect(lx - 1, ly + 1, 3, 5);
-    g.drawImage(SPR.elf, bx - 12, fy - 8);
+    g.drawImage(SPR.elf, bx - 18, fy - 16);
   },
   farm(g, W, H) {
     const fy = H - 8;
@@ -722,11 +843,10 @@ const SCENES = {
     g.fillStyle = "#4a6e3e"; g.fillRect(W - 58, fy, 12, 2); g.fillStyle = "#7aa266"; g.fillRect(W - 56, fy, 8, 1);
     const cx = W - 30;                                      // opened chest and spilled coins
     glow(g, cx + 4, fy - 4, 24, "232,191,85", .35);
-    g.drawImage(SPR.open, cx, fy - 7);
+    g.drawImage(SPR.open, cx - 4, fy - 15);
     g.fillStyle = "#e8bf55";
     for (const [dx, dy] of [[-3,0],[-6,1],[10,0],[13,1],[9,1],[-9,1],[16,0]]) g.fillRect(cx + dx, fy + dy, 2, 1);
-    g.fillRect(cx + 2, fy - 7, 4, 1);
-    g.drawImage(SPR.blade, W - 12, fy - 9);
+    g.drawImage(SPR.blade, W - 20, fy - 17);
     g.fillStyle = "#d8ccb0"; g.fillRect(W - 72, fy + 1, 5, 1); g.fillRect(W - 73, fy, 1, 1); g.fillRect(W - 67, fy + 2, 1, 1);
   },
   camp(g, W, H) {

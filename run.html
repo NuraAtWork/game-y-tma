@@ -166,7 +166,7 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .stats dt{color:var(--muted)}
 .stats dd{margin:0;font-variant-numeric:tabular-nums}
 .lootrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:260px}
-.lootrow img{width:40px;height:40px;padding:5px;image-rendering:pixelated;background:var(--well);border:1px solid var(--line);border-radius:4px}
+.lootrow img{width:42px;height:42px;padding:4px;image-rendering:pixelated;background:var(--well);border:1px solid var(--line);border-radius:4px}
 
 /* minimap in the corner of the view; full map in a sheet */
 .mini{position:relative;flex:none;margin-left:auto;padding:3px;background:transparent;border:1px solid var(--map-edge);border-radius:4px;cursor:pointer}
@@ -188,12 +188,12 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 /* battle box: message, then four move slots, like a Pokémon fight menu */
 .battle{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--glass-strong);border:1px solid var(--line);border-radius:6px}
 .moves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.move{position:relative;min-height:46px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px;padding:6px 30px 6px 10px;border:1px solid var(--torch);border-radius:4px;background:var(--panel);text-align:left}
-.move img{position:absolute;top:6px;right:6px;width:20px;height:20px;image-rendering:pixelated}
+.move{position:relative;min-height:46px;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:3px;padding:6px 42px 6px 10px;border:1px solid var(--torch);border-radius:4px;background:var(--panel);text-align:left}
+.move img{position:absolute;top:6px;right:6px;width:32px;height:32px;image-rendering:pixelated}
 button.move{cursor:pointer}
 button.move:active{transform:translateY(1px)}
 button.move:disabled{cursor:default;opacity:.45;transform:none}
-.move .pp{position:absolute;right:7px;bottom:5px;font:600 11px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.move .pp{position:absolute;right:42px;bottom:6px;font:600 11px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
 .move .pp.out{color:var(--blood)}
 .move b{font:500 14px/1.15 var(--display);color:var(--fg)}
 .move .new{font:500 10px/1 var(--display);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--torch)}
@@ -238,7 +238,7 @@ button.move:disabled{cursor:default;opacity:.45;transform:none}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .slot{aspect-ratio:1/1;max-width:100%;background:var(--well);border:1px solid var(--line);border-radius:4px;padding:4px;display:grid;place-items:center;cursor:pointer;position:relative}
-.slot img{width:80%;height:80%;image-rendering:pixelated}
+.slot img{width:32px;height:32px;max-width:100%;max-height:100%;image-rendering:pixelated}
 .slot.sel{border-color:var(--torch);box-shadow:0 0 0 1px var(--torch) inset}
 .slot .eq{position:absolute;top:2px;right:3px;font-family:var(--display);font-size:9px;color:var(--moss)}
 .slot:disabled{cursor:default;opacity:.45}
@@ -254,7 +254,7 @@ button.move:disabled{cursor:default;opacity:.45;transform:none}
 .bench{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:4px;align-items:start;padding:14px 8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .part{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
 .cell{width:60px;height:60px;max-width:100%;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--well);font:700 22px/1 var(--display);color:var(--line)}
-.cell img{width:40px;height:40px;image-rendering:pixelated}
+.cell img{width:48px;height:48px;image-rendering:pixelated}
 .part.res .cell{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch)}
 .part b{font:500 13px/1.15 var(--display)}
 .part small{font-size:11px;color:var(--muted)}
@@ -272,7 +272,7 @@ button.cell{padding:0;cursor:pointer}
 .loot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .lootitem{min-width:0;display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--torch);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
 .lootitem:active{transform:translateY(1px)}
-.lootitem img{flex:none;width:36px;height:36px;image-rendering:pixelated}
+.lootitem img{flex:none;width:32px;height:32px;image-rendering:pixelated}
 .lootitem b{min-width:0;font:500 14px/1.15 var(--display)}
 
 /* ---------- notes beside the phone ---------- */
@@ -539,32 +539,104 @@ const FOES = {
 };
 for (const k in FOES) Object.assign(FOES[k], { key: k, name: STR.foe[k] });
 
-/* ================= sprites ================= */
-function mk(rows, pal, base) {
-  const c = document.createElement("canvas"); c.width = 8; c.height = 8;
-  const g = c.getContext("2d"); if (base) g.drawImage(base, 0, 0);
+/* ================= sprites: the shared 16×16 set (states/05-almanac.html, sprites16.json) ================= */
+// the full shared palette: a letter missing from P silently drops its pixels
+function mk(rows, pal) {
+  const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
+  const g = c.getContext("2d");
   rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
   return c;
 }
-const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
-  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
-  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
-  o:"#8c7a3a", O:"#5c4f22", u:"#e8bf55" };
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55", g:"#7aa266",
+  G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838", p:"#bf4155", c:"#6e4426",
+  d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a", o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1",
+  V:"#c9bdf2", u:"#f3d36b", q:"#120e14", H:"#7a4e33", S:"#b8865f", Y:"#7d5228", L:"#3a3340", i:"#c98a8a",
+  j:"#3d2f1c", J:"#6e5530", a:"#8c7a3a", A:"#5c4f22" };
 const SPR = {
-  player: mk(["..hhhh..","..hssh..","..ssss..",".bbbbbb.","s.bbbb.s","..bbbb..","..l..l..","..l..l.."], P),
-  snake:  mk(["....gg..","...gxgg.","...ggr..","...gg...","..gg....",".gGGgg..","gGggggg.",".ggggg.."], P),
-  wolf:   mk(["......n.","n....nMn",".n..nMxM",".nMMMMMm","..MMMMMe","..MnnMn.","..n..n..",".nn..nn."], P),
-  chest:  mk(["........",".wwwwww.","wyyyyyyw","wwwkkwww","wyykkyyw","wyyyyyyw","wwwwwwww","........"], P),
-  open:   mk(["........","wwwwwwww","w.dddd.w","wddddddw","wyyyyyyw","wyyyyyyw","wwwwwwww","........"], P),
-  dagger: mk(["........","......n.",".....nn.","....nn..","..knn...","...k....","..h.k...",".h......"], P),
-  sharp:  mk(["........","......m.",".....mM.","....mM..","..kmM...","...k....","..h.k...",".h......"], P),
-  viper:  mk(["........","......g.",".....gm.","....gm..","..kgm...","...k....","..G.k...",".G......"], P),
-  stone:  mk(["........","........","..nnnn..",".nMMMMn.",".nMmmMn.",".nnnnnn.","........","........"], P),
-  fang:   mk(["........","..ee....","..eee...","...ee...","...ee...","....e...","....e...","........"], P),
-  pelt:   mk(["...nn...","n.nMMn.n",".MMMMMM.","..MmmM..","..MmmM..",".MMMMMM.","n.nMMn.n","...nn..."], P),
-  lockbox:mk(["........",".cccccc.",".cyyyyc.",".cccccc.",".cykkyc.",".cyddyc.",".cccccc.","........"], P),
-  table:  mk(["...c..e.","..ppe.ee","..pp..ee","wwwwwwww","wyyyyyyw",".w....w.",".w....w.",".w....w."], P),
-  note:   mk(["........","........","..eeeee.",".eMMMMe.",".eeeeee.",".eMMMee.","..eeeee.","........"], P)
+  player:  mk([
+    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
+    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
+    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
+  ], P),
+  snake:   mk([
+    "................", "......gggg......", ".....geegggg...r", ".....gexgggggrr.",
+    ".....ggggGGGG..r", "......gGGGG.....", ".......ggG......", ".......ggG......",
+    "....ggggggGgg...", "..ggGGGGGGGGGgg.", ".geGG.......GGgg", ".gg..........Ggg",
+    ".egg........gggG", "..egggggggggggG.", "...GGGGGGGGGGGG.", "..............gG"
+  ], P),
+  wolf:    mk([
+    "................", "....n.n.........", "....nMn........m", "..nMMMMnn.....mM",
+    ".nMxMMMnnnnnnnMn", "nMMMMMMnMMMMMMn.", "qeqeMMMnMMMMMMn.", ".nMMmMnMMMMMMMn.",
+    "...nmMnmMMMMMMn.", "....mmmmmmmmMn..", "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn",
+    "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn", "...nn.nn..nn.nn.", "................"
+  ], P),
+  chest:   mk([
+    "................", "................", "..kyyyykkyyyyk..", ".kSSyyykkyyyyYk.",
+    ".kSyyyykkyyyyYk.", ".kyyyyykkyyyyYk.", ".kYYYYYkkYYYYYk.", ".akkkkuuuukkkka.",
+    ".kyyyyukkayyyYk.", ".kSyyyukqayyyYk.", ".kyyyyukqayyyYk.", ".kyyyyaaaAyyyYk.",
+    ".kyyyyyyyyyyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+  ], P),
+  open:    mk([
+    "..kkkkkkkkkkkk..", ".kjhhhhhhhhhhjA.", ".kjwwwwwwwwwwjA.", ".akkkkkkkkkkkkA.",
+    ".kqqqqqqqqquqqa.", ".kqqqqqqqqueuqa.", ".kqqqqqqqqquqqa.", ".akkkkuuuukkkka.",
+    ".kyyyyukkayyyYk.", ".kSyyyukqayyyYk.", ".kyyyyukqayyyYk.", ".kyyyyaaaAyyyYk.",
+    ".kyyyyyyyyyyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+  ], P),
+  dagger:  mk([
+    "................", "................", "................", "...........MM...",
+    "..........mMn...", "........M.M.....", ".......MmMn.....", ".....kMMMnn.....",
+    ".....AaMn.......", "......Aan.......", ".....hjAa.......", "....Jj..........",
+    "...aJ...........", "...A............", "................", "................"
+  ], P),
+  sharp:   mk([
+    "................", "................", ".............m..", "...........em...",
+    "..........emM...", "........eemM....", ".......eemM.....", ".....ueemMn.....",
+    ".....akmMn......", "......akn.......", ".....Hjak.......", "....hh..........",
+    "..ukj...........", "...a............", "................", "................"
+  ], P),
+  viper:   mk([
+    "..............me", ".............mgG", "............mgG.", "...........mgG..",
+    "..........mGG...", "...G.....mgG....", "....k...mGG.....", "....yk.mgG......",
+    ".....yx.........", "......yk........", ".....w.yk.......", "....hh..yk......",
+    "...ww.....G.....", "..kh............", ".kky............", "..y............."
+  ], P),
+  stone:   mk([
+    "................", "................", "................", "................",
+    ".....mmmmmmmmm..", "...mmeeemmmmmmMn", "..mmmmmmmmmMmMMn", ".MmmmmmmmmmmMMnn",
+    ".MMMMMMMMMMMMnnL", ".MMnMMMMMMnMMnnL", ".nMMMMMMMMMMnnL.", ".nnMMMMnMMMnnLL.",
+    "..nnnnnnnnnnLL..", "................", "................", "................"
+  ], P),
+  fang:    mk([
+    ".....tttt.......", "....tSSSSt......", "....tttttt......", ".....eeeeem.....",
+    ".....eeeeem.....", "......eeeem.....", "......eeeem.....", ".......eeem.....",
+    ".......eeem.....", "........eem.....", "........eem.....", ".........em.....",
+    ".........em.....", "..........m.....", "..........g.....", "................"
+  ], P),
+  pelt:    mk([
+    "................", ".mm..........Mn.", ".mMM...mm...MMn.", "..mMMmmMMMnMMn..",
+    "...mMMMMMMMMMn..", "...mMmmMMMMMMn..", "..mMMMMmMMMMMMn.", "..mMMMMMMMMMnMn.",
+    "..mMmmMMMMMMMMn.", "...mMMmMMMMnMn..", "...mMMMMMMMMMn..", "..mMMMMMMMMnMMn.",
+    ".mMMn.nMMMn.nMn.", ".mMn...nMn...nn.", "........Mn......", ".........m......"
+  ], P),
+  lockbox: mk([
+    "................", "................", "................", "................",
+    "..hHHHHHHHHHHh..", "..HyyyyyyyyyyH..", "..nYYYYYYYYYYn..", "..nwwwwmmwwwwn..",
+    "..nwywmwwmwywn..", "..nwywMMMMwywn..", "..nwywMmmMwywn..", "..nwywMddMwywn..",
+    "..nwywMMMMwywn..", "..nwwwwwwwwwwn..", "..nnnnnnnnnnnn..", "................"
+  ], P),
+  table:   mk([
+    "................", "...yY...........", "...mM...........", "...mM...........",
+    "...mM.......SY..", "..mggM......mM..", ".mggggM....mrrM.", "meegggGM..mrerRM",
+    "mgggggGM..mrrrRM", "SMgGGGMSSSSMRRMS", "yyyyyyyyyyyyyyyY", "YYYYYYYYYYYYYYYw",
+    ".hw.hhhhhhhhh.wh", ".yY..........yY.", ".yY..........yY.", ".Yw..........Yw."
+  ], P),
+  note:    mk([
+    "................", "................", "...e............", "...eee..eee.....",
+    "..eeeeeeeeeee...", "..eMMeMMeeMMem..", "..eeeeeeeeeeem..", ".eeMeMMeMMeeem..",
+    ".eeeeeeeeeeeem..", "..eMMeeMeeeeem..", "..eeeeeeeettem..", "..eMeMMeetHHt...",
+    "..eeeeeeetHt....", "...eee.eett.....", "....e....e......", "................"
+  ], P)
 };
 $("noteimg").src = SPR.note.toDataURL();
 const ICON = {};
@@ -935,7 +1007,7 @@ function pop(host, text, cls) {
   return s;
 }
 function popFoe(f, text, cls) {   // just above the foe's head, wherever the view puts it
-  const r = R(FOE_D), head = r.b - 8 * f.k - 4;
+  const r = R(FOE_D), head = r.b - sprPx(f.k) - 4;
   pop($("scene"), text, cls).style.top = `${Math.max(2, head / VH * 100 - 6)}%`;
 }
 function popHero(text, cls) { pop($("hpbox"), text, "hero" + (cls ? " " + cls : "")); }
@@ -952,6 +1024,7 @@ function sizeScene(w, h) {
 }
 const sc = d => 1 / (1 + d * 6);
 const FOE_D = 0.24;   // foes stand a little further in, so their feet stay above the battle box
+const sprPx = k => 16 * Math.max(1, Math.round(k / 2));   // k was the 8-px scale: a 16-px sprite at the nearest whole scale
 const R = d => { const s = sc(d); return { l: CX - CX * s, r: CX + CX * s, t: CY - CY * s, b: CY + (VH - CY) * s }; };
 function poly(pts, fill) { vx.beginPath(); vx.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) vx.lineTo(p[0], p[1]); vx.closePath(); vx.fillStyle = fill; vx.fill(); }
 function line(x1, y1, x2, y2, c, w = 1) { vx.strokeStyle = c; vx.lineWidth = w; vx.beginPath(); vx.moveTo(x1, y1); vx.lineTo(x2, y2); vx.stroke(); }
@@ -1031,7 +1104,7 @@ function drawScene() {
     vx.fillStyle = lg; vx.fillRect(0, 0, VW, VH);
   }
   const put = (img, d, k, lift = 0) => {
-    const r = R(d), size = 8 * k, x = Math.round(CX - size / 2), y = Math.round(r.b - size - lift);
+    const r = R(d), size = sprPx(k), x = Math.round(CX - size / 2), y = Math.round(r.b - size - lift);
     vx.drawImage(img, x, y, size, size);
   };
   if (n.table) put(SPR.table, 0.3, 7);
@@ -1114,7 +1187,8 @@ function drawMap(m) {
     mx.strokeStyle = vis ? "#e9e0c8" : "#6f9a86"; mx.lineWidth = 2; mx.strokeRect(x + 1, y + 1, box - 2, box - 2);
     if (id === S.at) {
       mx.strokeStyle = "#d4495b"; mx.lineWidth = Math.max(3, cell * .06); mx.strokeRect(x - 2, y - 2, box + 4, box + 4);
-      const s = Math.round(box * .62); mx.drawImage(SPR.player, Math.round(c.x - s / 2), Math.round(c.y - s / 2), s, s);
+      const s = 16 * Math.max(1, Math.round(box * .62 / 16));   // the 16-px hero at a whole scale
+      mx.drawImage(SPR.player, Math.round(c.x - s / 2), Math.round(c.y - s / 2), s, s);
       const tw = Math.max(4, Math.round(cell * .09));   // facing notch: up when the map turns with the hero
       const d = toScreen(S.face.dx, S.face.dy), ox = c.x + d.x * (box / 2 + 5), oy = c.y + d.y * (box / 2 + 5);
       mx.fillStyle = "#e2b24c"; mx.beginPath(); mx.moveTo(ox + d.x * tw * 1.4, oy + d.y * tw * 1.4); mx.lineTo(ox + d.y * tw, oy - d.x * tw); mx.lineTo(ox - d.y * tw, oy + d.x * tw); mx.closePath(); mx.fill();
@@ -1184,7 +1258,7 @@ function renderAll() {
   nb.hidden = !note;
   if (note) {
     const r = R(0.26);
-    nb.style.width = `${32 / VW * 100}%`; nb.style.left = `${(CX - 70) / VW * 100}%`; nb.style.top = `${r.b / VH * 100}%`;
+    nb.style.width = "48px"; nb.style.left = `${(CX - 70) / VW * 100}%`; nb.style.top = `${r.b / VH * 100}%`;
     nb.className = "floornote " + (S.noteRead ? "read" : "unread");
   }
   // the flash line: what just happened, and the narrator under it; a fight hides it after the first move
