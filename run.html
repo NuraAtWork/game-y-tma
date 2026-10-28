@@ -192,6 +192,9 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .move img{position:absolute;top:6px;right:6px;width:20px;height:20px;image-rendering:pixelated}
 button.move{cursor:pointer}
 button.move:active{transform:translateY(1px)}
+button.move:disabled{cursor:default;opacity:.45;transform:none}
+.move .pp{position:absolute;right:7px;bottom:5px;font:600 11px/1 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.move .pp.out{color:var(--blood)}
 .move b{font:500 14px/1.15 var(--display);color:var(--fg)}
 .move .new{font:500 10px/1 var(--display);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--torch)}
 .move.empty{border:1px dashed var(--line);background:transparent}
@@ -429,7 +432,7 @@ const STR = {
   noWay:"No way through", got: names => `+ ${names.join(" · ")}`, made: n => `= ${n}`, boxLocked:"Locked. Needs a key.",
   hit: (m, d) => `${m}: −${d}`, hurt: (n, d) => `${n}: −${d} to you`, wasted:"wasted", dodge:"dodge",
   toHand: n => `In hand: ${n}`, toBag: n => `To bag: ${n}`, noteLog:"Applicants: your name is crossed out",
-  slots: (n, of) => `${n} of ${of}`, emptySlot:"Empty slot", newTag:"new", held:"IN HAND", nothingHeld:"Nothing",
+  slots: (n, of) => `${n} of ${of}`, pp: (n, of) => `${n}/${of}`, emptySlot:"Empty slot", newTag:"new", held:"IN HAND", nothingHeld:"Nothing",
   empty:"Empty", hold:"Hold", putAway:"Put away",
   base:"base", modifier:"modifier", result:"result", wontFuse:"Won't fuse", discovered:"Recipe discovered!",
   // overlays
@@ -526,7 +529,7 @@ const CAMP_RECIPES = [
   { out:"book",   in:[["scroll", 1], ["pelt", 1]] },
   { out:"vspear", in:[["spear", 1], ["fang", 1]] }
 ];
-const MOVES = { strike: {}, reflex: {} };
+const MOVES = { strike: {}, reflex: { pp: 5 } };   // pp: uses per run, full at the start of each run (the camp refills it)
 for (const k in MOVES) MOVES[k].name = STR.move[k];
 const INTENTS = { bite: { tone:"hit" }, coil: { tone:"calm" }, growl: { tone:"calm" }, prep: { tone:"warn" }, lunge: { tone:"hit" } };
 // The wolf has 18 HP, not the doc's 14–16: at 15 a strike of 3 kills it on turn 5, before its lunge, and the counter is never needed.
@@ -645,7 +648,9 @@ function newGame(intro) {
         foes:{}, chests:{}, inv:[], eq:null, sel:null, log:[], flash:"", narr:"", over:false, won:false, intro:!!intro,
         kills:0, moves:0, bagNew:false, fresh:new Set(), chestTurn:false, taken:[], noteRead:false, boxTaken:false,
         bench:{ base:null, mod:null }, benchAuto:false, lastFused:null, tableNote:"", fusions:0,
-        t0:0, deaths:0, fight:null, met:new Set(), wins:{}, found:[], recipes:[] };   // found: picked up this floor, in order
+        t0:0, deaths:0, fight:null, met:new Set(), wins:{}, found:[], recipes:[],   // found: picked up this floor, in order
+        pp:{} };
+  for (const k in MOVES) if (MOVES[k].pp) S.pp[k] = MOVES[k].pp;
   for (const k in NODES) {
     if (NODES[k].foe) { const f = FOES[NODES[k].foe]; S.foes[k] = { ...f, hp:f.hp, max:f.hp, step:0, wait:0 }; }
     if (NODES[k].chest) S.chests[k] = false;
@@ -696,15 +701,22 @@ function go(dx, dy, turn = true) {   // a step back keeps the hero facing forwar
   if (NODES[to].detail === "drip") SND.drip();
   endTurn();
 }
+// The reflex counters only a hit the foe announced the turn before (prep, then the attack); anything else it wastes.
+function telegraphed(f) {
+  const n = f.pattern.length, [, dmg] = f.pattern[f.step % n], [prev] = f.pattern[(f.step + n - 1) % n];
+  return f.step > 0 && dmg > 0 && prev === "prep";
+}
+const ppLeft = id => !MOVES[id].pp || S.pp[id] > 0;
 // Combat speaks in numbers over the foe and the health bar; the journal keeps one short line per event.
 function act(id) {
   const f = foeHere(), w = weapon();
-  if (!f || !w || S.over || !w.moves.includes(id)) return;
+  if (!f || !w || S.over || !w.moves.includes(id) || !ppLeft(id)) return;
   const it = intentOf(f);
   S.fresh.delete(id); S.flash = ""; S.narr = "";
+  if (MOVES[id].pp) S.pp[id]--;   // spent whether it lands or not
   if (S.fight) S.fight.turns++;
   track("move_used", { move: id, foe_intent: it.kind });
-  if (id === "reflex" && it.dmg > 0) {
+  if (id === "reflex" && telegraphed(f)) {
     const d = w.dmg * 2; f.hp -= d; f.step++;
     SND.counter(); popFoe(f, `−${d}`, "big"); popHero(STR.dodge, "miss"); say(STR.hit(MOVES.reflex.name, d));
   } else {
@@ -1206,19 +1218,20 @@ function renderAll() {
   if (sheetOpen === "chestsheet") renderChest();
 }
 function renderMoves(box, count, live) {   // live = the battle box, where filled slots are buttons
-  const list = moves(), f = foeHere(), threat = !!f && intentOf(f).dmg >= 5;
+  const list = moves(), f = foeHere(), tele = !!f && telegraphed(f);
   box.innerHTML = ""; digits(count, STR.slots(list.length, SLOTS));
   for (let i = 0; i < SLOTS; i++) {
     const mv = list[i], el = document.createElement(live && mv ? "button" : "div");
-    el.className = "move" + (mv ? "" : " empty") + (live && mv && mv.id === "reflex" && threat ? " hot" : "");
-    if (mv) {   // the icon of the item that gives the move, as context
+    el.className = "move" + (mv ? "" : " empty") + (live && mv && mv.id === "reflex" && tele && ppLeft(mv.id) ? " hot" : "");
+    if (mv) {   // the icon of the item that gives the move, as context; PP is the one number a move shows
       const b = document.createElement("b"), src = document.createElement("img");
       b.textContent = mv.name;
       src.src = iconURL(mv.src); src.alt = ""; src.title = mv.src.name;
       el.append(b, src);
       if (S.fresh.has(mv.id)) { const t = document.createElement("em"); t.className = "new"; t.textContent = STR.newTag; el.appendChild(t); }
+      if (MOVES[mv.id].pp) { const p = document.createElement("span"); p.className = "pp" + (ppLeft(mv.id) ? "" : " out"); p.textContent = STR.pp(S.pp[mv.id], MOVES[mv.id].pp); el.appendChild(p); }
     } else el.setAttribute("aria-label", STR.emptySlot);
-    if (live && mv) { el.type = "button"; el.onclick = () => act(mv.id); }
+    if (live && mv) { el.type = "button"; el.disabled = !ppLeft(mv.id); el.onclick = () => act(mv.id); }
     box.appendChild(el);
   }
 }
