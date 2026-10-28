@@ -193,7 +193,9 @@ img{image-rendering:pixelated}
 
 .recs{display:flex;flex-direction:column;gap:8px}
 .rec{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.rec.can{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 18px var(--glow-soft);cursor:pointer}
+.rec.can{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 18px var(--glow-soft)}
+.rec[data-rec]{cursor:pointer}
+.rec.on{border-color:var(--torch);background:var(--panel-hi)}   /* the recipe being shown in the bag */
 .rec.sil{background:transparent;border-style:dashed}
 .rec.sil b{color:var(--muted);letter-spacing:.1em}
 .face{flex:none;width:48px;height:48px;display:grid;place-items:center;border-radius:4px;background:var(--seg);font:700 20px/1 var(--display);color:var(--line)}
@@ -233,11 +235,18 @@ button.cell{cursor:pointer}
 .tablenote{font:500 15px/1.2 var(--display)}
 .tablenote.bad{color:var(--blood)}
 .tablenote.good{color:var(--torch)}
+/* dragging from the bag onto the table, as in the run */
+.dragicon{position:absolute;z-index:23;width:48px;height:48px;margin:-24px 0 0 -24px;pointer-events:none;filter:drop-shadow(0 6px 6px var(--ink))}
+.bench.drop .cell[data-spot]{border-style:dashed;border-color:var(--torch)}
+.cell.over{background:var(--panel-hi);box-shadow:0 0 0 2px var(--torch)}
 
 /* bag: a Minecraft-style inventory, as in Builds: bevelled slots on a stone panel, stack counts in pixel digits, a purple tooltip */
 .inv{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px;border:1px solid var(--ink);background:var(--stone);box-shadow:inset 2px 2px 0 var(--bevel-hi), inset -2px -2px 0 var(--bevel-lo)}
 .islot{position:relative;min-width:0;aspect-ratio:1/1;display:grid;place-items:center;padding:0;border:0;background:var(--slot);box-shadow:inset 2px 2px 0 var(--bevel-lo), inset -2px -2px 0 var(--bevel-hi)}
-button.islot{cursor:pointer}
+button.islot{cursor:pointer;touch-action:none}   /* a drag from the bag must not scroll the view */
+.islot img{pointer-events:none}   /* no native image drag on desktop */
+.islot.fit{z-index:1}
+.islot.fit::before{content:"";position:absolute;inset:0;border:2px solid var(--torch);background:var(--glow-strong);animation:pulse 1.6s ease-out infinite;pointer-events:none}   /* the shown recipe's ingredients, as the run's fitting items */
 .islot img:not(.n){width:32px;max-width:66%;height:auto}
 .islot .n{position:absolute;right:3px;bottom:3px}
 .islot[aria-pressed="true"]::after{content:"";position:absolute;inset:2px;background:var(--hover)}
@@ -355,7 +364,7 @@ button.entry{cursor:pointer}
   .tabbar{padding-bottom:8px}
   .sheet{padding-bottom:16px}
 }
-@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.sheet.in,.toast,.btn.pulse,.shelf .islot.shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.sheet.in,.toast,.btn.pulse,.islot.fit::before,.shelf .islot.shake{animation:none}}
 </style>
 
 <div class="stage">
@@ -425,7 +434,7 @@ const STR = {
   "table.title": "Alchemy table", "table.recipes": "Recipes", "table.feed": "Feed", "table.feedLock": "Feed opens after floor {n}",
   "table.feedSoon": "Feeding comes with weapon levels.",
   "book.can": "Can make", "book.almost": "Almost", "book.unknown": "Unknown", "book.known": "Known",
-  "book.new": "new", "book.make": "Make", "book.where": "{many} · Floor {n}", "book.whereChest": "Chest · Floor {n}",
+  "book.new": "new", "book.where": "{many} · Floor {n}", "book.whereChest": "Chest · Floor {n}",
   "book.sil": "???",
   "hint.book": "Wolf pelt + something from Floor 3", "hint.vspear": "Snake fang + a longer weapon",
   "fuse.title": "Free fusion", "fuse.btn": "Fuse", "fuse.discovered": "Recipe discovered!", "fuse.wont": "Won't fuse",
@@ -476,7 +485,7 @@ const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
 };
 for (const k in ITEMS) { ITEMS[k].name = t("item." + k); ITEMS[k].at = ITEMS[k].at ? t("at." + k) : ""; }
 const item = k => ITEMS[k] || { name:k[0].toUpperCase() + k.slice(1), type:"mat", spr:k };   // a key from a newer run still shows up
-const RECIPES = [   // ingredients with counts, in the order Make lays them on the bench; hint = shown as ??? until made
+const RECIPES = [   // ingredients with counts; hint = shown as ??? until made
   { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
   { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
   { out:"jacket", in:[["pelt", 1], ["tail", 3]] },
@@ -1362,7 +1371,8 @@ function renderCamp() {
 
 /* ================= table: the recipe book, free fusion, the bag ================= */
 let ttab = "recipes";
-let bench = { a: null, b: null, auto: false, out: null, note: "", tone: "" };
+let bench = { a: null, b: null, out: null, note: "", tone: "" };
+let shown = null;   // the recipe tapped in the book: its ingredients glow in the bag
 const match = (a, b) => RECIPES.find(r => r.in.length === 2 && ((r.in[0][0] === a && r.in[1][0] === b) || (r.in[0][0] === b && r.in[1][0] === a)));
 const face = inner => `<span class="face">${inner}</span>`;
 function recRow(r, group) {
@@ -1378,10 +1388,10 @@ function recRow(r, group) {
              : item(k).floor ? `<p>${t("book.whereChest", { n: item(k).floor })}</p>` : "";
   }).join("") : "";
   const fresh = group === "can" && !known(r) ? `<span class="tagnew">${t("book.new")}</span>` : "";
-  return `<div class="rec${group === "can" ? " can" : ""}"${group === "can" ? ` data-make="${r.out}"` : ""}>
+  const on = shown === r.out, tap = group === "can" ? ` role="button" tabindex="0" aria-pressed="${on}"` : "";   // Almost holds the "where" button, so it takes a tap but no role
+  return `<div class="rec${group === "can" ? " can" : ""}${on ? " on" : ""}" data-rec="${r.out}"${tap}>
     ${face(revealed(r) ? img(it.spr) : sil(it.spr, SIL))}
     <div class="rbody"><b>${name}${fresh}</b><div class="ings">${ings}</div>${where}</div>
-    ${group === "can" ? `<button class="btn sm" type="button" data-make="${r.out}">${t("book.make")}</button>` : ""}
   </div>`;
 }
 function renderTable() {
@@ -1398,7 +1408,7 @@ function renderTable() {
     h += group("can", b.can) + group("almost", b.almost) + group("unknown", b.unknown);
     if (b.rest.length) h += `<h3 class="sec">${t("book.known")} <span>${b.rest.length}</span></h3><div class="known">${b.rest.map(r =>
       `<div class="krow">${r.in.map(([k, n]) => img(item(k).spr) + (n > 1 ? `<span class="num">×${n}</span>` : "")).join('<span class="op">+</span>')}<span class="op">=</span>${img(item(r.out).spr)}<b>${item(r.out).name}</b></div>`).join("")}</div>`;
-    h += `<h3 class="sec">${t("fuse.title")}</h3>${benchHTML()}
+    h += `<h3 class="sec" id="fusehead">${t("fuse.title")}</h3>${benchHTML()}
       <h3 class="sec">${t("bag.title")} <span>${save.bag.length}</span></h3>${bagHTML()}`;
   }
   $("table").innerHTML = h;
@@ -1407,9 +1417,9 @@ function renderTable() {
 function benchHTML() {
   const cell = (side) => {
     const k = bench[side];
-    if (!k) return `<div class="part"><span class="cell empty"></span><b></b></div>`;
+    if (!k) return `<div class="part"><span class="cell empty" data-spot="${side}"></span><b></b></div>`;
     const n = have(k);
-    return `<div class="part"><button class="cell" type="button" data-cell="${side}" aria-label="${item(k).name}">${img(item(k).spr) || "?"}${n > 1 ? countImg(n) : ""}</button><b>${item(k).name}</b></div>`;
+    return `<div class="part"><button class="cell" type="button" data-cell="${side}" data-spot="${side}" aria-label="${item(k).name}">${img(item(k).spr) || "?"}${n > 1 ? countImg(n) : ""}</button><b>${item(k).name}</b></div>`;
   };
   const r = bench.a && bench.b ? match(bench.a, bench.b) : null;
   let res = `<span class="cell">?</span><b></b>`;
@@ -1417,7 +1427,7 @@ function benchHTML() {
   else if (r && revealed(r)) res = `<span class="cell dim">${img(item(r.out).spr)}</span><b></b>`;
   const ready = bench.a && bench.b;
   return `<div class="bench" id="bench">${cell("a")}<span class="op" aria-hidden="true">+</span>${cell("b")}<span class="op" aria-hidden="true">=</span><div class="part res${bench.out ? " done" : ""}">${res}</div></div>
-    ${ready || bench.note ? `<div class="tablerow"><span class="tablenote ${bench.tone}" role="status">${bench.note}</span>${ready ? `<button class="btn${bench.auto ? " pulse" : ""}" type="button" id="fuse">${t("fuse.btn")}</button>` : ""}</div>` : ""}`;
+    ${ready || bench.note ? `<div class="tablerow"><span class="tablenote ${bench.tone}" role="status">${bench.note}</span>${ready ? `<button class="btn${r && r.out === shown ? " pulse" : ""}" type="button" id="fuse">${t("fuse.btn")}</button>` : ""}</div>` : ""}`;
 }
 function tagOf(k) {   // the line under the name in the tooltip
   if (k === save.hand) return ["t-hand", t("bag.inHand")];
@@ -1430,6 +1440,7 @@ function tagOf(k) {   // the line under the name in the tooltip
 }
 function bagHTML() {
   const cells = Math.max(12, Math.ceil(save.bag.length / 6) * 6);
+  const want = shown ? RECIPES.find(r => r.out === shown).in.map(([k]) => k) : [];
   let h = "";
   for (let i = 0; i < cells; i++) {
     const x = save.bag[i];
@@ -1437,7 +1448,7 @@ function bagHTML() {
     const it = item(x.key), hand = x.key === save.hand, tag = tagOf(x.key);
     const used = bench.a === x.key || bench.b === x.key;
     const mark = !hand && tag && tag[0] === "t-rec" ? '<i class="mk"></i>' : !hand && tag && tag[0] === "t-spare" ? '<i class="mk spare"></i>' : "";
-    h += `<button class="islot${hand ? " hand" : ""}${used ? " used" : ""}" type="button" data-bag="${x.key}" aria-label="${it.name}${x.n > 1 ? ` ×${x.n}` : ""}${tag ? `, ${tag[1]}` : ""}" aria-pressed="${tip.where === "bag" && tip.key === x.key}">${img(it.spr) || "?"}${hand ? `<span class="hl">${t("bag.hand")}</span>` : ""}${mark}${x.n > 1 ? countImg(x.n) : ""}</button>`;
+    h += `<button class="islot${hand ? " hand" : ""}${used ? " used" : want.includes(x.key) ? " fit" : ""}" type="button" data-bag="${x.key}" aria-label="${it.name}${x.n > 1 ? ` ×${x.n}` : ""}${tag ? `, ${tag[1]}` : ""}" aria-pressed="${tip.where === "bag" && tip.key === x.key}">${img(it.spr) || "?"}${hand ? `<span class="hl">${t("bag.hand")}</span>` : ""}${mark}${x.n > 1 ? countImg(x.n) : ""}</button>`;
   }
   return `<div class="inv" id="bag">${h}<span class="tip" id="bagtip" hidden></span></div>`;
 }
@@ -1454,22 +1465,60 @@ function placeTip(where) {   // the purple tooltip over the pressed slot; stays 
   el.style.left = `${Math.min(Math.max(x, w / 2 + 4), box.clientWidth - w / 2 - 4)}px`;
   el.style.top = `${sel.offsetTop - 4}px`;
 }
-function place(k) {   // tap a stack: onto the first free cell; tap it again to take it back
-  if (bench.a === k) bench.a = null;
-  else if (bench.b === k) bench.b = null;
-  else if (!bench.a) bench.a = k;
-  else bench.b = k;
-  bench.auto = false; bench.out = null; bench.note = ""; bench.tone = "";
+// The player lays items on the table by hand, as in the run: a tap puts a stack on the first free cell (tap it again to take it back),
+// a drag puts it on the cell it is dropped on; a tap on a cell takes the item back.
+function placeAt(spot, k) {
+  for (const s of ["a", "b"]) if (bench[s] === k) bench[s] = null;
+  bench[spot] = k; bench.out = null; bench.note = ""; bench.tone = "";
   haptic("tick");
 }
-function make(out) {
-  const r = RECIPES.find(x => x.out === out);
-  bench = { a: r.in[0][0], b: r.in[1][0], auto: true, out: null, note: "", tone: "" };
+function place(k) {
+  const on = ["a", "b"].find(s => bench[s] === k);
+  if (!on) { placeAt(bench.a ? "b" : "a", k); return; }
+  bench[on] = null; bench.out = null; bench.note = ""; bench.tone = "";
+  haptic("tick");
+}
+function showRec(out) {   // a tap on a recipe lays nothing out: its ingredients glow in the bag and the table scrolls into view
+  shown = out;
   track("recipe_view", { tab: "recipes", entry: out });
   haptic("tick");
   renderTable();
-  const bh = $("bench"); if (bh) bh.scrollIntoView({ block: "center", behavior: still ? "auto" : "smooth" });   // the bench and Fuse in view
+  const h = $("fusehead"); if (h) h.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });   // the cells and the bag in view
 }
+// A press on a bag slot becomes a drag once it moves a few px: the icon follows the finger, the cell under it lights up.
+let drag = null, dragEndAt = 0;
+document.addEventListener("pointerdown", e => {
+  const el = e.target.closest && e.target.closest("#bag [data-bag]");
+  if (!el || e.button > 0) return;
+  drag = { k: el.dataset.bag, el, id: e.pointerId, x: e.clientX, y: e.clientY, on: false, over: null };
+  try { el.setPointerCapture(e.pointerId); } catch (err) {}
+});
+document.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.on) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.on = true;
+    const s = item(drag.k).spr;
+    drag.ghost = document.createElement("img"); drag.ghost.className = "dragicon"; drag.ghost.alt = ""; if (SPR[s]) drag.ghost.src = sprURL(s);
+    $("app").appendChild(drag.ghost); $("bench").classList.add("drop"); drag.el.classList.add("used");
+    if (tip.where === "bag") { tip = { where: null, key: null }; $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip("bag"); }
+  }
+  const app = $("app").getBoundingClientRect();
+  drag.ghost.style.left = `${e.clientX - app.left}px`; drag.ghost.style.top = `${e.clientY - app.top}px`;
+  const hit = document.elementFromPoint(e.clientX, e.clientY), cell = hit && hit.closest(".cell[data-spot]");
+  if (drag.over !== cell) { if (drag.over) drag.over.classList.remove("over"); drag.over = cell; if (cell) cell.classList.add("over"); }
+});
+function dragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null;
+  if (!d.on) return;   // it was a tap: the click that follows places the item
+  d.ghost.remove();
+  if (d.over && e.type === "pointerup") placeAt(d.over.dataset.spot, d.k);
+  renderTable();
+  dragEndAt = performance.now();   // the click a drag may end with comes right after it and is not a tap
+}
+document.addEventListener("pointerup", dragEnd);
+document.addEventListener("pointercancel", dragEnd);
 function take(k, n) { save.bag.forEach(x => { if (x.key === k && n > 0) { const d = Math.min(n, x.n); x.n -= d; n -= d; } }); save.bag = save.bag.filter(x => x.n > 0); }
 function give(k) { const x = save.bag.find(y => y.key === k); if (x) x.n++; else save.bag.push({ key: k, n: 1 }); }
 function fuse() {
@@ -1486,9 +1535,9 @@ function fuse() {
   save.makeable = canMake().length;
   save.camp = [...new Set([...save.camp, ...Object.keys(CAMP_UNLOCKS).filter(f => +f <= save.floor).flatMap(f => CAMP_UNLOCKS[f].map(u => u.key))])];
   writeJSON("gamey.save", save); demo = false; noteSource();
-  track("fuse", { recipe: r.out, auto: bench.auto, discovered });
-  bench = { a: null, b: null, auto: false, out: r.out, note: discovered ? t("fuse.discovered") : "", tone: "good" };
-  tip = { where: null, key: null };
+  track("fuse", { recipe: r.out, auto: false, discovered });   // the table never lays items out itself
+  bench = { a: null, b: null, out: r.out, note: discovered ? t("fuse.discovered") : "", tone: "good" };
+  tip = { where: null, key: null }; shown = null;
   haptic("ok");
   if (discovered) toast("recipe", t("toast.recipe", { name: item(r.out).name }));
   renderTable(); renderCamp();
@@ -1610,14 +1659,15 @@ function show(dir) {
 }
 function go(where) {
   if (showNew) once.add("camp.new." + save.floor);   // the "new" card has done its job
-  if (where === "table") { sub = "table"; ttab = "recipes"; track("recipe_view", { tab: "recipes", entry: null }); }
+  if (where === "table") { sub = "table"; ttab = "recipes"; shown = null; track("recipe_view", { tab: "recipes", entry: null }); }
   else { sub = null; tab = "almanac"; aseg = "creatures"; track("almanac_view", { tab: "creatures", entry: null }); seenCreatures(); }
   show("fwd");
 }
 
 /* ================= input ================= */
 document.addEventListener("click", e => {
-  const el = e.target.closest("button, [data-make]");
+  if (performance.now() - dragEndAt < 150) { dragEndAt = 0; return; }   // swallow one stray click, never a real tap after it
+  const el = e.target.closest("button, [data-rec]");
   const prevTip = tip.key;
   if (!el || !(el.dataset.bag || el.dataset.shelf)) {   // a tap anywhere else lets the tooltip go
     if (tip.where) { const w = tip.where; tip = { where: null, key: null }; if (w === "bag" && !$("table").hidden && $("bag")) $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip(w); if (w === "shelf" && $("shelf")) $("shelf").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); }
@@ -1631,13 +1681,13 @@ document.addEventListener("click", e => {
     if (tab === "almanac") { if (showNew) once.add("camp.new." + save.floor); track("almanac_view", { tab: aseg, entry: null }); if (aseg === "creatures") seenCreatures(); }
     show("fwd");
   }
-  else if (d.make) make(d.make);
+  else if (d.rec) showRec(d.rec);
   else if (d.bag) {
     place(d.bag);
     tip = prevTip === d.bag && !(bench.a === d.bag || bench.b === d.bag) ? { where: null, key: null } : { where: "bag", key: d.bag };
     renderTable();
   }
-  else if (d.cell) { bench[d.cell] = null; bench.auto = false; bench.note = ""; bench.out = null; renderTable(); }
+  else if (d.cell) { bench[d.cell] = null; bench.note = ""; bench.out = null; haptic("tick"); renderTable(); }
   else if (el.id === "fuse") fuse();
   else if (d.ttab) {
     if (d.ttab === "feed" && !isOpen("feed")) { toast("unlock", t("table.feedLock", { n: unlockFloor("feed") })); haptic("error"); return; }
@@ -1666,6 +1716,7 @@ document.addEventListener("click", e => {
 });
 $("backdrop").addEventListener("click", closeSheet);
 document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.rec) { e.preventDefault(); showRec(e.target.dataset.rec); return; }
   if (e.key !== "Escape") return;
   if (!$("sheet").hidden) closeSheet();
   else if (sub) { sub = null; show("rev"); }
@@ -1680,7 +1731,7 @@ function dev(k) {
   if (k === "demo") { save = clone(DEMO_SAVE); demo = true; }
   if (k === "tails") { const x = save.bag.find(y => y.key === "tail"); if (x) x.n += 3; else save.bag.push({ key: "tail", n: 3 }); }
   if (k === "fresh") { try { const a = readJSON("gamey.once", []); localStorage.setItem("gamey.once", JSON.stringify((Array.isArray(a) ? a : []).filter(x => !/^(camp\.|narrate\.camp)/.test(x)))); } catch (e) {} location.reload(); return; }
-  bench = { a: null, b: null, auto: false, out: null, note: "", tone: "" };
+  bench = { a: null, b: null, out: null, note: "", tone: "" }; shown = null;
   noteSource(); show();
 }
 

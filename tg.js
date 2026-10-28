@@ -1,5 +1,19 @@
 // Telegram Mini App glue for the Game Y build. The pages call window.GY?.… so they also run without it
 // (in the design artifacts and in a plain browser, where Telegram.WebApp has no initData).
+
+// A clean start for testing: the bot link t.me/<bot>?startapp=reset (or a page opened with ?reset) wipes the
+// progress before the page reads it. Telegram keeps the start param for the whole launch, so it runs once per launch.
+(() => {
+  try {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const asked = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === "reset") || /[?&]reset\b/.test(location.search);
+    if (!asked || sessionStorage.getItem("gamey.reset")) return;
+    Object.keys(localStorage).filter(k => k.startsWith("gamey.")).forEach(k => localStorage.removeItem(k));
+    Object.keys(sessionStorage).filter(k => k.startsWith("gamey.")).forEach(k => sessionStorage.removeItem(k));   // not Telegram's own launch data
+    sessionStorage.setItem("gamey.reset", "1");
+  } catch (e) {}
+})();
+
 (() => {
   const tg = window.Telegram && window.Telegram.WebApp;
   if (!tg || !tg.initData) return;

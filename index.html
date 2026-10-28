@@ -52,6 +52,7 @@ img{max-width:100%}
   --scrim:rgba(20,18,22,.95);
   --scrim-mid:rgba(20,18,22,.7);
   --glow:rgba(226,178,76,.07);
+  --glow-hot:rgba(226,178,76,.85);
   --scrim-lock:rgba(20,18,22,.5);
   --pulse:rgba(226,178,76,.55);
   --pulse-0:rgba(226,178,76,0);
@@ -94,6 +95,11 @@ img{image-rendering:pixelated}
 .chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 7px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
 .chip img{width:16px;height:16px}
 .chip.star{color:var(--star)}
+.snd{flex:none;width:28px;height:28px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg);cursor:pointer}
+.snd .x{display:none}
+.snd.off{color:var(--muted)}
+.snd.off .wave{display:none}
+.snd.off .x{display:inline}
 .tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
 .back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
 .back .ico{width:16px;height:14px}
@@ -154,6 +160,15 @@ img{image-rendering:pixelated}
 .strip .lockmark{position:absolute;right:15px;top:50%;width:16px;height:16px;margin-top:-8px;color:var(--muted)}
 .tab.locked{opacity:.5}
 .tab .ico.tablock{position:absolute;top:4px;left:50%;width:8px;height:8px;margin-left:12px;color:var(--fg)}
+/* unlock moment: the padlock shakes, clicks open and drops; the icon flares; a "new" dot waits for the first visit */
+.tab .tablock.shake{transform-origin:50% 0;animation:lockshake .42s ease-in-out}
+@keyframes lockshake{0%,100%{transform:none}20%{transform:rotate(-16deg)}40%{transform:rotate(13deg)}60%{transform:rotate(-9deg)}80%{transform:rotate(5deg)}}
+.tab .tablock.drop{animation:lockdrop .55s ease-in forwards}
+@keyframes lockdrop{0%{transform:none;opacity:1}25%{transform:translateY(-4px) rotate(-12deg)}100%{transform:translateY(20px) rotate(30deg);opacity:0}}
+.tab.glow{animation:tabglow 1.2s ease-out}
+@keyframes tabglow{0%{filter:none}18%{color:var(--torch);filter:drop-shadow(0 0 7px var(--glow-hot)) brightness(1.35)}100%{filter:none}}
+.tab .newdot{position:absolute;top:3px;left:50%;width:8px;height:8px;margin-left:12px;border-radius:50%;background:var(--torch);box-shadow:0 0 0 2px var(--bg)}
+.tab.next::after{content:"";position:absolute;top:3px;left:50%;width:36px;height:36px;margin-left:-18px;border-radius:50%;pointer-events:none;animation:pulse 1.8s ease-out infinite}
 .tab .tbadge{position:absolute;top:0;left:50%;min-width:18px;height:18px;margin-left:8px;padding:0 5px;border-radius:9px;background:var(--blood);color:var(--fg);font:600 11px/18px var(--body);letter-spacing:0;font-variant-numeric:tabular-nums}
 
 /* ---------- campaign: tower ---------- */
@@ -230,7 +245,7 @@ button.fl{cursor:pointer}
 
 /* ---------- tab bar & toast ---------- */
 .tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:opacity .3s}
 .tab .ico{width:30px;height:30px}
 .tab[aria-current="page"]{color:var(--torch)}
 .tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
@@ -265,7 +280,7 @@ button.fl{cursor:pointer}
   .statusbar,.homebar{display:none}
   .tabbar{padding-bottom:8px}
 }
-@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.toast.in,.cta.pulse{animation:none}}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.toast.in,.cta.pulse,.tab.glow,.tab.next::after{animation:none}}
 </style>
 
 <div class="stage">
@@ -287,6 +302,7 @@ button.fl{cursor:pointer}
             <span class="who"><b data-t="hero.name"></b><span data-t="hero.class"></span></span>
           </button>
           <div class="purse">
+            <button class="snd" id="snd" type="button" data-ta="aria.sound" aria-pressed="true"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M1 6h3l4-3v10l-4-3H1z"/><path class="wave" fill="currentColor" d="M10 6h1v4h-1zM12 4h1v8h-1z"/><path class="x" stroke="currentColor" stroke-width="1.5" d="M10.5 5.5l4 5M14.5 5.5l-4 5"/></svg></button>
             <span class="chip star" id="stars"><img data-spr="star" alt=""><span>0</span></span>
           </div>
         </div>
@@ -340,12 +356,12 @@ button.fl{cursor:pointer}
             <div class="rows" id="races"></div>
           </section>
 
-          <!-- CAMP while locked (once open, the tab goes to the camp screen) -->
-          <section class="view" data-view="camp" data-ta="tab.camp" hidden>
-            <div class="strip locked static" data-scene="camp">
-              <span class="eyebrow" data-t="camp.eyebrow"></span>
-              <span class="title" data-t="camp.title"></span>
-              <span class="meta" data-t="camp.lock"></span>
+          <!-- LOCKED Camp / Almanac / Shop until floor 1 (an open Camp tab goes to the camp screen) -->
+          <section class="view" data-view="lock" hidden>
+            <div class="strip locked static" data-scene="camp" id="lockStrip">
+              <span class="eyebrow" id="lockEyebrow"></span>
+              <span class="title" id="lockTitle"></span>
+              <span class="meta" data-t="lock.floor1"></span>
               <i class="ico lockmark" data-ico="lock" data-s="2"></i>
             </div>
           </section>
@@ -362,7 +378,7 @@ button.fl{cursor:pointer}
             <div class="cards" id="almCards"></div>
           </section>
 
-          <!-- SHOP: open on the first visit, no badges or animation -->
+          <!-- SHOP: opens after floor 1, like Camp and Almanac (the user's call over GDE-01) -->
           <section class="view" data-view="shop" data-ta="tab.shop" hidden>
             <div class="vh"><h2 data-t="shop.title"></h2><p><span data-t="shop.lede"></span> <span class="stub" data-t="stub"></span></p></div>
 
@@ -391,9 +407,9 @@ button.fl{cursor:pointer}
 
       <nav class="tabbar" data-ta="aria.sections">
         <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></button>
-        <button class="tab" type="button" data-tab="camp" id="campTab"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span><i class="ico tablock" data-ico="lock" data-s="1" id="campLock"></i><b class="tbadge" id="campBadge" hidden></b></button>
-        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
-        <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></button>
+        <button class="tab" type="button" data-tab="camp" id="campTab"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i><b class="tbadge" id="campBadge" hidden></b></button>
+        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i></button>
+        <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i></button>
       </nav>
       <span class="homebar" aria-hidden="true"></span>
     </div>
@@ -408,14 +424,15 @@ const STR = {
   "hero.name": "Human", "hero.class": "No class",
   "hero.gear": "Gear and builds", "hero.gear.sub": "Six slots", "hero.classes": "Classes", "hero.races": "Races",
   "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
-  "aria.back": "Back", "aria.sections": "Sections", "aria.stars": "Telegram Stars: {n}",
-  "aria.campLocked": "Camp, locked", "aria.campMake": "Camp, {n} to make",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.stars": "Telegram Stars: {n}", "aria.sound": "Sound",
+  "aria.locked": "{tab}, locked", "aria.new": "{tab}, new", "aria.campMake": "Camp, {n} to make",
+  "lock.floor1": "Opens after floor 1", "unlock.toast": "Unlocked: {list}",
   "play.eyebrow": "Main campaign", "play.title": "Tower I",
   "play.intro": "You wake in the tower's basement. Somewhere above: the academy and its entrance trial.",
   "play.start": "Start", "play.continue": "Continue · Floor {n}", "play.count": "{n}/15",
   "errands.eyebrow": "Side quests", "errands.title": "Errands", "errands.lock": "Opens after the tutorial",
   "farm.eyebrow": "Farm", "farm.title": "Cleared floors", "farm.lock": "Opens after floor 5",
-  "camp.eyebrow": "Base", "camp.title": "Stairs camp", "camp.lock": "Opens after floor 1",
+  "camp.eyebrow": "Base", "camp.title": "Stairs camp",
   "tower.title": "Tower I", "tower.sub": "Trial of Applicants · {n} of 100 cleared",
   "tower.floor": "Floor {n}", "tower.tutorial": "Basement · tutorial", "tower.basement": "Basement",
   "tower.cleared": "cleared", "tower.current": "current", "tower.locked": "locked",
@@ -425,7 +442,7 @@ const STR = {
   "biome.slimes": "Slimes and poison plants", "biome.slimes.p": "Damp, slime and poisonous growth.",
   "biome.interlude": "Interlude", "biome.interlude.range": "story", "biome.interlude.p": "A scene after leaving the basement.",
   "biome.basement": "Basement", "biome.basement.p": "The hero climbs out of the basement. Tutorial and first mechanics.",
-  "alm.title": "Almanac", "alm.lede": "Everything met in the tower.", "alm.sections": "Almanac sections",
+  "alm.eyebrow": "Records", "alm.title": "Almanac", "alm.lede": "Everything met in the tower.", "alm.sections": "Almanac sections",
   "alm.weapons": "Weapons", "alm.creatures": "Creatures", "alm.items": "Items",
   "alm.found": "found", "alm.met": "met", "alm.notFound": "Not found", "alm.notMet": "Not met",
   "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger",
@@ -440,7 +457,7 @@ const STR = {
   "race.elf": "Elf", "race.elf.sub": "Met in the tower, later for Stars",
   "race.fish": "Fishfolk", "race.fish.sub": "Met in the tower · TBD",
   "pill.notStarted": "Not started", "pill.paid": "★ Paid", "pill.unlocked": "Unlocked", "pill.locked": "Locked", "pill.npc": "NPC",
-  "shop.title": "Shop", "shop.lede": "Purchases with Telegram Stars. Range and prices are not decided yet.",
+  "shop.eyebrow": "Telegram Stars", "shop.title": "Shop", "shop.lede": "Purchases with Telegram Stars. Range and prices are not decided yet.",
   "shop.slot": "Hero slot", "shop.slot.sub": "Fourth hero onward. The first three unlock as you play.",
   "shop.race.sub": "Race for a new hero", "shop.class.sub": "Opens the summoner path",
   "shop.parts": "Components", "shop.pouch": "Modifier pouch", "shop.pouch.sub": "A random rare modifier for the table",
@@ -465,8 +482,8 @@ const once = {
   has: k => readJSON("gamey.once", []).includes(k),
   add(k) { try { const a = readJSON("gamey.once", []); if (!a.includes(k)) { a.push(k); localStorage.setItem("gamey.once", JSON.stringify(a)); } } catch (e) {} }
 };
-let sid = "nosid";
-try { sid = sessionStorage.getItem("gamey.sid"); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("gamey.sid", sid); } } catch (e) {}
+let sid = "nosid", freshSession = false;   // fresh: this page opened the app (no session id yet)
+try { sid = sessionStorage.getItem("gamey.sid"); if (!sid) { freshSession = true; sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("gamey.sid", sid); } } catch (e) {}
 
 /* GDE-00 analytics: console now, a server later */
 function track(e, props) {
@@ -486,6 +503,21 @@ function source() {   // Telegram start_param or ?ref=, else the referring site,
   return "direct";
 }
 
+function startSession() {   // once per sid, whichever screen made it
+  if (readJSON("gamey.events", []).some(ev => ev && ev.e === "session_start" && ev.sid === sid)) return;
+  track("session_start", { is_first: !save && !once.has("home.session"), source: source() });
+  once.add("home.session");
+}
+
+/* Telegram first contact: no save and the app was just opened → straight into floor 1, the menu never shows.
+   Back from the run comes here within the same session, so it gets the menu. #tg: the notes' link simulates Telegram. */
+if ((window.GY || location.hash === "#tg") && !save && freshSession) {
+  startSession(); once.add("home.start");
+  document.body.hidden = true;
+  location.replace(LINK.run);
+  return;
+}
+
 /* demo save "after floor 1", same shape 03 writes on floor_clear (used by the links in the notes) */
 const DEMO_SAVE = { v: 1, floor: 1,
   bag: [{ key: "viper", n: 1 }, { key: "pelt", n: 1 }, { key: "lockbox", n: 1 }], hand: "viper", moves: ["strike", "reflex"],
@@ -494,9 +526,13 @@ const DEMO_SAVE = { v: 1, floor: 1,
 
 /* ================= state from the save ================= */
 const DONE = save ? Math.max(0, Math.min(15, save.floor | 0)) : 0;
-const UNLOCK = { camp: 1, farm: 5 };                     // floor after which each part opens
-const campOpen = DONE >= UNLOCK.camp, farmOpen = DONE >= UNLOCK.farm;
-const makeable = campOpen ? Math.max(0, save.makeable | 0) : 0;
+const UNLOCK = { camp: 1, almanac: 1, shop: 1, farm: 5 };   // floor after which each part opens
+const opened = k => DONE >= UNLOCK[k];
+const farmOpen = opened("farm");
+const makeable = opened("camp") ? Math.max(0, save.makeable | 0) : 0;
+const GATED = ["camp", "almanac", "shop"];               // tabs behind a padlock until floor 1
+const pending = GATED.filter(k => opened(k) && !once.has("unlock:" + k));   // opened, but the unlock moment hasn't played yet
+const locked = new Set(GATED.filter(k => !opened(k) || (pending.includes(k) && !still)));
 const firstRun = !save && !once.has("home.start");     // the very first Start skips the tower screen (GDE-01 P2)
 
 /* ================= sprites (16×16, the almanac set from 05: keep the whole palette, i j J a A included) ================= */
@@ -675,6 +711,7 @@ const MASK = {
   book:  ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
   bag:   ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
   lock:  ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
+  unlock:["..####..",".#....#.",".#......","########","###..###","###..###","########","########"],   // shackle sprung on the right
   back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1));
@@ -764,12 +801,19 @@ function renderAlm() {
 }
 renderAlm();
 
-// Camp tab: locked until floor 1, then a link to the camp with a "can make" badge
-const campTab = $("campTab");
-campTab.classList.toggle("locked", !campOpen);
-$("campLock").hidden = campOpen;
-if (makeable) { $("campBadge").textContent = makeable; $("campBadge").hidden = false; }
-campTab.setAttribute("aria-label", !campOpen ? t("aria.campLocked") : makeable ? t("aria.campMake", { n: makeable }) : t("tab.camp"));
+// Camp, Almanac, Shop tabs: padlock until floor 1, then a "new" dot until the first visit; Camp also shows the "can make" badge
+const tabEl = k => document.querySelector(`.tab[data-tab="${k}"]`);
+$("campBadge").textContent = makeable;
+function paintTab(k) {
+  const b = tabEl(k), lock = b.querySelector(".tablock"), isLocked = locked.has(k);
+  const isNew = !isLocked && !once.has("home.open:" + k), badge = k === "camp" && !isLocked && makeable > 0;
+  b.classList.toggle("locked", isLocked);
+  lock.hidden = !isLocked && !lock.classList.contains("drop");
+  b.querySelector(".newdot").hidden = !isNew || badge;
+  if (k === "camp") $("campBadge").hidden = !badge;
+  const name = t("tab." + k);
+  b.setAttribute("aria-label", isLocked ? t("aria.locked", { tab: name }) : badge ? t("aria.campMake", { n: makeable }) : isNew ? t("aria.new", { tab: name }) : name);
+}
 $("stars").setAttribute("aria-label", t("aria.stars", { n: 0 }));
 
 // strings, sprites and icons for everything above
@@ -777,6 +821,7 @@ document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.data
 document.querySelectorAll("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
 document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
 document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
+GATED.forEach(paintTab);
 
 /* ================= strip scenes (pixel art, 3 screen px per art px) ================= */
 const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
@@ -865,6 +910,42 @@ const SCENES = {
     g.fillStyle = "#6e4426"; g.fillRect(cx - 3, fy - 4, 6, 2);
     g.fillStyle = "#3d373b"; for (const dx of [-8, -6, 6, 8]) g.fillRect(cx + dx - 1, fy - 2, 2, 2);
     g.fillStyle = "rgba(170,160,165,.25)"; g.fillRect(cx, fy - 7, 1, 2); g.fillRect(cx + 1, fy - 10, 1, 2); g.fillRect(cx, fy - 13, 1, 2);
+  },
+  shelf(g, W, H) {   // locked Almanac: a bookcase in the dark, one candle stub
+    const fy = H - 8;
+    const stones = ["#2b2729", "#272326", "#302b2e", "#29252a"];
+    for (let r = 0; r * 6 < fy; r++) { const off = (r * 3) % 8; for (let x = -off; x < W; x += 8) { g.fillStyle = stones[hash(r * 173 + x + 520) % 4]; g.fillRect(x, r * 6, 7, 5); } }
+    g.fillStyle = "#151215"; g.fillRect(0, fy, W, H - fy);
+    const sw = 44, sx = W - sw - 8, top = Math.max(3, fy - 46);
+    g.fillStyle = "#3a2616"; g.fillRect(sx - 2, top - 2, sw + 4, fy - top + 2);
+    g.fillStyle = "#17110e"; g.fillRect(sx, top, sw, fy - top);
+    const spines = ["#5a3a2a", "#3f4a3a", "#4a3a52", "#5a4a2a", "#3a4452", "#523a3a"];
+    for (let y = top + 1, r = 0; y + 11 <= fy; y += 12, r++) {
+      for (let x = sx + 1; x < sx + sw - 3;) {
+        const h = hash(r * 97 + x * 7 + 11), bw = 2 + h % 3, bh = 6 + (h >> 4) % 4;
+        if (h % 11 === 0) { x += 4; continue; }   // a gap on the shelf
+        g.fillStyle = spines[(h >> 8) % spines.length]; g.fillRect(x, y + 10 - bh, bw, bh);
+        x += bw;
+      }
+      g.fillStyle = "#5a3a22"; g.fillRect(sx, y + 10, sw, 2);
+    }
+    const cx = sx - 10;
+    glow(g, cx, fy - 9, 18, "255,180,90", .18);
+    g.fillStyle = "#d8ccb0"; g.fillRect(cx - 1, fy - 5, 2, 5);
+    g.fillStyle = "#ffd36a"; g.fillRect(cx, fy - 7, 1, 2);
+  },
+  stall(g, W, H) {   // locked Shop: a stall with its shutter down
+    const fy = H - 8;
+    const planks = ["#2e2620", "#2a221c", "#322a23", "#2c241e"];
+    for (let x = 0, i = 0; x < W; x += 7, i++) { g.fillStyle = planks[hash(i + 41) % 4]; g.fillRect(x, 0, 6, fy); g.fillStyle = "#1c1612"; g.fillRect(x + 6, 0, 1, fy); }
+    g.fillStyle = "#151215"; g.fillRect(0, fy, W, H - fy);
+    const bw = 48, bx = W - bw - 8, top = Math.max(3, fy - 42);
+    for (let x = bx - 3, i = 0; x < bx + bw + 3; x += 4, i++) { g.fillStyle = i % 2 ? "#3a2a2e" : "#6a2e36"; g.fillRect(x, top, 4, 5); }   // awning
+    g.fillStyle = "#2a1c1a"; g.fillRect(bx - 3, top + 5, bw + 6, 1);
+    for (let y = top + 6, i = 0; y < fy - 12; y += 3, i++) { g.fillStyle = i % 2 ? "#40322a" : "#4a3a2c"; g.fillRect(bx, y, bw, 2); g.fillStyle = "#2a201a"; g.fillRect(bx, y + 2, bw, 1); }   // shutter
+    g.globalAlpha = .55; g.drawImage(SPR.star, bx + (bw >> 1) - 8, top + 8); g.globalAlpha = 1;
+    g.fillStyle = "#5a3a22"; g.fillRect(bx - 2, fy - 12, bw + 4, 3);
+    g.fillStyle = "#3a2616"; g.fillRect(bx, fy - 9, bw, 9);
   }
 };
 function paintStrip(el) {
@@ -889,10 +970,17 @@ const SUB = {
 };
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 let tab = "game", sub = null;
-try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !(v === "camp" && campOpen)) tab = v; } catch (e) {}
+try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !(v === "camp" && opened("camp"))) tab = v; } catch (e) {}
+const LOCKVIEW = { camp: ["camp", "camp.eyebrow", "camp.title"], almanac: ["shelf", "alm.eyebrow", "alm.title"], shop: ["stall", "shop.eyebrow", "shop.title"] };
 
 function show(dir) {
-  const id = sub || tab, cur = views.find(v => v.dataset.view === id);
+  const id = sub || (locked.has(tab) ? "lock" : tab), cur = views.find(v => v.dataset.view === id);
+  if (id === "lock") {
+    const [scene, eyebrow, title] = LOCKVIEW[tab], strip = $("lockStrip");
+    if (strip.dataset.scene !== scene) { strip.dataset.scene = scene; strip._key = null; }
+    $("lockEyebrow").textContent = t(eyebrow); $("lockTitle").textContent = t(title);
+    cur.setAttribute("aria-label", t(title));
+  }
   views.forEach(v => { v.hidden = v !== cur; });
   if (dir && !still) { cur.classList.remove("fwd", "rev"); void cur.offsetWidth; cur.classList.add(dir); }
   $("tbRoot").hidden = !!sub;
@@ -904,15 +992,21 @@ function show(dir) {
   cur.querySelectorAll("[data-scene]").forEach(paintStrip);
 }
 const almView = () => track("almanac_view", { tab: seg, entry: null });
-function goRun() { once.add("home.start"); location.href = LINK.run; }
+function goRun() { once.add("home.start"); SND.leave(() => { location.href = LINK.run; }); }
+function visit(k) {   // the first visit of an unlocked tab clears its "new" dot (and Camp's pulse)
+  if (!GATED.includes(k) || locked.has(k)) return;
+  once.add("home.open:" + k); tabEl(k).classList.remove("next"); paintTab(k);
+}
 
 document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
-  if (b.dataset.tab === "camp" && campOpen) { location.href = LINK.camp; return; }
-  if (b.dataset.tab === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
-  tab = b.dataset.tab; sub = null;
+  const k = b.dataset.tab;
+  visit(k);
+  if (k === "camp" && !locked.has("camp")) { SND.leave(() => { location.href = LINK.camp; }); return; }
+  if (k === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
+  tab = k; sub = null;
   try { localStorage.setItem("gamey.tab", tab); } catch (e) {}
   show("fwd");
-  if (tab === "almanac") almView();
+  if (tab === "almanac" && !locked.has("almanac")) almView();
 }));
 mainStrip.addEventListener("click", () => { if (firstRun) goRun(); else { sub = "campaign"; show("fwd"); } });
 $("goBtn").addEventListener("click", () => { if (pick === 1) goRun(); else toast("stub", t("stub.floor", { n: pick })); });
@@ -938,24 +1032,112 @@ function toast(type, text) {
 }
 document.addEventListener("click", e => { const s = e.target.closest("[data-stub]"); if (s) toast("stub", t(s.dataset.stub)); });
 
-/* ================= design-note links: new player / demo save after floor 1 (the Telegram build drops the notes) ================= */
+/* ================= sound: a quiet lobby bed, synthesized with Web Audio like the run's SND; same "gamey.sound" key ================= */
+const SND = (() => {
+  const LEVEL = .8;
+  let ctx = null, out = null, noise = null, on = true, motif = 0;
+  try { on = localStorage.getItem("gamey.sound") !== "off"; } catch (e) {}
+  function start() {   // browsers allow sound only after a tap, so the first tap starts it
+    if (ctx) { if (ctx.state === "suspended" && !document.hidden) ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ctx = new AC(); out = ctx.createGain(); out.gain.value = .0001; out.connect(ctx.destination);
+    noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    bed();
+    if (on) out.gain.setTargetAtTime(LEVEL, ctx.currentTime, 1.2);   // fades in
+  }
+  const live = () => !!ctx && ctx.state === "running" && on;
+  function env(g, t, a, peak, dur) { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); }
+  function tone(f, dur, { type = "sine", vol = .1, at = 0, a = .005 } = {}) {
+    if (!live()) return;
+    const t = ctx.currentTime + at, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = f; env(g, t, a, vol, dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .05);
+  }
+  function burst(dur, { kind = "highpass", f = 3000, vol = .1, at = 0 } = {}) {   // filtered noise
+    if (!live()) return;
+    const t = ctx.currentTime + at, n = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+    n.buffer = noise; fl.type = kind; fl.frequency.value = f; env(g, t, .002, vol, dur);
+    n.connect(fl).connect(g).connect(out); n.start(t, Math.random()); n.stop(t + dur + .05);
+  }
+  function tine(f, at, vol) { tone(f, 2.6, { vol, at, a: .004 }); tone(f * 2.01, 1.1, { vol: vol * .3, at, a: .003 }); tone(f * 3.98, .45, { vol: vol * .1, at }); }   // a music-box tine
+  function bed() {
+    // a low drone on A, a fifth and an octave, breathing slowly
+    const lp = ctx.createBiquadFilter(), dg = ctx.createGain(), br = ctx.createOscillator(), bg = ctx.createGain();
+    lp.type = "lowpass"; lp.frequency.value = 300; dg.gain.value = .05;
+    br.frequency.value = .05; bg.gain.value = .02; br.connect(bg).connect(dg.gain); br.start();
+    [[55, "triangle", -4], [82.41, "sine", 3], [110, "sine", 6]].forEach(([f, type, cents]) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = cents; o.connect(lp); o.start(); });
+    lp.connect(dg).connect(out);
+    // airy wind that swells and turns
+    const w = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), wg = ctx.createGain(), sw = ctx.createOscillator(), sg = ctx.createGain(), tw = ctx.createOscillator(), tg = ctx.createGain();
+    w.buffer = noise; w.loop = true; bp.type = "bandpass"; bp.frequency.value = 700; bp.Q.value = .6; wg.gain.value = .018;
+    sw.frequency.value = .06; sg.gain.value = .014; sw.connect(sg).connect(wg.gain);
+    tw.frequency.value = .031; tg.gain.value = 260; tw.connect(tg).connect(bp.frequency);
+    w.connect(bp).connect(wg).connect(out); w.start(); sw.start(); tw.start();
+    // a slow music-box phrase in A minor pentatonic every ~20 s
+    const MOTIFS = [[0, 4, 7, 4], [9, 7, 4, 2], [4, 2, 0, -3], [0, 2, 4, 7, 9]];
+    const phrase = () => {
+      if (live()) { const m = MOTIFS[motif++ % MOTIFS.length]; m.forEach((st, i) => tine(523.25 * Math.pow(2, st / 12), i * .62 + (i === m.length - 1 ? .3 : 0), .035)); }
+      setTimeout(phrase, 17000 + Math.random() * 7000);
+    };
+    setTimeout(phrase, 5000);
+  }
+  document.addEventListener("visibilitychange", () => { if (ctx) document.hidden ? ctx.suspend() : ctx.resume(); });
+  return {
+    start,
+    isOn: () => on,
+    setOn(v) { on = v; try { localStorage.setItem("gamey.sound", v ? "on" : "off"); } catch (e) {} if (ctx) out.gain.setTargetAtTime(v ? LEVEL : .0001, ctx.currentTime, .1); },
+    leave(go) { if (!live()) return go(); out.gain.setTargetAtTime(.0001, ctx.currentTime, .1); setTimeout(go, 350); },   // fade out, then leave
+    click() { burst(.03, { vol: .12 }); tone(1900, .04, { type: "square", vol: .02, at: .02 }); },   // a padlock springs
+    chime(i) { const f = [659.25, 783.99, 880][i % 3]; tine(f, 0, .07); tine(f * 1.5, .14, .045); }
+  };
+})();
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => SND.start()));   // sound may start only after a tap
+const sndBtn = $("snd");
+function paintSnd() { sndBtn.classList.toggle("off", !SND.isOn()); sndBtn.setAttribute("aria-pressed", SND.isOn() ? "true" : "false"); }
+sndBtn.addEventListener("click", () => { SND.setOn(!SND.isOn()); paintSnd(); });
+paintSnd();
+
+/* ================= unlocks: after floor 1 the padlocks on Camp, Almanac and Shop open once, in turn (keys "unlock:<tab>" in gamey.once) ================= */
+function playUnlocks() {
+  if (!pending.length) return;
+  if (still) { pending.forEach(k => once.add("unlock:" + k)); return; }   // reduced motion: open at once, only the dots show
+  SND.start();   // plays only where the browser lets this page sound without a tap; the animation runs either way
+  const lockMask = `url("${maskURL("unlock", 1)}")`;
+  pending.forEach((k, i) => setTimeout(() => {
+    const b = tabEl(k), lock = b.querySelector(".tablock");
+    if (i === 0) toast("unlock", t("unlock.toast", { list: pending.map(x => t("tab." + x)).join(" · ") }));
+    lock.classList.add("shake");
+    setTimeout(() => {
+      lock.classList.remove("shake"); lock.style.setProperty("--m", lockMask); lock.classList.add("drop");
+      setTimeout(() => { lock.classList.remove("drop"); paintTab(k); }, 600);   // a timer, not animationend: that never fires in a background tab
+      locked.delete(k); once.add("unlock:" + k); paintTab(k);
+      b.classList.add("glow"); setTimeout(() => b.classList.remove("glow"), 1300);
+      SND.click(); SND.chime(i); if (window.GY) window.GY.haptic("ok");
+      if (tab === k && !sub) { if (k === "camp") tab = "game"; show(); }   // the tab on screen was showing its lock view; an open Camp is a link, so back to Play
+    }, 430);
+  }, 700 + i * 950));
+  setTimeout(() => { if (!once.has("home.open:camp")) tabEl("camp").classList.add("next"); }, 700 + pending.length * 950 + 400);   // Camp is the next step
+}
+
+/* ================= design-note links (the Telegram build drops the notes) ================= */
 document.querySelectorAll("[data-dev]").forEach(b => b.addEventListener("click", () => {
+  const d = b.dataset.dev;
   try {
-    const d = b.dataset.dev;
-    if (d === "clear") { ["gamey.save", "gamey.once", "gamey.tab"].forEach(k => localStorage.removeItem(k)); sessionStorage.removeItem("gamey.sid"); }
-    if (d === "demo") localStorage.setItem("gamey.save", JSON.stringify(DEMO_SAVE));
+    const dropOnce = pre => localStorage.setItem("gamey.once", JSON.stringify(readJSON("gamey.once", []).filter(k => !pre.some(x => k.startsWith(x)))));
+    if (d === "clear" || d === "tg") { ["gamey.save", "gamey.once", "gamey.tab"].forEach(k => localStorage.removeItem(k)); sessionStorage.removeItem("gamey.sid"); }
+    if (d === "demo") { localStorage.setItem("gamey.save", JSON.stringify(DEMO_SAVE)); GATED.forEach(k => once.add("unlock:" + k)); }
+    if (d === "unlocks") { localStorage.setItem("gamey.save", JSON.stringify(save || DEMO_SAVE)); dropOnce(["unlock:", "home.open:"]); localStorage.setItem("gamey.tab", "game"); }
     if (d === "make") { const s = save || DEMO_SAVE; s.makeable = (s.makeable | 0) + 1; localStorage.setItem("gamey.save", JSON.stringify(s)); }
   } catch (e) {}
+  if (d === "tg") history.replaceState(null, "", "#tg");   // opened as if inside Telegram
   location.reload();
 }));
 
 /* ================= session ================= */
-if (!readJSON("gamey.events", []).some(ev => ev && ev.e === "session_start" && ev.sid === sid)) {   // once per sid, whichever screen made it
-  track("session_start", { is_first: !save && !once.has("home.session"), source: source() });
-  once.add("home.session");
-}
+startSession();
 show();
-if (tab === "almanac") almView();
+if (tab === "almanac" && !locked.has("almanac")) almView();
+playUnlocks();
 })();
 </script>
 

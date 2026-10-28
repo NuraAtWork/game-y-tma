@@ -146,6 +146,28 @@ button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .toast.unlock{border-color:var(--moss)}
 .toast.unlock::before{background:var(--moss)}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,-8px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-4px)}}
+/* dialogue: a box at the bottom over the view; the speaker's framed portrait and name plate sit on their side.
+   The layer covers the whole screen, so a tap anywhere finishes the line or goes on, and nothing else takes input. */
+.dlg{position:absolute;inset:0;z-index:24;display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px 34px;background:linear-gradient(0deg, var(--veil) 0%, var(--veil-soft) 32%, transparent 58%);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dlg:focus{outline:none}
+.dlgbox{--spk:var(--torch);position:relative;display:flex;align-items:flex-start;gap:12px;min-height:116px;padding:18px 14px 20px;background:var(--glass-strong);border:2px solid var(--line);border-radius:6px;box-shadow:0 0 0 1px var(--ink)}
+.dlgbox.right{flex-direction:row-reverse}
+.dlgbox .face{flex:none;width:76px;height:76px;padding:4px;background:var(--well);border:2px solid var(--spk);border-radius:4px}
+.dlgbox .face img{display:block;width:64px;height:64px;image-rendering:pixelated}
+.dlgbox .plate{position:absolute;top:-13px;left:12px;padding:5px 10px 4px;background:var(--spk);color:var(--torch-ink);font:500 14px/1 var(--display);border-radius:3px;box-shadow:0 2px 0 var(--ink)}
+.dlgbox.right .plate{left:auto;right:12px}
+.dlgbox p{flex:1;min-width:0;margin:4px 0 0;font:500 17px/1.35 var(--display);color:var(--fg);text-wrap:pretty}
+.dlgbox p .rest{visibility:hidden}   /* the line keeps its full size while it types out */
+.dlgbox .more{position:absolute;right:12px;bottom:6px;font:500 12px/1 var(--display);color:var(--spk);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+/* the swipe hint: a finger sweeps up over the view until the first swipe that moves */
+.swipehint{position:absolute;left:50%;top:44%;width:48px;height:150px;margin-left:-24px;pointer-events:none}
+.swipehint img{position:absolute;left:0;bottom:0;width:48px;height:48px;image-rendering:pixelated;filter:drop-shadow(0 0 1px var(--paper)) drop-shadow(0 0 6px var(--torch-glow));animation:swipe 1.8s ease-in-out infinite}
+.swipehint i{position:absolute;left:17px;bottom:46px;width:8px;height:0;border-radius:4px;background:linear-gradient(0deg, transparent, var(--paper));opacity:.7;animation:trail 1.8s ease-in-out infinite}
+@keyframes swipe{0%{opacity:0;transform:translateY(0)}12%{opacity:1;transform:translateY(0)}55%{opacity:1;transform:translateY(-96px)}75%,100%{opacity:0;transform:translateY(-96px)}}
+@keyframes trail{0%,12%{height:0;opacity:0}55%{height:96px;opacity:.7}75%,100%{height:96px;opacity:0}}
+/* dragging from the bag onto the table */
+.dragicon{position:absolute;z-index:23;width:48px;height:48px;margin:-24px 0 0 -24px;image-rendering:pixelated;pointer-events:none;filter:drop-shadow(0 6px 6px var(--ink))}
 /* combat numbers: rise over the foe and over the health bar, then fade */
 .pop{position:absolute;left:50%;z-index:4;font:700 28px/1 var(--display);color:var(--fg);text-shadow:0 2px 0 var(--ink);white-space:nowrap;pointer-events:none;animation:pop .9s ease-out forwards}
 .pop.big{font-size:36px;color:var(--torch)}
@@ -267,6 +289,9 @@ button.cell{padding:0;cursor:pointer}
 .btn.hot{animation:pulse 1.6s ease-out infinite}   /* the table laid out a pair itself: Fuse asks to be pressed */
 .slot.fit{border-color:var(--torch);animation:pulse 1.6s ease-out infinite}
 .slot.used{opacity:.25}
+#tableinv .slot{touch-action:none}   /* a drag from the bag must not scroll the sheet */
+.bench.drop .cell[data-spot]{border-style:dashed;border-color:var(--torch)}
+.cell.over{background:var(--panel);box-shadow:0 0 0 2px var(--torch)}
 
 /* chest */
 .loot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -284,6 +309,8 @@ button.cell{padding:0;cursor:pointer}
 .note p{margin:0;font-size:14px}
 .note a{color:var(--torch);text-underline-offset:3px}
 .note .cur{color:var(--fg)}
+.note code{font-size:13px;color:var(--fg)}
+.linkbtn{padding:0;border:0;background:none;color:var(--torch);font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 @media (min-width:1000px){.notes{display:flex}}
 
@@ -297,8 +324,10 @@ button.cell{padding:0;cursor:pointer}
   .top{padding-top:10px}
   .bottom{padding-bottom:10px}
   .sheet{padding-bottom:16px}
+  .dlg{padding-bottom:max(12px, env(safe-area-inset-bottom, 0px))}
 }
-@media (prefers-reduced-motion:reduce){.bar>i,.foe b,.needle{transition:none}.sheet.in,.go.pulse,.go.flash,.move.hot,.btn.hot,.pop,.slot.fit,.floornote.unread img{animation:none}.toast{animation:none}}
+@media (prefers-reduced-motion:reduce){.bar>i,.foe b,.needle{transition:none}.sheet.in,.go.pulse,.go.flash,.move.hot,.btn.hot,.pop,.slot.fit,.floornote.unread img,.dlgbox .more{animation:none}.toast{animation:none}
+  .swipehint img{animation:none;transform:translateY(-48px)}.swipehint i{animation:none;height:48px}}
 </style>
 
 <div class="stage">
@@ -337,6 +366,7 @@ button.cell{padding:0;cursor:pointer}
           <button class="go l" type="button" data-rel="l" data-sl="left">◀</button>
           <button class="go r" type="button" data-rel="r" data-sl="right">▶</button>
           <button class="go b" type="button" data-rel="b" data-sl="back">▼</button>
+          <div class="swipehint" id="hint" aria-hidden="true" hidden><i></i><img id="hintimg" alt=""></div>
         </div>
         <div class="bottom">
           <div class="botrow">
@@ -355,6 +385,14 @@ button.cell{padding:0;cursor:pointer}
       </div>
       <div class="overlay" id="overlay" hidden></div>
       <div class="toast" id="toast" role="status" hidden></div>
+      <div class="dlg" id="dlg" role="dialog" tabindex="-1" data-sl="dialogue" hidden>
+        <div class="dlgbox" id="dlgbox">
+          <span class="plate" id="dlgname"></span>
+          <span class="face"><img id="dlgface" alt=""></span>
+          <p id="dlgtext" aria-live="polite"></p>
+          <i class="more" id="dlgmore" aria-hidden="true" hidden>▼</i>
+        </div>
+      </div>
       <div class="paper" id="paper" role="dialog" aria-label="Note" tabindex="-1" hidden>
         <b>Applicants</b>
         <ol><li>Irma Sott</li><li>Dane Varo</li><li class="out">▬▬▬▬▬▬▬</li><li>Osa Bren</li></ol>
@@ -438,7 +476,12 @@ const STR = {
   // overlays
   wake:"Awakening", wakeText:"You wake in a cold cellar.", getUp:"Get up", fell:"You fell", again:"Try again",
   lost: names => `Lost: ${names.join(", ")}`, cleared:"Floor 1 cleared", time:"Time", found:"Items", almanac:"Almanac",
-  toCamp:"To camp",
+  cont:"Continue",
+  // dialogue: speakers, Ari's first lines (once per player), and a sample exchange for the design notes
+  dialogue:"Dialogue", speaker: { ari:"Ari", elf:"Elf" },
+  dWake:"Ugh… what the heck?", dMemory:"I don't remember anything.",
+  sample: [["elf", "Oh. You're not supposed to be down here."], ["ari", "Neither are you, I think."],
+           ["elf", "Fair. Bring me something useful and we'll talk."], ["ari", "Something useful. Sure."]],
   // toasts
   newAlmanac: n => `New in Almanac: ${n}`, newRecipe: n => `New recipe: ??? (${n} ✓)`,
   // the narrator, each line once per player (drafts, GDE-03 §10)
@@ -538,6 +581,12 @@ const FOES = {
   wolf:  { hp:18, spr:"wolf", k:11, strong:true, loot:"pelt", pattern:[["bite", 2], ["growl", 0], ["bite", 2], ["prep", 0], ["lunge", 5]] }
 };
 for (const k in FOES) Object.assign(FOES[k], { key: k, name: STR.foe[k] });
+// Who can talk: Ari on the left, everyone else on the right with their own plate colour. Later floors only add rows.
+const SPEAKERS = {
+  ari: { spr:"player", side:"left",  color:"var(--torch)", voice:520 },
+  elf: { spr:"elf",    side:"right", color:"var(--moss)",  voice:760 }
+};
+for (const k in SPEAKERS) SPEAKERS[k].name = STR.speaker[k];
 
 /* ================= sprites: the shared 16×16 set (states/05-almanac.html, sprites16.json) ================= */
 // the full shared palette: a letter missing from P silently drops its pixels
@@ -636,9 +685,23 @@ const SPR = {
     "..eeeeeeeeeee...", "..eMMeMMeeMMem..", "..eeeeeeeeeeem..", ".eeMeMMeMMeeem..",
     ".eeeeeeeeeeeem..", "..eMMeeMeeeeem..", "..eeeeeeeettem..", "..eMeMMeetHHt...",
     "..eeeeeeetHt....", "...eee.eett.....", "....e....e......", "................"
+  ], P),
+  elf:     mk([
+    "................", ".....ukkkkk.....", "....ukkkkkka....", "..s.kssssssa.s..",
+    "...sksdssdsas...", "....ksssssSa....", "....kkssSSaa....", "....gggggGGG....",
+    "...ggggggGGGG...", "...ggggggGGGG...", "...sYYYYYYYYS...", ".....GGGGGG.....",
+    ".....GG..GG.....", ".....GG..GG.....", ".....GG..GG.....", "....hhh..hhh...."
   ], P)
 };
+// not in the shared set yet: the hand of the swipe hint, index finger up
+SPR.hand = mk([
+    "......dd........", ".....dssd.......", ".....dssd.......", ".....dssd.......",
+    ".....dssd.......", ".....dssdddd....", ".....dssdssddd..", "..ddddssdssdssd.",
+    ".dsssdssssssssd.", ".dssssssssssssd.", ".dSssssssssssSd.", "..dsssssssssssd.",
+    "..dSsssssssssSd.", "...dssssssssSd..", "....dsssssssd...", "....dddddddd...."
+  ], P);
 $("noteimg").src = SPR.note.toDataURL();
+$("hintimg").src = SPR.hand.toDataURL();
 const ICON = {};
 const iconURL = it => ICON[it.spr] || (ICON[it.spr] = SPR[it.spr].toDataURL());
 
@@ -696,6 +759,7 @@ const SND = (() => {
     roar()    { tone(90, .7, { type: "sawtooth", vol: .08, to: 55, a: .05 }); burst(.8, { kind: "bandpass", f: 700, to: 300, vol: .12, a: .1 }); },
     snarl()   { buzz("rigid"); tone(75, .7, { type: "sawtooth", vol: .07, to: 62, a: .05 }); for (let i = 0; i < 6; i++) burst(.08, { kind: "lowpass", f: 520, vol: .22, at: i * .1 }); },
     drip()    { plink(.08); },
+    voice(f)  { tone(f * (.94 + Math.random() * .12), .035, { vol: .025 }); },   // a dialogue blip, pitched per speaker
     swing()   { buzz("light"); burst(.12, { f: 2600, to: 600, q: 1.5, vol: .25 }); burst(.08, { kind: "lowpass", f: 900, vol: .45, at: .06 }); tone(140, .1, { vol: .08, at: .06, to: 70 }); },
     hurt()    { buzz("heavy"); tone(220, .18, { vol: .1, to: 90, at: .2 }); burst(.12, { kind: "lowpass", f: 600, vol: .35, at: .2 }); },
     counter() { buzz("medium"); burst(.1, { kind: "highpass", f: 4000, to: 1500, vol: .2 }); tone(880, .08, { vol: .07, at: .08 }); tone(1320, .2, { type: "triangle", vol: .08, at: .14 }); burst(.1, { kind: "lowpass", f: 900, vol: .5, at: .12 }); },
@@ -719,7 +783,7 @@ function newGame(intro) {
   S = { at:"A", from:null, face:{dx:1,dy:0}, visited:new Set(["A"]), hp:HERO_HP, max:HERO_HP, turn:0,
         foes:{}, chests:{}, inv:[], eq:null, sel:null, log:[], flash:"", narr:"", over:false, won:false, intro:!!intro,
         kills:0, moves:0, bagNew:false, fresh:new Set(), chestTurn:false, taken:[], noteRead:false, boxTaken:false,
-        bench:{ base:null, mod:null }, benchAuto:false, lastFused:null, tableNote:"", fusions:0,
+        bench:{ base:null, mod:null }, lastFused:null, tableNote:"",
         t0:0, deaths:0, fight:null, met:new Set(), wins:{}, found:[], recipes:[],   // found: picked up this floor, in order
         pp:{} };
   for (const k in MOVES) if (MOVES[k].pp) S.pp[k] = MOVES[k].pp;
@@ -739,6 +803,7 @@ function startRun() {
   track("room_enter", { floor: FLOOR, room: S.at, t_from_run_start: 0 });
   narrate("start", STR.nStart);
   renderAll();
+  if (once("dialogue.wake")) dialogue([{ who: "ari", text: STR.dWake }]);
 }
 const runSecs = () => Math.round((Date.now() - S.t0) / 1000);
 const foeHere = () => { const f = S.foes[S.at]; return f && f.hp > 0 ? f : null; };
@@ -769,6 +834,8 @@ function go(dx, dy, turn = true) {   // a step back keeps the hero facing forwar
   SND.step();
   S.from = S.at; S.at = to; if (turn) S.face = { dx, dy }; S.moves++;
   S.visited.add(to);
+  idleSince = Date.now();
+  if (!TOUCH && !$("hint").hidden) hintOff = true;   // with a mouse any move will do; on a phone only a swipe ends the hint
   track("room_enter", { floor: FLOOR, room: to, t_from_run_start: runSecs() });
   if (NODES[to].detail === "drip") SND.drip();
   endTurn();
@@ -817,8 +884,9 @@ function endFight(result) {   // win | flee | death
   track("combat_end", { floor: FLOOR, foe: S.fight.foe, result, turns: S.fight.turns, hp_left: Math.max(0, S.hp) });
   S.fight = null;
 }
-function cues() {   // the narrator's tutorial lines (GDE-03 §10), each once per player
+function cues() {   // the narrator's tutorial lines (GDE-03 §10) and Ari's first words, each once per player
   const f = foeHere(), n = NODES[S.at];
+  if (S.moves === 1 && once("dialogue.memory")) dialogue([{ who: "ari", text: STR.dMemory }]);   // then the swipe hint
   if (f) {
     if (!weapon()) narrate("run", STR.nRun);
     else if (weapon().key === "dagger") narrate("dagger", STR.nDagger);
@@ -892,38 +960,66 @@ function fitting() {   // items that fuse with something else in the bag glow at
   RECIPES.forEach(([a, b]) => { const x = S.inv.find(i => i.key === a), y = S.inv.find(i => i.key === b); if (x && y) { ids.add(x.uid); ids.add(y.uid); } });
   return ids;
 }
-function rails() {   // floor 1: the first two fusions run on rails, the table lays a fitting pair out itself
-  if (FLOOR !== 1 || S.fusions >= 2) return false;
-  for (const [a, b] of RECIPES) {
-    const x = S.inv.find(i => i.key === a), y = S.inv.find(i => i.key === b && i !== x);
-    if (x && y) { S.bench = { base: x.uid, mod: y.uid }; S.benchAuto = true; return true; }
-  }
-  return false;
-}
-function place(it) {   // a weapon goes on the base spot, a modifier on the other; tapping it again takes it back
-  S.lastFused = null; S.tableNote = ""; S.benchAuto = false; SND.tick();
-  const spot = it.type === "weapon" ? "base" : "mod";
-  S.bench[spot] = S.bench[spot] === it.uid ? null : it.uid;
+// The player lays items on the table by hand: a tap puts a weapon on the base spot and anything else on the other,
+// a drag from the bag puts it on the cell it is dropped on; a tap on a cell takes the item back.
+function placeAt(spot, it) {
+  S.lastFused = null; S.tableNote = ""; SND.tick();
+  for (const s of ["base", "mod"]) if (S.bench[s] === it.uid) S.bench[s] = null;
+  S.bench[spot] = it.uid;
   renderTable();
 }
+function takeBack(spot) { S.lastFused = null; S.tableNote = ""; SND.tick(); S.bench[spot] = null; renderTable(); }
+function place(it) {   // a tap on a bag slot
+  const on = ["base", "mod"].find(s => S.bench[s] === it.uid);
+  if (on) takeBack(on); else placeAt(it.type === "weapon" ? "base" : "mod", it);
+}
+// A press on a bag slot becomes a drag once it moves a few px: the icon follows the finger, the cell under it lights up.
+let drag = null, dragEnded = { el: null, at: 0 };
+function dragStart(e, it, el) {
+  if (e.button > 0) return;
+  drag = { it, el, id: e.pointerId, x: e.clientX, y: e.clientY, on: false, over: null };
+  try { el.setPointerCapture(e.pointerId); } catch (err) {}
+}
+function dragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.on) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.on = true;
+    drag.ghost = document.createElement("img"); drag.ghost.className = "dragicon"; drag.ghost.alt = ""; drag.ghost.src = iconURL(drag.it);
+    $("app").appendChild(drag.ghost); $("bench").classList.add("drop"); drag.el.classList.add("used");
+  }
+  const app = $("app").getBoundingClientRect();
+  drag.ghost.style.left = `${e.clientX - app.left}px`; drag.ghost.style.top = `${e.clientY - app.top}px`;
+  const hit = document.elementFromPoint(e.clientX, e.clientY), cell = hit && hit.closest(".cell[data-spot]");
+  if (drag.over !== cell) { if (drag.over) drag.over.classList.remove("over"); drag.over = cell; if (cell) cell.classList.add("over"); }
+}
+function dragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null;
+  if (!d.on) return;   // it was a tap: the click that follows places the item
+  d.ghost.remove(); $("bench").classList.remove("drop");
+  dragEnded = { el: d.el, at: performance.now() };   // the click a drag may end with on its own slot is not a tap
+  if (d.over && e.type === "pointerup") placeAt(d.over.dataset.spot, d.it); else renderTable();
+}
+document.addEventListener("pointermove", dragMove);
+document.addEventListener("pointerup", dragEnd);
+document.addEventListener("pointercancel", dragEnd);
 function fuseBench() {
-  const base = S.inv.find(i => i.uid === S.bench.base), mod = S.inv.find(i => i.uid === S.bench.mod);
-  if (!base || !mod) return;
-  const r = RECIPES.find(([a, b]) => a === base.key && b === mod.key);
+  const a = S.inv.find(i => i.uid === S.bench.base), b = S.inv.find(i => i.uid === S.bench.mod);
+  if (!a || !b) return;
+  const r = RECIPES.find(([x, y]) => (x === a.key && y === b.key) || (x === b.key && y === a.key));   // either cell, either order
   if (!r) { SND.nope(); S.tableNote = STR.wontFuse; renderTable(); return; }
   const out = r[2], known = (loadSave() || {}).recipes || [], discovered = !known.includes(out) && !S.recipes.includes(out);
-  track("fuse", { recipe: out, auto: S.benchAuto, discovered });
+  track("fuse", { recipe: out, auto: false, discovered });
   if (!S.recipes.includes(out)) S.recipes.push(out);
-  const wasEq = S.eq && S.eq.uid === base.uid;
-  S.inv = S.inv.filter(i => i !== base && i !== mod); S.sel = null;
+  const wasEq = S.eq && (S.eq.uid === a.uid || S.eq.uid === b.uid), old = [a, b].find(i => i.moves);
+  S.inv = S.inv.filter(i => i !== a && i !== b); S.sel = null;
   const it = give(out, "table"); if (wasEq) S.eq = it;
-  it.moves.filter(m => !base.moves.includes(m)).forEach(m => S.fresh.add(m));
-  S.bench = { base: null, mod: null }; S.benchAuto = false; S.lastFused = it; S.fusions++;
+  (it.moves || []).filter(m => !(old ? old.moves : []).includes(m)).forEach(m => S.fresh.add(m));
+  S.bench = { base: null, mod: null }; S.lastFused = it;
   S.tableNote = discovered ? STR.discovered : "";
   SND.fuse(); say(STR.made(it.name), true);
   renderAll();
-  // after a moment with the discovery, the next pair goes on the table: the result of the first fusion becomes the base
-  setTimeout(() => { if (sheetOpen === "tablesheet" && S.lastFused === it && rails()) { S.lastFused = null; S.tableNote = ""; SND.tick(); renderTable(); } }, 1400);
 }
 function loadSave() { const s = load("gamey.save", null); return s && s.v === 1 ? s : null; }
 function writeSave(secs, prev) {   // the stairs are the save point: gamey.save v1, exactly as in GDE/CONTRACT.md
@@ -967,7 +1063,8 @@ function win() {
   row.className = "lootrow";
   S.found.forEach(k => { const img = document.createElement("img"); img.src = iconURL(DEF[k]); img.alt = img.title = DEF[k].name; row.appendChild(img); });
   body.append(dl, row);
-  overlay({ title: STR.cleared, body, label: STR.toCamp, fn: () => { location.href = "camp.html"; } });
+  // back to the lobby, where the unlocks of Camp, Almanac and Shop play
+  overlay({ title: STR.cleared, body, label: STR.cont, fn: () => { location.href = "index.html"; } });
 }
 function die() {
   S.over = true; S.deaths++; closeSheet(); SND.die();
@@ -1080,11 +1177,19 @@ function drawScene() {
       for (let i = 0; i < 3; i++) { const a = .03 + i * .03, b = a + .06; scratch(sx(a), yAt(R(a), .3 + i * .04), sx(b), yAt(R(b), .55 + i * .04)); }
     }
   }
-  if (n.detail === "drip") {
-    const r = R(.3), px = CX - 46, py = r.b - 3;
-    vx.fillStyle = "#24262b"; vx.beginPath(); vx.ellipse(px, py, 26, 5, 0, 0, Math.PI * 2); vx.fill();
-    vx.strokeStyle = "#5f6d74"; vx.lineWidth = 1; vx.beginPath(); vx.ellipse(px, py, 10, 2, 0, 0, Math.PI * 2); vx.stroke();
-    vx.fillStyle = "#9fb3bf"; vx.fillRect(px - 1, py - 30, 2, 4); vx.fillRect(px - 1, py - 64, 2, 3);
+  if (n.detail === "drip") {   // a puddle lying flat: drawn in floor space (u across, -1..1 wall to wall; d into the depth), so it follows the vanishing lines
+    const fp = (u, d) => { const s = sc(d); return [CX + u * CX * s, CY + (VH - CY) * s]; };
+    const blob = (u0, d0, ru, rd) => {
+      vx.beginPath();
+      for (let i = 0; i <= 28; i++) { const a = i / 28 * Math.PI * 2, w = 1 + .14 * Math.sin(a * 3 + 1); const [x, y] = fp(u0 + ru * w * Math.cos(a), d0 + rd * w * Math.sin(a)); if (i) vx.lineTo(x, y); else vx.moveTo(x, y); }
+      vx.closePath();
+    };
+    const U = -.3, D = .33;   // wide across, shallow in depth: it lies flat, clear of the wall and above the ▼ arrow
+    blob(U, D, .5, .022); vx.fillStyle = "#23252a"; vx.fill();
+    blob(U + .08, D - .004, .24, .009); vx.fillStyle = "#30363c"; vx.fill();       // a sheen where the light catches it
+    blob(U, D, .14, .006); vx.strokeStyle = "#62717a"; vx.lineWidth = 1; vx.stroke();   // the ring of the last drop
+    const [px, py] = fp(U, D), top = R(D).t;
+    vx.fillStyle = "#9fb3bf"; vx.fillRect(Math.round(px) - 1, Math.round(top + (py - top) * .5), 2, 4); vx.fillRect(Math.round(px) - 1, Math.round(top + (py - top) * .78), 2, 3);
   }
   const g = vx.createRadialGradient(CX, CY, 0, CX, CY, 58 * kz);
   g.addColorStop(0, "rgba(0,0,0,.7)"); g.addColorStop(1, "rgba(0,0,0,0)");
@@ -1244,9 +1349,10 @@ function renderAll() {
   wasFight = fight;
   document.querySelectorAll(".go").forEach(b => {
     const [x, y] = rd[b.dataset.rel];
-    b.hidden = S.over || fight || !nodeAtDir(S.at, x, y);
+    b.hidden = S.over || fight || !nodeAtDir(S.at, x, y) || arrowsOff();
     b.classList.toggle("pulse", S.moves === 0 && !S.intro && b.dataset.rel === "f");
   });
+  $("hint").hidden = !hintOn();
   $("foe").hidden = !fight;
   if (f) {
     const it = intentOf(f);
@@ -1335,11 +1441,12 @@ function renderInv() {
     d.appendChild(a);
   }
 }
-function renderTable() {   // the bag lies by the table: items that fit glow, the pair goes on the table; the result shows only after fusing
+function renderTable() {   // the bag lies by the table: items that fit glow, the player lays the pair out; the result shows only after fusing
   const fit = fitting(), get = uid => S.inv.find(i => i.uid === uid);
-  const part = (it, role, onTap, res) => {
+  const part = (it, role, onTap, res, spot) => {
     const el = document.createElement("div"); el.className = "part" + (res ? " res" : "");
     const c = document.createElement(it && onTap ? "button" : "span"); c.className = "cell" + (it ? "" : " empty");
+    if (spot) c.dataset.spot = spot;   // a drop target
     if (it) {
       const img = document.createElement("img"); img.alt = it.name; img.src = iconURL(it); c.appendChild(img);
       if (onTap) { c.type = "button"; c.onclick = onTap; }
@@ -1350,9 +1457,8 @@ function renderTable() {   // the bag lies by the table: items that fit glow, th
   };
   const op = t => { const s = document.createElement("span"); s.className = "op"; s.setAttribute("aria-hidden", "true"); s.textContent = t; return s; };
   const base = get(S.bench.base), mod = get(S.bench.mod), bench = $("bench"); bench.innerHTML = "";
-  bench.append(part(base, STR.base, () => place(base)), op("+"), part(mod, STR.modifier, () => place(mod)), op("="), part(S.lastFused, STR.result, null, true));
+  bench.append(part(base, STR.base, () => takeBack("base"), false, "base"), op("+"), part(mod, STR.modifier, () => takeBack("mod"), false, "mod"), op("="), part(S.lastFused, STR.result, null, true));
   $("fusebtn").hidden = !(base && mod);
-  $("fusebtn").classList.toggle("hot", S.benchAuto && !!(base && mod));
   $("tablenote").textContent = S.tableNote;
   $("tablenote").className = "tablenote" + (S.tableNote === STR.discovered ? " good" : "");
   const inv = $("tableinv"); inv.innerHTML = "";
@@ -1364,7 +1470,8 @@ function renderTable() {   // the bag lies by the table: items that fit glow, th
     else if (fit.has(it.uid)) b.classList.add("fit");
     b.setAttribute("aria-label", it.name);
     b.innerHTML = `<img alt="" src="${iconURL(it)}">`;
-    b.onclick = () => place(it);
+    b.onclick = () => { if (!(dragEnded.el === b && performance.now() - dragEnded.at < 400)) place(it); };
+    b.addEventListener("pointerdown", e => dragStart(e, it, b));
     inv.appendChild(b);
   }
 }
@@ -1387,7 +1494,7 @@ function openSheet(id) {
   sheetOpen = id; opener = document.activeElement;
   if (id === "sheet") S.bagNew = false;
   if (id === "sheet" || id === "mapsheet" || id === "tablesheet") SND.cloth();
-  if (id === "tablesheet") { S.bench = { base: null, mod: null }; S.benchAuto = false; S.lastFused = null; S.tableNote = ""; rails(); }
+  if (id === "tablesheet") { S.bench = { base: null, mod: null }; S.lastFused = null; S.tableNote = ""; }
   $("backdrop").hidden = false;
   const sh = $(id); sh.hidden = false; sh.scrollTop = 0;
   if (id === "mapsheet") sizeMap(BIG, Math.min(sh.clientWidth - 46, $("app").clientHeight * 0.55));
@@ -1441,12 +1548,72 @@ document.querySelectorAll("[data-sl]").forEach(el => { el.setAttribute("aria-lab
   s.append(i, STR.legend[k]); $("legend").appendChild(s);
 });
 
+/* ================= dialogue: dialogue(lines, done), lines = [{ who, text }], who = a key of SPEAKERS ================= */
+// Separate from the narrator (italic, no portrait). The line types out; a tap first finishes it, the next goes on; ▼ = more to come.
+const DLG = { open: false, lines: [], i: 0, n: 0, timer: 0, done: null, back: null };
+function dialogue(lines, done) {
+  Object.assign(DLG, { open: true, lines, i: 0, done: done || null, back: document.activeElement });
+  $("dlg").hidden = false; $("dlg").focus({ preventScroll: true });
+  dlgLine();
+}
+function dlgLine() {
+  const l = DLG.lines[DLG.i], sp = SPEAKERS[l.who], box = $("dlgbox");
+  box.className = "dlgbox " + sp.side; box.style.setProperty("--spk", sp.color);
+  $("dlgname").textContent = sp.name; $("dlgface").src = iconURL(sp);
+  $("dlg").setAttribute("aria-label", `${sp.name}: ${l.text}`);
+  clearInterval(DLG.timer); DLG.timer = 0;
+  DLG.n = still ? l.text.length : 0; dlgPaint();
+  if (DLG.n < l.text.length) DLG.timer = setInterval(() => {
+    DLG.n++;
+    if (DLG.n % 2 && /\S/.test(l.text[DLG.n - 1])) SND.voice(sp.voice);
+    if (DLG.n >= l.text.length) { clearInterval(DLG.timer); DLG.timer = 0; }
+    dlgPaint();
+  }, 32);
+}
+function dlgPaint() {
+  const t = DLG.lines[DLG.i].text, p = $("dlgtext"), rest = document.createElement("span");
+  p.textContent = t.slice(0, DLG.n);
+  rest.className = "rest"; rest.textContent = t.slice(DLG.n); p.appendChild(rest);
+  $("dlgmore").hidden = DLG.n < t.length || DLG.i >= DLG.lines.length - 1;
+}
+function dlgNext() {
+  if (!DLG.open) return;
+  const t = DLG.lines[DLG.i].text;
+  if (DLG.n < t.length) { clearInterval(DLG.timer); DLG.timer = 0; DLG.n = t.length; dlgPaint(); return; }
+  if (DLG.i < DLG.lines.length - 1) { DLG.i++; SND.tick(); dlgLine(); return; }
+  DLG.open = false; $("dlg").hidden = true;
+  if (DLG.back && DLG.back.focus) DLG.back.focus({ preventScroll: true });
+  const done = DLG.done; DLG.done = null;
+  renderAll();
+  if (done) done();
+}
+$("dlg").addEventListener("click", dlgNext);
+const demoBtn = $("demo-dialogue");   // design notes: how someone other than Ari appears; the Telegram build strips the notes
+if (demoBtn) demoBtn.addEventListener("click", () => {
+  if (!DLG.open) dialogue(STR.sample.map(([who, text]) => ({ who, text })));
+});
+
 /* ================= input ================= */
-function step(rel) { if (S.intro || foeHere()) return; const [x, y] = relDirs()[rel]; go(x, y, rel !== "b"); }
+// On a phone the run is played with swipes: the arrows hide once the swipe hint has started (or was learned) and come back
+// only if the player stands still for IDLE_MS; the next swipe hides them again. With a mouse the arrows stay. ?touch=1 = phone mode.
+const TOUCH = /[?&]touch=1/.test(location.search) || !!(window.matchMedia && matchMedia("(hover: none) and (pointer: coarse)").matches);
+const IDLE_MS = 6000;
+let fallback = false, idleSince = 0, hintOff = false;
+const free = () => !!S && !S.over && !S.intro && !foeHere() && !sheetOpen && !DLG.open;
+const taught = () => ONCE.has("dialogue.memory");   // Ari's first lines are over: from here the phone runs on swipes
+const arrowsOff = () => TOUCH && (taught() || ONCE.has("hint.swipe")) && !fallback;
+const hintOn = () => taught() && !ONCE.has("hint.swipe") && !hintOff && free();
+setInterval(() => {
+  if (!free()) { idleSince = 0; return; }
+  if (!idleSince) { idleSince = Date.now(); return; }
+  if (!fallback && arrowsOff() && Date.now() - idleSince > IDLE_MS) { fallback = true; renderAll(); }
+}, 500);
+function step(rel) { if (S.intro || foeHere() || DLG.open) return; const [x, y] = relDirs()[rel]; go(x, y, rel !== "b"); }
 document.querySelectorAll(".go").forEach(b => b.addEventListener("click", () => step(b.dataset.rel)));
 const KEYS = { ArrowUp:"f", ArrowDown:"b", ArrowLeft:"l", ArrowRight:"r", w:"f", s:"b", a:"l", d:"r",
   W:"f", S:"b", A:"l", D:"r", "ц":"f", "ы":"b", "ф":"l", "в":"r" };
 document.addEventListener("keydown", e => {
+  if (DLG.open) { if (e.key === "Enter" || e.key === " " || e.key === "Escape") { e.preventDefault(); dlgNext(); } return; }
   if (e.key === "Escape" && sheetOpen) { closeSheet(); return; }
   if (sheetOpen || S.intro) return;
   if (e.target.closest && e.target.closest("button")) { if (e.key === "Enter" || e.key === " ") return; }
@@ -1468,7 +1635,9 @@ scenePane.addEventListener("pointerup", e => {
   const rel = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "r" : "l") : (dy > 0 ? "b" : "f");
   const arrow = document.querySelector(`.go.${rel}`);
   if (arrow && !arrow.hidden && !still) { arrow.classList.remove("flash"); void arrow.offsetWidth; arrow.classList.add("flash"); }
+  const was = S.at;
   step(rel);
+  if (S.at !== was) { once("hint.swipe"); fallback = false; hintOff = true; renderAll(); }   // a swipe that moved: learned
 });
 function refit() {   // the view fills its pane; the minimap takes about a third of the view's width
   const w = scenePane.clientWidth, h = scenePane.clientHeight;
