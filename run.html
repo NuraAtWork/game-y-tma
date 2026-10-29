@@ -582,11 +582,15 @@ const FOES = {
 };
 for (const k in FOES) Object.assign(FOES[k], { key: k, name: STR.foe[k] });
 // Who can talk: Ari on the left, everyone else on the right with their own plate colour. Later floors only add rows.
+// img (a portrait file, 32×32 shown at 2×) wins over spr; Ari's is the pixel version of the painted art in art/ari-torch.jpg.
 const SPEAKERS = {
-  ari: { spr:"player", side:"left",  color:"var(--torch)", voice:520 },
-  elf: { spr:"elf",    side:"right", color:"var(--moss)",  voice:760 }
+  ari: { spr:"player", img:"img/ari-pixel-32.png", side:"left",  color:"var(--torch)", voice:520 },
+  elf: { spr:"elf",                                side:"right", color:"var(--moss)",  voice:760 }
 };
-for (const k in SPEAKERS) SPEAKERS[k].name = STR.speaker[k];
+for (const k in SPEAKERS) {
+  SPEAKERS[k].name = STR.speaker[k];
+  if (SPEAKERS[k].img) new Image().src = SPEAKERS[k].img;   // preload, so the first line doesn't open on an empty frame
+}
 
 /* ================= sprites: the shared 16×16 set (states/05-almanac.html, sprites16.json) ================= */
 // the full shared palette: a letter missing from P silently drops its pixels
@@ -603,9 +607,9 @@ const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"
   j:"#3d2f1c", J:"#6e5530", a:"#8c7a3a", A:"#5c4f22" };
 const SPR = {
   player:  mk([
-    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
-    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
-    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....m..m.M.....", ".....mmmmmM.....", "....mMmmmmMM....", "....mMMsssMM....",
+    "....MsdssdsM....", ".....sssssS.....", "......ssSS......", "....eeeeeemm....",
+    "...eeeeeeemmm...", "...eeeeeeemmm...", "...seeeeeemmS...", ".....LLLLLl.....",
     ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
   ], P),
   snake:   mk([
@@ -1559,7 +1563,7 @@ function dialogue(lines, done) {
 function dlgLine() {
   const l = DLG.lines[DLG.i], sp = SPEAKERS[l.who], box = $("dlgbox");
   box.className = "dlgbox " + sp.side; box.style.setProperty("--spk", sp.color);
-  $("dlgname").textContent = sp.name; $("dlgface").src = iconURL(sp);
+  $("dlgname").textContent = sp.name; $("dlgface").src = sp.img || iconURL(sp);
   $("dlg").setAttribute("aria-label", `${sp.name}: ${l.text}`);
   clearInterval(DLG.timer); DLG.timer = 0;
   DLG.n = still ? l.text.length : 0; dlgPaint();

@@ -102,8 +102,8 @@ img{image-rendering:pixelated}
 .topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
 .tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
 .hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
-.avatar img{width:32px;height:32px}
+.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;overflow:hidden;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
+.avatar img{width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* painted face from art/ari-torch.jpg, as in 01 */
 .who{min-width:0;display:flex;flex-direction:column;gap:2px}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -382,7 +382,7 @@ button.entry{cursor:pointer}
       <header class="topbar">
         <div class="tb-root" id="tbRoot">
           <div class="hero">
-            <span class="avatar"><img data-spr="player" alt=""></span>
+            <span class="avatar"><img src="img/ari-face.jpg" alt=""></span>
             <span class="who"><b data-t="hero.name"></b><span id="heroSub"></span></span>
           </div>
           <span class="chip" id="stars"><i class="ico" data-ico="star" data-s="1"></i>0</span>
@@ -421,7 +421,7 @@ button.entry{cursor:pointer}
 (() => {
 /* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
 const STR = {
-  "hero.name": "Human", "hero.class": "No class",
+  "hero.name": "Ari", "hero.class": "Human · No class",
   "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
   "aria.back": "Back", "aria.sections": "Sections", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
   "camp.basement": "Basement", "camp.landing": "Stair landing", "camp.shelter": "Shelter",
@@ -1122,9 +1122,9 @@ const SPR = {
     "......yyYY......", ".....yyyyYYY....", "....yyyyyyYYY...", "....wwwwwwwww..."
   ], P),
   player: mk([
-    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
-    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
-    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....m..m.M.....", ".....mmmmmM.....", "....mMmmmmMM....", "....mMMsssMM....",
+    "....MsdssdsM....", ".....sssssS.....", "......ssSS......", "....eeeeeemm....",
+    "...eeeeeeemmm...", "...eeeeeeemmm...", "...seeeeeemmS...", ".....LLLLLl.....",
     ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
   ], P),
   cat:    mk([

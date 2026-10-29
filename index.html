@@ -86,8 +86,12 @@ img{image-rendering:pixelated}
 .topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
 .tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
 .hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
-.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
-.avatar img{width:32px;height:32px}
+.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;overflow:hidden;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
+.avatar img{width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* painted face from art/ari-torch.jpg */
+/* hero screen: the painted bust bleeds edge to edge at the top and fades into the page */
+.herobust{position:relative;height:260px;margin-top:-16px;margin-left:calc(-1 * max(16px, env(safe-area-inset-left, 0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right, 0px)));overflow:hidden}
+.herobust img{display:block;width:100%;height:100%;object-fit:cover;object-position:30% 12%;image-rendering:auto}
+.herobust::after{content:"";position:absolute;inset:auto 0 0;height:45%;background:linear-gradient(transparent, var(--bg))}
 .who{min-width:0;display:flex;flex-direction:column;gap:2px}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -298,7 +302,7 @@ button.fl{cursor:pointer}
       <header class="topbar">
         <div class="tb-root" id="tbRoot">
           <button class="hero" type="button" data-open="hero">
-            <span class="avatar"><img data-spr="player" alt=""></span>
+            <span class="avatar"><img src="img/ari-face.jpg" alt=""></span>
             <span class="who"><b data-t="hero.name"></b><span data-t="hero.class"></span></span>
           </button>
           <div class="purse">
@@ -349,6 +353,7 @@ button.fl{cursor:pointer}
 
           <!-- HERO: gear is still a stub; classes and races moved here from the almanac -->
           <section class="view" data-view="hero" data-ta="hero.name" hidden>
+            <div class="herobust"><img src="img/ari-bust.jpg" alt="Ari"></div>
             <button class="rowcard unk" type="button" data-stub="stub.gear"><span class="face"><span class="q">?</span></span><div><b data-t="hero.gear"></b><span class="sub" data-t="hero.gear.sub"></span></div><span class="stub" data-t="stub"></span></button>
             <h3 class="sec" data-t="hero.classes"></h3>
             <div class="rows" id="classes"></div>
@@ -421,7 +426,7 @@ button.fl{cursor:pointer}
 (() => {
 /* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
 const STR = {
-  "hero.name": "Human", "hero.class": "No class",
+  "hero.name": "Ari", "hero.class": "Human · No class",
   "hero.gear": "Gear and builds", "hero.gear.sub": "Six slots", "hero.classes": "Classes", "hero.races": "Races",
   "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
   "aria.back": "Back", "aria.sections": "Sections", "aria.stars": "Telegram Stars: {n}", "aria.sound": "Sound",
@@ -550,9 +555,9 @@ const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"
   j:"#3d2f1c", J:"#6e5530", a:"#8c7a3a", A:"#5c4f22" };
 const SPR = {
   player: mk([
-    "................", ".....HHHHHh.....", "....HYHHHHhh....", "....Hhhssshh....",
-    "....hsdssdsh....", ".....sssssS.....", "......ssSS......", "....ffffffFF....",
-    "...fffffffFFF...", "...fffffffFFF...", "...sffffffFFS...", ".....LLLLLl.....",
+    ".....m..m.M.....", ".....mmmmmM.....", "....mMmmmmMM....", "....mMMsssMM....",
+    "....MsdssdsM....", ".....sssssS.....", "......ssSS......", "....eeeeeemm....",
+    "...eeeeeeemmm...", "...eeeeeeemmm...", "...seeeeeemmS...", ".....LLLLLl.....",
     ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
   ], P),
   snake:  mk([
