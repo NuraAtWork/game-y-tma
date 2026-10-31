@@ -262,6 +262,13 @@ img.art{image-rendering:auto}   /* painted art, not pixels */
 @keyframes shine{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
 .drop img.art{border-radius:3px}
 
+/* ---------- tab bar: the lobby's five tabs; Shop is this page ---------- */
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+.tab .ico{width:30px;height:30px}
+.tab[aria-current="page"]{color:var(--torch)}
+.tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
+
 /* ---------- toast, sheet ---------- */
 .toast{position:absolute;left:16px;right:16px;top:10px;z-index:30;padding:11px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:6px;background:var(--panel-hi);font:500 14px/1.25 var(--body);box-shadow:0 10px 30px var(--bezel);pointer-events:none;animation:toast .2s ease-out}
 .toast.recipe{border-left-color:var(--torch)}
@@ -356,6 +363,7 @@ img.art{image-rendering:auto}   /* painted art, not pixels */
   .statusbar,.homebar{display:none}
   .topbar{padding-top:10px}
   .sheet{padding-bottom:16px}
+  .tabbar{padding-bottom:8px}
 }
 @media (prefers-reduced-motion:reduce){.pane.in,.view.in,.sheet.in,.toast,.chip.bump,.plinth .box.shake,.plinth .box.pop,.plinth .loot,.plinth.hero>img.bust,.drop{animation:none}}
 </style>
@@ -374,7 +382,6 @@ img.art{image-rendering:auto}   /* painted art, not pixels */
 
       <header class="topbar">
         <div class="tb-sub">
-          <button class="back" id="back" type="button" data-ta="aria.home"><i class="ico" data-ico="back" data-s="2"></i></button>
           <div class="tb-title"><b data-t="shop.title"></b></div>
           <div class="purse">
             <span class="chip coins" id="coins"><img data-spr="coin" alt=""><span id="coinsN"></span></span>
@@ -399,6 +406,14 @@ img.art{image-rendering:auto}   /* painted art, not pixels */
         </div>
         <div class="toast" id="toast" role="status" hidden></div>
       </div>
+
+      <nav class="tabbar" data-ta="aria.sections">
+        <a class="tab" data-home="lobby"><i class="ico" data-ico="home"></i><span data-t="tab.lobby"></span></a>
+        <a class="tab" data-home="game"><i class="ico" data-ico="tower"></i><span data-t="tab.campaigns"></span></a>
+        <a class="tab" href="camp.html"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span></a>
+        <a class="tab" data-home="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></a>
+        <button class="tab" type="button" id="shopTab" aria-current="page"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></button>
+      </nav>
 
       <div class="backdrop" id="backdrop" hidden></div>
       <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
@@ -470,6 +485,7 @@ const STR = {
   "item.pouch_super": "Super rare pouch", "item.bonecrown": "Bone crown",
   "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger", "item.jacket": "Leather jacket",
   "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
+  "aria.sections": "Sections", "tab.lobby": "Lobby", "tab.campaigns": "Campaigns", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
   "close": "Close"
 };
 const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
@@ -477,7 +493,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const HOME = (/(0[12]-[\w-]+\.html)/.exec(document.referrer) || [, "index.html"])[1];   // back to the screen that opened it (01, its lobby copy or 02); the Telegram build maps 01 to index.html
+const LOBBY = "index.html";   // the lobby copy; the Telegram build maps it to index.html
 const Q = new URLSearchParams(location.search);
 
 /* ================= catalog: every price, pack, odd and set lives here, none in the markup (GDE-05). Draft prices ================= */
@@ -1323,7 +1339,12 @@ const MASK = {
   back:   ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
   lock:   ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
   plus:   ["..##..","..##..","######","######","..##..","..##.."],
-  play:   ["##....","####..","######","######","####..","##...."]
+  play:   ["##....","####..","######","######","####..","##...."],
+  home:   ["....##....","...####...","..######..",".########.","##########",".########.",".##....##.",".##.##.##.",".##.##.##.",".########."],
+  tower:  [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
+  fire:   ["....#.....","....##....","...####...","..##.###..","..#...##..","..##..##..","...####...","##......##","..######..","##......##"],
+  book:   ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
+  bag:    ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1)), masks = {};
 function maskURL(k, cell) {
@@ -1931,9 +1952,9 @@ function watchAd() {
 }
 
 /* ================= navigation and input ================= */
-const goHome = () => { location.href = HOME; };
+document.querySelectorAll("[data-home]").forEach(a => { a.href = LOBBY + "?tab=" + a.dataset.home; });   // the lobby's own tabs; a link with a parameter is built from the name (CONTRACT)
 function syncBack() {   // Telegram's own back button: a sheet first, then home
-  if (window.GY) window.GY.back($("sheet").hidden ? goHome : closeSheet);
+  if (window.GY) window.GY.back($("sheet").hidden ? null : closeSheet);   // a tab like the lobby's: Telegram's back only closes a sheet
 }
 document.addEventListener("click", e => {
   const el = e.target.closest("button"); if (!el || el.disabled) return;
@@ -1951,7 +1972,7 @@ document.addEventListener("click", e => {
   else if ("pay" in d) { const done = payDone; payDone = null; if (done) done(true); }
   else if ("close" in d) closeSheet();
   else if (el.id === "gems") openPacks("topbar_plus");
-  else if (el.id === "back") goHome();
+  else if (el.id === "shopTab") viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
   else if (d.dev) dev(d.dev, el);
 });
 $("backdrop").addEventListener("click", closeSheet);

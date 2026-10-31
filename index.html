@@ -474,7 +474,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 
 document.documentElement.lang = "en";
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // the shop: the copy with the hero banner   // relative: the Telegram build maps them to run.html / camp.html / shop.html
+const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // the camp and shop copies; the Telegram build maps them to run.html / camp.html / shop.html
 
 /* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
 const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -979,6 +979,8 @@ const SUB = {
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 let tab = "lobby", sub = null;
 try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && v !== "game" && !((v === "camp" || v === "shop") && opened(v))) tab = v; } catch (e) {}   // the app opens on the lobby, not on the last Campaigns visit
+const qTab = new URLSearchParams(location.search).get("tab");   // the tab bars of the camp and the shop link here with ?tab=
+if (TABS.includes(qTab) && qTab !== "camp" && qTab !== "shop") tab = qTab;
 const LOCKVIEW = { camp: ["camp", "camp.eyebrow", "camp.title"], almanac: ["shelf", "alm.eyebrow", "alm.title"], shop: ["stall", "shop.eyebrow", "shop.title"] };
 
 function show(dir) {

@@ -315,8 +315,8 @@ button.entry{cursor:pointer}
 .mini .op{margin:0}
 
 /* ---------- tab bar, toast, sheet ---------- */
-.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;text-decoration:none;cursor:pointer}   /* five tabs: "Campaigns" has to fit */
 .tab .ico{width:30px;height:30px}
 .tab[aria-current="page"]{color:var(--torch)}
 .tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
@@ -403,7 +403,8 @@ button.entry{cursor:pointer}
       </div>
 
       <nav class="tabbar" data-ta="aria.sections">
-        <a class="tab" href="index.html"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></a>
+        <a class="tab" data-home="lobby"><i class="ico" data-ico="home"></i><span data-t="tab.lobby"></span></a>
+        <a class="tab" data-home="game"><i class="ico" data-ico="tower"></i><span data-t="tab.campaigns"></span></a>
         <button class="tab" type="button" data-tab="camp"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span></button>
         <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
         <a class="tab" href="shop.html"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></a>
@@ -422,7 +423,7 @@ button.entry{cursor:pointer}
 /* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
 const STR = {
   "hero.name": "Ari", "hero.class": "Human · No class",
-  "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
+  "tab.lobby": "Lobby", "tab.campaigns": "Campaigns", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
   "aria.back": "Back", "aria.sections": "Sections", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
   "camp.basement": "Basement", "camp.landing": "Stair landing", "camp.shelter": "Shelter",
   "camp.cleared": "Floor {n} cleared", "camp.new": "New at camp",
@@ -470,7 +471,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const HOME = "index.html";   // relative: the Telegram build maps it to index.html
+const HOME = "index.html";   // the lobby copy; the Telegram build maps it to index.html
 
 /* ================= data (keys from GDE/CONTRACT.md) ================= */
 const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
@@ -1205,6 +1206,7 @@ function countImg(q) {
 
 /* ================= mask icons (take currentColor) ================= */
 const MASK = {
+  home:   ["....##....","...####...","..######..",".########.","##########",".########.",".##....##.",".##.##.##.",".##.##.##.",".########."],
   tower:  [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
   fire:   ["....#.....","....##....","...####...","..##.###..","..#...##..","..##..##..","...####...","##......##","..######..","##......##"],
   book:   ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
@@ -1650,6 +1652,7 @@ function openItem(k) {
 }
 
 /* ================= navigation ================= */
+document.querySelectorAll("[data-home]").forEach(a => { a.href = HOME + "?tab=" + a.dataset.home; });   // the lobby's own tabs; a link with a parameter is built from the name (CONTRACT)
 let tab = "camp", sub = null;
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 function syncBack() {   // Telegram's own back button: sheet → sub-screen → almanac → home
@@ -1657,7 +1660,7 @@ function syncBack() {   // Telegram's own back button: sheet → sub-screen → 
   if (!$("sheet").hidden) window.GY.back(closeSheet);
   else if (sub) window.GY.back(() => { sub = null; show("rev"); });
   else if (tab !== "camp") window.GY.back(() => { tab = "camp"; show("rev"); });
-  else window.GY.back(() => { location.href = HOME; });
+  else window.GY.back(null);   // Camp is a tab like the lobby's: no back at its root
 }
 function show(dir) {
   const id = sub || tab, cur = views.find(v => v.dataset.view === id);
@@ -1754,7 +1757,7 @@ function dev(k) {
 /* ================= init ================= */
 $("heroSub").textContent = t("hero.class");
 noteSource();
-const from = /03-run|run\.html/.test(document.referrer) ? "run" : /01-first|index\.html/.test(document.referrer) ? "home" : "direct";
+const from = /03-run|run\.html/.test(document.referrer) ? "run" : /01-|index\.html/.test(document.referrer) ? "home" : "direct";
 track("camp_open", { tab: "camp", entry: from });
 show();
 })();
