@@ -34,8 +34,19 @@
 
   let onBack = null;
   tg.BackButton.onClick(() => { if (onBack) onBack(); });
+  // Stars: the game's one door to payments (tech passport: the store builds swap this layer for their own billing).
+  // No server yet, so INVOICE is empty and the page's own "Telegram payment" stub answers. With a server: it makes an
+  // invoice link (createInvoiceLink, currency XTR), Telegram shows it, and the goods are granted only by the server on
+  // successful_payment, once per telegram_payment_charge_id; "paid" here only tells the page to fetch them.
+  const INVOICE = null;   // e.g. "https://<server>/invoice?sku="
   window.GY = {
     back(fn) { onBack = fn; fn ? tg.BackButton.show() : tg.BackButton.hide(); },
+    pay(sku, stub) {   // → Promise<boolean>: paid or not
+      if (!INVOICE || !at("6.1")) return stub();
+      return fetch(INVOICE + encodeURIComponent(sku), { headers: { "X-Init-Data": tg.initData } })
+        .then(r => r.json())
+        .then(({ link }) => new Promise(done => tg.openInvoice(link, status => done(status === "paid"))));
+    },
     haptic(kind) {
       const h = tg.HapticFeedback;
       if (!h || !at("6.1")) return;

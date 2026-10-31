@@ -49,6 +49,8 @@ img{max-width:100%}
   --moss-dim:#26332b;
   --star:#f3d36b;
   --star-dim:#6a5a2a;
+  --arcane:#8f7ad1;
+  --gem:#c9bdf2;
   --scrim:rgba(20,18,22,.95);
   --scrim-mid:rgba(20,18,22,.7);
   --glow:rgba(226,178,76,.07);
@@ -95,10 +97,13 @@ img{image-rendering:pixelated}
 .who{min-width:0;display:flex;flex-direction:column;gap:2px}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.purse{display:flex;gap:6px}
-.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 7px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
+.purse{display:flex;gap:5px}
+.chip{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 6px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
 .chip img{width:16px;height:16px}
-.chip.star{color:var(--star)}
+.chip.coins{color:var(--torch)}
+.chip.gems{padding-right:3px;color:var(--gem);cursor:pointer}   /* the + opens the crystal packs in the shop (GDE-05) */
+.chip .plus{width:20px;height:20px;display:grid;place-items:center;margin-left:2px;border-radius:10px;background:var(--arcane);color:var(--torch-ink)}
+.chip .plus .ico{width:8px;height:8px}
 .snd{flex:none;width:28px;height:28px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg);cursor:pointer}
 .snd .x{display:none}
 .snd.off{color:var(--muted)}
@@ -128,7 +133,7 @@ img{image-rendering:pixelated}
 .stub{display:inline-block;vertical-align:1px;margin-left:4px;padding:2px 6px;border:1px dashed var(--muted);border-radius:3px;font:500 10px/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
-.btn:active,.strip:active,.price:active{transform:translateY(1px)}
+.btn:active,.strip:active,.chip.gems:active{transform:translateY(1px)}
 
 .ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 
@@ -232,20 +237,6 @@ button.fl{cursor:pointer}
 .entry.unk i{width:48px;height:48px;display:grid;place-items:center;font:700 22px/1 var(--display);font-style:normal;color:var(--line)}
 .entry.unk span{color:var(--muted)}
 
-/* ---------- shop ---------- */
-.offer{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
-.offer b{display:block;font:500 16px/1.15 var(--display)}
-.offer .sub{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-.offer.feat{grid-template-columns:minmax(0,1fr);gap:10px;padding:16px;border-color:var(--star-dim)}
-.offer.feat b{font-size:20px}
-.offer.feat .row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
-.slots4{display:flex;gap:6px}
-.slots4 span{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--seg);font:700 20px/1 var(--display);color:var(--muted)}
-.slots4 img{width:32px;height:32px}
-.slots4 .plus{background:transparent;border:1px dashed var(--star);color:var(--star)}
-.price{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 14px;border:1px solid var(--star-dim);border-radius:18px;background:transparent;color:var(--star);font:500 15px/1 var(--display);cursor:pointer}
-.price img{width:16px;height:16px}
-.linkbtn{align-self:flex-start;padding:0;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* ---------- tab bar & toast ---------- */
 .tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
@@ -307,7 +298,8 @@ button.fl{cursor:pointer}
           </button>
           <div class="purse">
             <button class="snd" id="snd" type="button" data-ta="aria.sound" aria-pressed="true"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M1 6h3l4-3v10l-4-3H1z"/><path class="wave" fill="currentColor" d="M10 6h1v4h-1zM12 4h1v8h-1z"/><path class="x" stroke="currentColor" stroke-width="1.5" d="M10.5 5.5l4 5M14.5 5.5l-4 5"/></svg></button>
-            <span class="chip star" id="stars"><img data-spr="star" alt=""><span>0</span></span>
+            <span class="chip coins" id="coins"><img data-spr="coin" alt=""><span id="coinsN">0</span></span>
+            <button class="chip gems" id="gems" type="button"><img data-spr="gem" alt=""><span id="gemsN">0</span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
           </div>
         </div>
         <div class="tb-sub" id="tbSub" hidden>
@@ -361,7 +353,7 @@ button.fl{cursor:pointer}
             <div class="rows" id="races"></div>
           </section>
 
-          <!-- LOCKED Camp / Almanac / Shop until floor 1 (an open Camp tab goes to the camp screen) -->
+          <!-- LOCKED Camp / Almanac / Shop until floor 1 (open Camp and Shop tabs go to their own screens, 08 and 09) -->
           <section class="view" data-view="lock" hidden>
             <div class="strip locked static" data-scene="camp" id="lockStrip">
               <span class="eyebrow" id="lockEyebrow"></span>
@@ -383,28 +375,6 @@ button.fl{cursor:pointer}
             <div class="cards" id="almCards"></div>
           </section>
 
-          <!-- SHOP: opens after floor 1, like Camp and Almanac (the user's call over GDE-01) -->
-          <section class="view" data-view="shop" data-ta="tab.shop" hidden>
-            <div class="vh"><h2 data-t="shop.title"></h2><p><span data-t="shop.lede"></span> <span class="stub" data-t="stub"></span></p></div>
-
-            <div class="offer feat">
-              <div class="slots4"><span><img data-spr="player" alt=""></span><span>?</span><span>?</span><span class="plus">+</span></div>
-              <div class="row">
-                <div><b data-t="shop.slot"></b><span class="sub" data-t="shop.slot.sub"></span></div>
-                <button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button>
-              </div>
-            </div>
-
-            <h3 class="sec" data-t="hero.races"></h3>
-            <div class="offer"><span class="face"><img data-spr="dwarf" alt=""></span><div><b data-t="race.dwarf"></b><span class="sub" data-t="shop.race.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
-
-            <h3 class="sec" data-t="hero.classes"></h3>
-            <div class="offer"><span class="face"><img data-spr="orb" alt=""></span><div><b data-t="class.summoner"></b><span class="sub" data-t="shop.class.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
-
-            <h3 class="sec" data-t="shop.parts"></h3>
-            <div class="offer"><span class="face"><img data-spr="pouch" alt=""></span><div><b data-t="shop.pouch"></b><span class="sub" data-t="shop.pouch.sub"></span></div><button class="price" type="button" data-stub="stub.stars"><img data-spr="star" alt="">—</button></div>
-            <button class="linkbtn" type="button" data-stub="stub.odds" data-t="shop.odds"></button>
-          </section>
 
         </div>
         <div class="toast" id="toast" role="status" hidden></div>
@@ -429,7 +399,7 @@ const STR = {
   "hero.name": "Ari", "hero.class": "Human · No class",
   "hero.gear": "Gear and builds", "hero.gear.sub": "Six slots", "hero.classes": "Classes", "hero.races": "Races",
   "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
-  "aria.back": "Back", "aria.sections": "Sections", "aria.stars": "Telegram Stars: {n}", "aria.sound": "Sound",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more", "aria.sound": "Sound",
   "aria.locked": "{tab}, locked", "aria.new": "{tab}, new", "aria.campMake": "Camp, {n} to make",
   "lock.floor1": "Opens after floor 1", "unlock.toast": "Unlocked: {list}",
   "play.eyebrow": "Main campaign", "play.title": "Tower I",
@@ -455,22 +425,16 @@ const STR = {
   "item.lockbox": "Locked box", "item.tail": "Rat tail", "item.jacket": "Leather jacket",
   "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat",
   "class.warrior": "Warrior", "class.rogue": "Rogue", "class.mage": "Mage", "class.summoner": "Summoner",
-  "class.free": "Free · unlocked by items", "class.paid": "For Stars",
+  "class.free": "Free · unlocked by items", "class.paid": "In the shop",
   "race.human": "Human", "race.human.sub": "First hero",
   "race.cat": "Catfolk", "race.cat.sub": "Free after the tutorial",
-  "race.dwarf": "Dwarf", "race.dwarf.sub": "For Stars · race TBD",
-  "race.elf": "Elf", "race.elf.sub": "Met in the tower, later for Stars",
+  "race.dwarf": "Dwarf", "race.dwarf.sub": "In the shop · race TBD",
+  "race.elf": "Elf", "race.elf.sub": "Met in the tower, later in the shop",
   "race.fish": "Fishfolk", "race.fish.sub": "Met in the tower · TBD",
-  "pill.notStarted": "Not started", "pill.paid": "★ Paid", "pill.unlocked": "Unlocked", "pill.locked": "Locked", "pill.npc": "NPC",
-  "shop.eyebrow": "Telegram Stars", "shop.title": "Shop", "shop.lede": "Purchases with Telegram Stars. Range and prices are not decided yet.",
-  "shop.slot": "Hero slot", "shop.slot.sub": "Fourth hero onward. The first three unlock as you play.",
-  "shop.race.sub": "Race for a new hero", "shop.class.sub": "Opens the summoner path",
-  "shop.parts": "Components", "shop.pouch": "Modifier pouch", "shop.pouch.sub": "A random rare modifier for the table",
-  "shop.odds": "Drop odds",
+  "pill.notStarted": "Not started", "pill.paid": "Shop", "pill.unlocked": "Unlocked", "pill.locked": "Locked", "pill.npc": "NPC",
+  "shop.eyebrow": "Keeper's stall", "shop.title": "Shop",
   "stub": "placeholder",
   "stub.gear": "Hero screen: gear in six slots and builds. Placeholder.",
-  "stub.stars": "Stars purchases come with the bot.",
-  "stub.odds": "Odds table — placeholder. Odds will have to be shown openly.",
   "stub.floor": "Floor {n} is not built yet.",
   "stub.farm": "Farm — placeholder."
 };
@@ -478,7 +442,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 
 document.documentElement.lang = "en";
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LINK = { run: "run.html", camp: "camp.html" };   // relative: the Telegram build maps them to run.html / camp.html
+const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // relative: the Telegram build maps them to run.html / camp.html / shop.html
 
 /* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
 const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -561,10 +525,10 @@ const SPR = {
     ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
   ], P),
   snake:  mk([
-    "................", "......gggg......", ".....geegggg...r", ".....gexgggggrr.",
-    ".....ggggGGGG..r", "......gGGGG.....", ".......ggG......", ".......ggG......",
-    "....ggggggGgg...", "..ggGGGGGGGGGgg.", ".geGG.......GGgg", ".gg..........Ggg",
-    ".egg........gggG", "..egggggggggggG.", "...GGGGGGGGGGGG.", "..............gG"
+    "........GGG.....", ".......GggGGG...", ".......GggxggGG.", ".......GggGGGGG.",
+    ".......GgRRRe...", ".......GgRe.....", ".......GgaaaG...", "........GaaG....",
+    ".......GgaG.....", "......GgaG......", "......GGgaG.....", "..GGGGGGGgaGG...",
+    ".GgggggGGgggGG..", "GggGGGGGGGGGggG.", "GgaaGGGGGGGGaagG", ".GGGaaaaaaaaGG.G"
   ], P),
   wolf:   mk([
     "................", "....n.n.........", "....nMn........m", "..nMMMMnn.....mM",
@@ -692,11 +656,17 @@ const SPR = {
     "..uuuuuukkkka...", "...uuuuukkka....", "...uuuukkkkk....", "..uuuukkkkkkk...",
     "..uuuka..akkka..", ".uuuka.....akka.", ".uua.........aa.", "................"
   ], P),
-  pouch:  mk([
-    ".............e..", "............eue.", ".............e..", ".....SSHHHh.....",
-    "....SSSHSHHh....", ".....SHSHHh.....", "......hHHh......", ".....rrrrrRR....",
-    "....HHrRrRHh....", "...HHSrHHRHHh...", "..HSSSrHHRHHHh..", ".HSSSHHHHHHHHhh.",
-    ".HSSHHHHHHHHHhh.", ".HHHHHHHHHHHhhh.", "..hHHHHHHHHhhh..", "...hhhhhhhhhh..."
+  coin:   mk([   // the shop's currencies, as in 09
+    "................", "................", "......uuuk......", "....uukkkkkk....",
+    "...ukkaaaakkk...", "...ukakkkkaka...", "..ukakkkkkkaka..", "..ukakkaakkakA..",
+    "..ukakkaakkakA..", "..kkakkkkkkaaA..", "...kkakkkkaaA...", "...kkkaaaaaaA...",
+    "....akaaaaAA....", "......AAAA......", "................", "................"
+  ], P),
+  gem:    mk([
+    "................", "................", "....VVVVVVvv....", "...VeVVVVvvvv...",
+    "..VeVVVVVvvvvL..", ".VVVVVVVVVVVVLL.", ".vVvvvvvvvvLLLL.", "..vVvvvvvvLLLL..",
+    "...vVvvvvLLLL...", "....vVvvLLLL....", ".....vVvLLL.....", "......vvLL......",
+    ".......vL.......", "................", "................", "................"
   ], P)
 };
 const urls = {};
@@ -717,7 +687,8 @@ const MASK = {
   bag:   ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
   lock:  ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
   unlock:["..####..",".#....#.",".#......","########","###..###","###..###","########","########"],   // shackle sprung on the right
-  back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."]
+  back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
+  plus:  ["..##..","..##..","######","######","..##..","..##.."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1));
 function maskURL(k, cell) {
@@ -819,7 +790,12 @@ function paintTab(k) {
   const name = t("tab." + k);
   b.setAttribute("aria-label", isLocked ? t("aria.locked", { tab: name }) : badge ? t("aria.campMake", { n: makeable }) : isNew ? t("aria.new", { tab: name }) : name);
 }
-$("stars").setAttribute("aria-label", t("aria.stars", { n: 0 }));
+// coins and crystals from the save (GDE-05; the shop writes them); the + opens the crystal packs
+const wallet = { coins: Math.max(0, ((save && save.wallet) || {}).coins | 0), gems: Math.max(0, ((save && save.wallet) || {}).gems | 0) };
+const brief = n => n < 1000 ? String(n) : n < 10000 ? `${Math.floor(n / 100) / 10}k` : `${Math.floor(n / 1000)}k`;   // the top bar is tight: 1150 → 1.1k
+$("coinsN").textContent = brief(wallet.coins); $("gemsN").textContent = brief(wallet.gems);
+$("coins").setAttribute("aria-label", t("aria.coins", { n: wallet.coins }));
+$("gems").setAttribute("aria-label", t("aria.gems", { n: wallet.gems }));
 
 // strings, sprites and icons for everything above
 document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
@@ -975,7 +951,7 @@ const SUB = {
 };
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 let tab = "game", sub = null;
-try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !(v === "camp" && opened("camp"))) tab = v; } catch (e) {}
+try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !((v === "camp" || v === "shop") && opened(v))) tab = v; } catch (e) {}
 const LOCKVIEW = { camp: ["camp", "camp.eyebrow", "camp.title"], almanac: ["shelf", "alm.eyebrow", "alm.title"], shop: ["stall", "shop.eyebrow", "shop.title"] };
 
 function show(dir) {
@@ -1006,7 +982,7 @@ function visit(k) {   // the first visit of an unlocked tab clears its "new" dot
 document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
   const k = b.dataset.tab;
   visit(k);
-  if (k === "camp" && !locked.has("camp")) { SND.leave(() => { location.href = LINK.camp; }); return; }
+  if ((k === "camp" || k === "shop") && !locked.has(k)) { SND.leave(() => { location.href = LINK[k]; }); return; }
   if (k === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
   tab = k; sub = null;
   try { localStorage.setItem("gamey.tab", tab); } catch (e) {}
@@ -1017,6 +993,10 @@ mainStrip.addEventListener("click", () => { if (firstRun) goRun(); else { sub = 
 $("goBtn").addEventListener("click", () => { if (pick === 1) goRun(); else toast("stub", t("stub.floor", { n: pick })); });
 document.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { sub = b.dataset.open; show("fwd"); }));
 $("back").addEventListener("click", () => { sub = null; show("rev"); });
+$("gems").addEventListener("click", () => {   // the crystal packs in the shop; before floor 1 the Shop tab's padlock
+  if (locked.has("shop")) { tabEl("shop").click(); return; }
+  visit("shop"); SND.leave(() => { location.href = LINK.shop + "?gems"; });
+});
 document.addEventListener("keydown", e => { if (e.key === "Escape" && sub) { sub = null; show("rev"); } });
 
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {

@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="tg.js"></script>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#0b0a0c}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* the Telegram build is always the phone layout: no device frame, no design notes */
+.stage{display:block!important;height:100%!important;min-height:0!important;padding:0!important}
+.device{width:100%!important;height:100%!important;aspect-ratio:auto!important;padding:0!important;border-radius:0!important;box-shadow:none!important}
+.app{border-radius:0!important}
+.statusbar,.homebar,.notes{display:none!important}
+/* in full screen, stay clear of the phone's status bar and Telegram's own buttons */
+:root{--tg-top:calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));--tg-bottom:var(--tg-safe-area-inset-bottom, 0px)}
+.top{padding-top:calc(var(--tg-top) + 10px)!important}
+.bottom{padding-bottom:calc(var(--tg-bottom) + 10px)!important}
+.topbar{padding-top:calc(var(--tg-top) + 8px)!important}
+.tabbar{padding-bottom:calc(var(--tg-bottom) + 8px)!important}
+.sheet{padding-bottom:calc(var(--tg-bottom) + 16px)!important}
+</style>
+</head>
+<body>
+<title>Game Y Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: desktop = phone frame with design notes beside it; phone = the app itself, edge to edge.
+   Shop = top bar (back · coins · crystals [+]) / the keeper's strip / four sections / bottom sheets for buying,
+   the odds, the crystal packs and the Telegram payment stub. Same dark world and palette as the camp; sprites 16×16. */
+:root{
+  --stage:#0c0a0d;
+  --bg:#141216;
+  --panel:#201c22;
+  --panel-hi:#29232b;
+  --seg:#2c262d;
+  --well:#0e0c10;
+  --line:#3a3238;
+  --fg:#ece3d2;
+  --muted:#9d929a;
+  --torch:#e2b24c;
+  --torch-dim:#5b4524;
+  --torch-ink:#1a1209;
+  --blood:#cf4656;
+  --blood-dim:#4a2229;
+  --moss:#7fa48a;
+  --moss-dim:#26332b;
+  --arcane:#8f7ad1;
+  --arcane-dim:#3a3150;
+  --gem:#c9bdf2;
+  --star:#f3d36b;
+  --star-dim:#6a5a2a;
+  --rare:#6fb3c2;
+  --epic:#a98ff0;
+  --g-common:rgba(157,146,154,.16);
+  --g-uncommon:rgba(127,164,138,.26);
+  --g-rare:rgba(111,179,194,.32);
+  --g-epic:rgba(169,143,240,.42);
+  --scrim:rgba(20,18,22,.95);
+  --scrim-mid:rgba(20,18,22,.7);
+  --veil:rgba(8,6,9,.6);
+  --glow:rgba(226,178,76,.07);
+  --glow-soft:rgba(226,178,76,.14);
+  --pulse:rgba(226,178,76,.55);
+  --pulse-0:rgba(226,178,76,0);
+  --shadow:rgba(0,0,0,.5);
+  --bezel:#050406;
+  --bezel-edge:#2c262e;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--stage);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+*{font-variant-ligatures:none!important}   /* Pixelify Sans turns "fl" into a broken glyph; !important because every font shorthand resets it */
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+img{image-rendering:pixelated}
+:focus-visible{outline:2px solid var(--torch);outline-offset:2px}
+.num{font-family:var(--body);font-variant-numeric:tabular-nums}   /* digits in Golos: Pixelify's small 2 and 5 read as 8 and S */
+
+/* ---------- stage & device (same as the other states) ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:radial-gradient(60% 55% at 50% 45%, var(--glow), transparent 70%)}
+.device{position:relative;flex:none;height:clamp(640px, calc(100vh - 48px), 864px);height:clamp(640px, calc(100dvh - 48px), 864px);aspect-ratio:410/864;padding:10px;border-radius:58px;background:var(--bezel);box-shadow:0 0 0 1px var(--bezel-edge), 0 40px 90px -30px var(--bezel)}
+.app{position:relative;width:100%;height:100%;border-radius:48px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.statusbar{flex:none;position:relative;height:50px;display:flex;align-items:center;justify-content:space-between;padding:6px 28px 0 36px;font:600 15px/1 var(--body);color:var(--fg)}
+.island{position:absolute;top:11px;left:50%;width:118px;height:33px;margin-left:-59px;border-radius:17px;background:var(--bezel)}
+.sys{display:flex;gap:6px;align-items:center}
+.sys svg{display:block}
+.homebar{position:absolute;bottom:8px;left:50%;z-index:30;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);opacity:.75;pointer-events:none}
+
+/* ---------- top bar: back · title · coins · crystals [+] ---------- */
+.topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
+.tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
+.back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
+.back .ico{width:16px;height:14px}
+.tb-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tb-title b{font:500 18px/1.1 var(--display)}
+.purse{flex:none;display:flex;align-items:center;gap:6px}
+.chip{display:flex;align-items:center;gap:5px;height:30px;padding:0 10px 0 7px;border-radius:15px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
+.chip img{width:16px;height:16px}
+.chip.coins{color:var(--torch)}
+.chip.gems{padding-right:3px;color:var(--gem);cursor:pointer}
+.chip .plus{width:22px;height:22px;display:grid;place-items:center;margin-left:3px;border-radius:11px;background:var(--arcane);color:var(--torch-ink)}
+.chip .plus .ico{width:8px;height:8px}
+.chip.bump{animation:bump .4s ease-out}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* ---------- view ---------- */
+.main{position:relative;flex:1;min-height:0;display:flex}
+.views{position:relative;flex:1;min-width:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.views::-webkit-scrollbar{display:none}
+.view{display:flex;flex-direction:column;gap:12px;padding-block:16px 24px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.pane{display:flex;flex-direction:column;gap:12px}
+.pane.in{animation:fwd .2s ease-out}
+@keyframes fwd{from{opacity:.3;transform:translateX(10px)}to{opacity:1;transform:none}}
+.sec{margin:8px 0 0;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cap{margin:-4px 0 0;font-size:13px;color:var(--muted)}
+.ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.narr{margin:-4px 0 0;font-size:14px;font-style:italic;color:var(--muted)}
+.eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.tag{display:inline-block;padding:2px 5px;border:1px dashed var(--muted);border-radius:3px;font:500 10px/1.2 var(--display);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
+.btn.sm{min-height:34px;padding:0 12px;font-size:15px}
+.btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn img{width:16px;height:16px}
+.btn .num{font-weight:600}
+.btn .ico{width:10px;height:10px}
+.btn:active,.row:active,.price:active,.chip.gems:active,.back:active,.seg button:active{transform:translateY(1px)}
+.btn[disabled]:active,.price[disabled]:active{transform:none}
+.linkbtn{padding:0;border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* ---------- the keeper's strip (pixel art, 3 screen px per art px) ---------- */
+.strip{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:4px;width:100%;min-height:132px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background-color:var(--panel);background-repeat:no-repeat;background-position:right bottom;image-rendering:pixelated;overflow:hidden}
+.strip::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, var(--scrim) 0%, var(--scrim) 22%, var(--scrim-mid) 40%, transparent 62%)}
+.strip>*{position:relative}
+.strip .title{font:700 25px/1.05 var(--display);margin-top:2px}
+.strip .draft{position:absolute;top:10px;left:12px}
+
+/* ---------- four sections ---------- */
+.seg{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel);box-shadow:0 0 0 6px var(--bg)}
+.seg button{position:relative;display:flex;align-items:center;justify-content:center;padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 14px/1 var(--display);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
+.seg .dot{position:absolute;top:5px;right:6px;width:5px;height:5px;background:var(--torch)}
+
+/* ---------- cards ---------- */
+.card{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gift{justify-content:space-between}
+.gift .btn{width:100%}
+.gift.done{background:transparent;border-style:dashed}
+.gift.done .gives{opacity:.5}
+.when{min-height:34px;display:flex;align-items:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.gives{display:flex;flex-wrap:wrap;gap:6px}
+.give{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:4px 9px 4px 6px;border-radius:4px;background:var(--seg);font:600 15px/1 var(--body);font-variant-numeric:tabular-nums}
+.give img{width:28px;height:28px}
+.give i{font-style:normal;font-weight:500;color:var(--muted)}
+.feat{gap:12px;border-color:var(--star-dim);box-shadow:inset 0 0 0 1px var(--star-dim);background:radial-gradient(80% 90% at 85% 0%, var(--glow-soft), transparent 70%), var(--panel)}
+.feat.offer{border-color:var(--blood-dim);box-shadow:inset 0 0 0 1px var(--blood-dim)}
+.fhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.fhead div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ftitle{font:700 22px/1.05 var(--display)}
+.feat .eyebrow{color:var(--star)}
+.feat.offer .eyebrow{color:var(--blood)}
+.timer{flex:none;padding:5px 7px;border-radius:3px;background:var(--seg);font:500 13px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--torch)}
+.frow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.off{padding:2px 5px;border-radius:3px;background:var(--blood);color:var(--fg);font:600 11px/1.2 var(--body);font-style:normal;font-variant-numeric:tabular-nums}
+
+/* prices: Stars gold, crystals violet, coins torch */
+.price{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:18px;background:var(--seg);color:var(--fg);font:600 15px/1 var(--body);font-variant-numeric:tabular-nums;white-space:nowrap}
+button.price{cursor:pointer}
+.price img{width:16px;height:16px}
+.price.stars{border-color:var(--star-dim);color:var(--star)}
+.price.gems{border-color:var(--arcane-dim);color:var(--gem)}
+.price.coins{border-color:var(--torch-dim);color:var(--torch)}
+.price[disabled]{opacity:.45;cursor:default}
+.price .x{font-weight:500;color:var(--muted)}
+
+/* rows: heroes, bundles, supplies; the whole row opens the buy sheet */
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.row.dim{background:transparent;border-style:dashed}
+.row.dim .face img{opacity:.55}
+.face{flex:none;width:48px;height:48px;display:grid;place-items:center;border-radius:4px;background:var(--seg)}
+.face img{width:32px;height:32px}
+.rbody{min-width:0;display:flex;flex-direction:column;gap:4px}
+.rbody b{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font:500 16px/1.15 var(--display)}
+.line{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13px;color:var(--muted)}
+.line .it{display:inline-flex;align-items:center;gap:3px;color:var(--fg);font-variant-numeric:tabular-nums}
+.line .it img{width:18px;height:18px}
+.pill{flex:none;display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border-radius:3px;font:500 12px/1 var(--display);letter-spacing:.06em;white-space:nowrap}
+.pill .ico{width:8px;height:8px}
+.pill.ok{background:var(--moss-dim);color:var(--moss)}
+.pill.off{background:var(--seg);color:var(--muted)}
+
+/* chests */
+.chest{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center}
+.chest .pic{width:72px;height:72px;display:grid;place-items:center;border-radius:4px;background:radial-gradient(60% 60% at 50% 55%, var(--glow-soft), transparent 75%), var(--well)}
+.chest.parts .pic{background:radial-gradient(60% 60% at 50% 55%, var(--g-epic), transparent 75%), var(--well)}
+.chest .pic img{width:64px;height:64px}
+.cbody{min-width:0;display:flex;flex-direction:column;gap:6px}
+.cbody b{font:500 19px/1.1 var(--display)}
+.cbody span{font-size:13px;color:var(--muted)}
+.cbody .num{color:var(--fg);font-weight:600}
+.meter{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;max-width:160px}
+.meter i{height:6px;border-radius:1px;background:var(--seg)}
+.meter i.on{background:var(--rare)}
+.meter i.next{background:var(--epic)}
+.chest .acts{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.chest .acts .linkbtn{margin-left:auto}
+.region{display:flex;gap:12px;align-items:center;padding:16px 14px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.region .ico{width:16px;height:16px}
+.region b{font:500 16px/1.15 var(--display)}
+
+/* rarity */
+.r-common{--rc:var(--muted);--rg:var(--g-common)}
+.r-uncommon{--rc:var(--moss);--rg:var(--g-uncommon)}
+.r-rare{--rc:var(--rare);--rg:var(--g-rare)}
+.r-epic{--rc:var(--epic);--rg:var(--g-epic)}
+.rtext{color:var(--rc)}
+
+/* ---------- toast, sheet ---------- */
+.toast{position:absolute;left:16px;right:16px;top:10px;z-index:30;padding:11px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:6px;background:var(--panel-hi);font:500 14px/1.25 var(--body);box-shadow:0 10px 30px var(--bezel);pointer-events:none;animation:toast .2s ease-out}
+.toast.recipe{border-left-color:var(--torch)}
+.toast.almanac{border-left-color:var(--arcane)}
+.toast.unlock{border-left-color:var(--moss)}
+.toast.stub{border-style:dashed;border-left-style:solid;color:var(--muted)}
+@keyframes toast{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.backdrop{position:absolute;inset:0;z-index:20;background:var(--veil)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;max-height:86%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px;padding-block:8px 30px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:var(--bg);border-top:1px solid var(--line);border-radius:16px 16px 0 0}
+.sheet.in{animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{flex:none;width:40px;height:4px;margin:0 auto 2px;border-radius:2px;background:var(--line)}
+.plinth{position:relative;flex:none;height:140px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:radial-gradient(55% 60% at 50% 50%, var(--glow-soft), transparent 72%), var(--well)}
+.plinth::after{content:"";position:absolute;left:50%;bottom:18px;width:84px;height:10px;margin-left:-42px;border-radius:50%;background:var(--shadow)}
+.plinth>img{position:relative;z-index:1;width:96px;height:96px}
+.plinth.lit{background:radial-gradient(55% 65% at 50% 50%, var(--rg), transparent 75%), var(--well);border-color:var(--rc)}
+.plinth .box.shake{animation:rattle .65s linear}
+@keyframes rattle{0%,100%{transform:none}12%{transform:translateX(-4px) rotate(-4deg)}25%{transform:translateX(4px) rotate(4deg)}38%{transform:translateX(-4px) rotate(-3deg)}50%{transform:translateX(3px) rotate(3deg)}62%{transform:translateX(-3px) rotate(-2deg)}75%{transform:translateX(2px) rotate(2deg)}88%{transform:translateX(-1px)}}
+.plinth.reveal{height:180px}
+.plinth.reveal .box{margin-top:48px}
+.plinth .loot{position:absolute;z-index:2;left:50%;top:10px;width:48px;height:48px;margin-left:-24px;filter:drop-shadow(0 0 8px var(--rc));animation:rise .45s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(34px) scale(.4)}to{opacity:1;transform:none}}
+.sh-head{display:flex;align-items:center;gap:12px}
+.sh-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.sh-title b{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:500 21px/1.1 var(--display);color:var(--torch)}
+.sh-title span{font-size:12px;color:var(--muted)}
+.desc{margin:0;font-size:14px;color:var(--muted)}
+.facts{margin:0;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.facts div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0}
+.facts div+div{border-top:1px solid var(--line)}
+.facts dt{font-size:13px;color:var(--muted)}
+.facts dd{margin:0;display:flex;align-items:center;gap:5px;font:600 15px/1.2 var(--body);font-variant-numeric:tabular-nums}
+.facts dd img{width:16px;height:16px}
+.facts dd.short{color:var(--blood)}
+.facts .rtext{font:500 15px/1 var(--display);color:var(--rc)}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.acts .btn{flex:1}
+.lockrow{display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;align-items:center;padding:12px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.lockrow .ico{width:14px;height:14px}
+.lockrow b{font:500 15px/1.15 var(--display)}
+.okrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--moss-dim);border-radius:6px;background:var(--panel)}
+.okrow b{font:500 16px/1 var(--display);color:var(--moss)}
+.list{display:flex;flex-direction:column;gap:6px}
+.lrow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.lrow img{width:32px;height:32px}
+.lrow b{font:500 15px/1.15 var(--display)}
+.lrow span{font:600 14px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--muted)}
+
+/* a chest opening: one find under the chest, or ten in a grid */
+.drop1{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 0}
+.drop1 b{font:500 19px/1.1 var(--display)}
+.drop1 .pill{background:var(--seg);color:var(--rc)}
+.drops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.drop{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px 7px;border:1px solid var(--line);border-bottom:3px solid var(--rc);border-radius:4px;background:var(--panel);animation:pop .3s ease-out both}
+.drop img{width:32px;height:32px}
+.drop span{font-size:11px;line-height:1.15;text-align:center;text-wrap:balance}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.8)}to{opacity:1;transform:none}}
+.wait{visibility:hidden}
+.wait *{animation:none!important}
+
+/* crystal packs */
+.packs{display:flex;flex-direction:column;gap:8px}
+.pack{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.pack.best{border-color:var(--arcane);box-shadow:inset 0 0 0 1px var(--arcane)}
+.pack>img{width:32px;height:32px}
+.pk{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pk b{font:600 18px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--gem)}
+.bonus{padding:3px 5px;border-radius:3px;background:var(--moss-dim);color:var(--moss);font:600 11px/1 var(--body);font-style:normal}
+.bestv{padding:3px 5px;border-radius:3px;background:var(--arcane);color:var(--torch-ink);font:500 11px/1 var(--display);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+
+/* ---------- notes beside the phone ---------- */
+.notes{display:none;flex:0 1 300px;max-width:300px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:thin;flex-direction:column;gap:22px}
+.brand{font:700 34px/1 var(--display);color:var(--torch)}
+.lede{margin:8px 0 0;font-size:15px;color:var(--muted)}
+.note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.note ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.note p{margin:0;font-size:14px}
+.note a{color:var(--torch);text-underline-offset:3px}
+.note code{font-size:12px;color:var(--muted)}
+.note .cur{color:var(--fg)}
+.dev{padding:2px 7px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--torch);font-size:13px;cursor:pointer}
+.dev[aria-pressed="true"]{border-color:var(--torch)}
+.foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (min-width:1000px){.notes{display:flex}}
+
+/* ---------- on a real phone: no frame ---------- */
+@media (max-width:599px){
+  body{background:var(--bg)}
+  .stage{display:block;height:100%;min-height:0;padding:0;background:var(--bg)}
+  .device{width:100%;height:100%;aspect-ratio:auto;padding:0;border-radius:0;background:var(--bg);box-shadow:none}
+  .app{border-radius:0}
+  .statusbar,.homebar{display:none}
+  .topbar{padding-top:10px}
+  .sheet{padding-bottom:16px}
+}
+@media (prefers-reduced-motion:reduce){.pane.in,.sheet.in,.toast,.chip.bump,.plinth .box.shake,.plinth .loot,.drop{animation:none}}
+</style>
+
+<div class="stage">
+  <div class="device">
+    <div class="app" id="app">
+      <div class="statusbar" aria-hidden="true">
+        <span>9:41</span>
+        <span class="island"></span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <header class="topbar">
+        <div class="tb-sub">
+          <button class="back" id="back" type="button" data-ta="aria.home"><i class="ico" data-ico="back" data-s="2"></i></button>
+          <div class="tb-title"><b data-t="shop.title"></b></div>
+          <div class="purse">
+            <span class="chip coins" id="coins"><img data-spr="coin" alt=""><span id="coinsN"></span></span>
+            <button class="chip gems" id="gems" type="button"><img data-spr="gem" alt=""><span id="gemsN"></span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
+          </div>
+        </div>
+      </header>
+
+      <div class="main">
+        <div class="views" id="views">
+          <section class="view" id="shop" data-ta="shop.title">
+            <div class="strip" data-scene="stall" id="scene">
+              <span class="tag draft" id="draft" data-t="draft" hidden></span>
+              <span class="eyebrow" data-t="keeper.eyebrow"></span>
+              <span class="title" data-t="keeper.title"></span>
+            </div>
+            <div class="seg" role="tablist" id="seg" data-ta="aria.tabs"></div>
+            <div class="pane" id="pane" role="tabpanel"></div>
+          </section>
+        </div>
+        <div class="toast" id="toast" role="status" hidden></div>
+      </div>
+
+      <div class="backdrop" id="backdrop" hidden></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden></div>
+      <span class="homebar" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  </div>
+
+<script>
+(() => {
+/* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
+const STR = {
+  "shop.title": "Shop", "aria.home": "Home", "aria.tabs": "Shop sections",
+  "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more",
+  "keeper.eyebrow": "Basement", "keeper.title": "Keeper's stall", "draft": "draft prices",
+  "narr.first": "You again. Alive, even.",
+  "tab.featured": "Featured", "tab.heroes": "Heroes", "tab.chests": "Chests", "tab.supplies": "Supplies",
+  "cur.coins": "Coins", "cur.gems": "Crystals", "cur.stars": "Stars",
+  "daily.sec": "Daily", "daily.gift": "Daily gift", "daily.ad": "For an ad", "daily.claim": "Claim", "daily.watch": "Watch ad",
+  "daily.next": "Next in {t}", "stub.ad": "Ads come with the bot. Placeholder.",
+  "starter.eyebrow": "One time", "starter.title": "Starter pack",
+  "offer.eyebrow": "Offer", "offer.boss_death": "Rematch kit", "offer.biome_clear": "Next biome kit", "offer.low_gems": "Crystal deal",
+  "bundles.sec": "Bundles", "kit_pyro": "Pyromancer kit", "kit_hunter": "Hunter kit", "kit_smith": "Smith kit",
+  "left": "{t} left", "in.h": "{n} h", "in.m": "{n} min",
+  "heroes.slots": "Hero slots", "heroes.slotsCap": "Slots 1–3 open as you play", "heroes.races": "Races",
+  "heroes.subs": "Subclasses", "heroes.subsCap": "Choose at class level 5", "heroes.classes": "Classes",
+  "hero.slot": "Hero slot {n}", "hero.slot.line": "One more hero", "hero.after": "After slot {n}",
+  "race_dwarf": "Dwarf", "race_dwarf.line": "Hard to knock down",
+  "race_elf": "Elf", "race_elf.line": "Sees traps first",
+  "race_fish": "Fishfolk", "race_fish.line": "Breathes underwater",
+  "sub_berserker": "Berserker", "sub_berserker.line": "Hits harder when hurt",
+  "sub_gunslinger": "Gunslinger", "sub_gunslinger.line": "Two shots, long reload",
+  "sub_warlock": "Warlock", "sub_warlock.line": "Pays HP for power",
+  "class_summoner": "Summoner", "class_summoner.line": "An army fights for you",
+  "kind.slot": "Hero slot", "kind.race": "Race", "kind.sub": "Subclass", "kind.class": "Class", "kind.bundle": "Bundle",
+  "side": "Different, not stronger.", "owned": "Owned", "later": "Later", "tbd": "TBD", "needs": "Needs {name}",
+  "chests.parts": "Component chest", "chests.coin": "Coin chest", "chests.pity": "Rare guaranteed in {n}",
+  "chests.perDay": "1 per day", "chests.odds": "Odds", "chests.region": "Not available in your region",
+  "odds.title": "Odds", "odds.pity": "Rare or better at least once in {n} opens.", "odds.tower": "Every item here also drops in the tower.",
+  "rar.common": "Common", "rar.uncommon": "Uncommon", "rar.rare": "Rare", "rar.epic": "Epic",
+  "sup.potion": "Belt: {n} per run", "sup.insurance": "Keep loot on death · {n} per run", "sup.bag": "+{n} slots",
+  "sup.autoclear": "Clears a beaten floor", "sup.have": "Have {n}", "sup.step": "Step {a} of {b}", "sup.max": "Max",
+  "lock.floor": "Opens after floor {n}", "pill.floor": "Floor {n}",
+  "buy.buy": "Buy", "buy.price": "Price", "buy.have": "You have", "buy.after": "After", "buy.get": "Get crystals",
+  "buy.noCoins": "Not enough coins", "buy.again": "Again", "buy.cancel": "Cancel",
+  "pay.title": "Telegram payment", "pay.pay": "Pay", "stub": "placeholder",
+  "packs.title": "Crystals", "packs.sub": "For Telegram Stars", "packs.n": "{n} Crystals", "packs.best": "Best value", "packs.bonus": "+{n}%",
+  "got.sub": "Added", "got.bag": "Into the bag",
+  "toast.race": "{name} unlocked for a new hero", "toast.sub": "{name}: ready at class level 5", "toast.slot": "Hero slot {n} unlocked",
+  "toast.class": "{name} unlocked", "toast.bag": "Bag +{n} slots",
+  "toast.ready": "Ready at camp: {name}", "toast.part": "{name}: {item} ✓",
+  "frame.starter": "Starter frame", "frame.pyro": "Ember frame",
+  "item.tail": "Rat tail", "item.paper": "Paper", "item.scrap": "Scrap iron", "item.chitin": "Chitin", "item.sticks": "Sticks",
+  "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt", "item.silk": "Spider silk", "item.crystal": "Crystal shard",
+  "item.rose": "Wild rose", "item.gland": "Venom gland", "item.wing": "Bat wing", "item.ember": "Ember",
+  "item.potion": "Healing potion", "item.insurance": "Loot insurance", "item.bag": "Bag expansion", "item.autoclear": "Auto-clear",
+  "item.pouch_rare": "Rare pouch", "item.bonecrown": "Bone crown",
+  "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger", "item.jacket": "Leather jacket",
+  "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
+  "close": "Close"
+};
+const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
+
+document.documentElement.lang = "en";
+const $ = id => document.getElementById(id);
+const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const HOME = "index.html";   // relative: the Telegram build maps it to index.html
+const Q = new URLSearchParams(location.search);
+
+/* ================= catalog: every price, pack, odd and set lives here, none in the markup (GDE-05). Draft prices ================= */
+const PRICES_DRAFT = true;   // shows the "draft prices" badge on the keeper's strip
+const GEM_PACKS = [ { sku: "gems_50",  stars: 50,   gems: 50 }, { sku: "gems_150", stars: 150, gems: 160 },
+                    { sku: "gems_500", stars: 500,  gems: 550 }, { sku: "gems_1000", stars: 1000, gems: 1150, best: true },
+                    { sku: "gems_2500", stars: 2500, gems: 3000 } ];
+const STARTER = { sku: "starter", stars: 99, hours: 48, gives: { gems: 300, items: [["pouch_rare", 3]], frame: "starter" } };
+const CATALOG = {
+  heroes: [
+    { sku: "slot_4", kind: "slot", n: 4, gems: 250 },
+    { sku: "slot_5", kind: "slot", n: 5, gems: 400, after: "slot_4" },
+    { sku: "race_dwarf", kind: "race", spr: "dwarf", gems: 400, tbd: true },   // the paid race is still open in the concept
+    { sku: "race_elf",   kind: "race", spr: "elf",  later: true },
+    { sku: "race_fish",  kind: "race", spr: "fish", later: true },
+    { sku: "sub_berserker",  kind: "sub", spr: "greataxe", gems: 300 },
+    { sku: "sub_gunslinger", kind: "sub", spr: "handxbow", gems: 300 },
+    { sku: "sub_warlock",    kind: "sub", spr: "grimoire", gems: 300 },
+    { sku: "class_summoner", kind: "class", spr: "orb", gems: 600, needs: "bonecrown" }
+  ],
+  bundles: [
+    { sku: "kit_pyro",   gems: 180, items: [["ember", 1], ["crystal", 2], ["sticks", 2]], frame: "pyro" },   // a staff and its fire
+    { sku: "kit_hunter", gems: 150, items: [["sticks", 3], ["silk", 2], ["gland", 1]] },                     // a bow or crossbow, venom
+    { sku: "kit_smith",  gems: 120, items: [["stone", 2], ["scrap", 3]] }
+  ],
+  supplies: [
+    { sku: "potion",    coins: 40, perRun: 2, floor: 3 },          // the potion belt opens after floor 3
+    { sku: "insurance", gems: 30, perRun: 1 },                     // a death keeps the floor's loot
+    { sku: "bag",       gems: [100, 200, 400], slots: 4 },         // step by step, the price grows
+    { sku: "autoclear", gems: 20, floor: 5 }                       // like the farm
+  ]
+};
+const CHESTS = { parts: { gems: 60, gems10: 540, odds: { common: 70, uncommon: 24, rare: 5, epic: 1 } },
+                 coin:  { coins: 500, perDay: 1, odds: { common: 80, uncommon: 18, rare: 2 } } };
+const PITY = { parts: 10 };   // the 10th open in a row without a rare is a rare
+const OFFERS = [   // one at a time; in the prototype ?offer=<id> starts one
+  { id: "boss_death",  sku: "offer_boss_death",  trigger: "boss_death",  stars: 49, hours: 2,  gives: { items: [["insurance", 2], ["potion", 2]] } },
+  { id: "biome_clear", sku: "offer_biome_clear", trigger: "biome_clear", stars: 99, hours: 24, gives: { items: [["gland", 2], ["silk", 3], ["wing", 1]] } },   // stand-in: no Slimes parts yet
+  { id: "low_gems",    sku: "offer_low_gems",    trigger: "low_gems",    stars: 99, hours: 1,  gives: { gems: 150 } }
+];
+const DAILY = [ { coins: 150 }, { items: [["tail", 2]] }, { gems: 10 }, { coins: 200 }, { items: [["sticks", 2]] }, { coins: 150 }, { gems: 20 } ];   // by local date
+const AD = { coins: 150 };
+const SHOP_FLAGS = { paidChests: true };   // false in regions that ban paid loot boxes: the coin chest stays
+if (Q.has("nogacha")) SHOP_FLAGS.paidChests = false;
+
+/* ================= what the chests hold: every one of these also drops in the tower (states/05-almanac.html, "at") ================= */
+const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3 };
+const POOL = {
+  common:   ["tail", "paper", "scrap", "chitin", "sticks"],
+  uncommon: ["stone", "fang", "pelt", "silk", "crystal"],
+  rare:     ["rose", "gland", "wing"],
+  epic:     ["ember"]
+};
+const POUCH = { pouch_rare: "rare" };                  // a pouch opens on the spot into one item of that rarity
+const STOCK = ["potion", "insurance", "autoclear"];   // supplies wait for the run in shop.stock, not in the bag
+const SPRITE = { insurance: "seal", bag: "sack", autoclear: "glass", pouch_rare: "pouch" };   // anything else: the key is the sprite
+const item = k => ({ name: t("item." + k), spr: SPRITE[k] || k });
+const RECIPES = [   // copy of RECIPES in states/08-camp.html: for makeable (CONTRACT) and the recipe toast
+  { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
+  { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
+  { out:"jacket", in:[["pelt", 1], ["tail", 3]] },
+  { out:"book",   in:[["scroll", 1], ["pelt", 1]], hint: true },
+  { out:"vspear", in:[["spear", 1], ["fang", 1]],  hint: true }
+];
+
+/* ================= storage (CONTRACT: gamey.save v1 with wallet and shop, gamey.once, gamey.events; all in try/catch) ================= */
+const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const DEMO_SAVE = { v: 1, floor: 1,   // "after floor 1", the shape 03 writes on floor_clear (as in 08)
+  bag: [{ key: "viper", n: 1 }, { key: "pelt", n: 1 }, { key: "lockbox", n: 1 }], hand: "viper", moves: ["strike", "reflex"],
+  creatures: { snake: { seen: 1, wins: 1 }, wolf: { seen: 1, wins: 1 } },
+  recipes: ["sharp", "viper"], camp: ["table", "almanac"], makeable: 0, time: { 1: 241 } };
+const DEMO_WALLET = { coins: 600, gems: 400 };   // without a save the screen still has something to spend (GDE-05)
+const clone = o => JSON.parse(JSON.stringify(o));
+function readSave() {   // anything the writer left out gets the empty shape; unknown fields are kept and written back
+  const s = readJSON("gamey.save", null);
+  if (!s || s.v !== 1 || typeof s.floor !== "number" || s.floor < 1 || !Array.isArray(s.bag)) return null;
+  const arr = a => Array.isArray(a) ? a : [];
+  return { ...s, bag: s.bag.filter(x => x && typeof x.key === "string" && x.n > 0), hand: s.hand || null, moves: arr(s.moves),
+    creatures: s.creatures && typeof s.creatures === "object" ? s.creatures : {}, recipes: arr(s.recipes), camp: arr(s.camp),
+    makeable: s.makeable | 0, time: s.time && typeof s.time === "object" ? s.time : {} };
+}
+function shopOf(o) {   // the shop's part of the save (GDE-05), with the empty shape for anything missing
+  o = o && typeof o === "object" ? o : {};
+  const arr = a => Array.isArray(a) ? a : [];
+  return { owned: arr(o.owned), starterUntil: o.starterUntil || null, starterBought: !!o.starterBought,
+    daily: o.daily || null, ad: o.ad || null, coinChest: o.coinChest || null,
+    pity: Object.fromEntries(Object.keys(PITY).map(k => [k, Math.max(0, (o.pity && o.pity[k]) | 0)])),
+    offer: o.offer && o.offer.id ? o.offer : null, purchases: arr(o.purchases),
+    stock: o.stock && typeof o.stock === "object" ? o.stock : {}, bagX: Math.max(0, o.bagX | 0) };
+}
+let save, demo, wallet, shop;
+function load() {
+  save = readSave(); demo = !save;
+  if (demo) save = { ...clone(DEMO_SAVE), wallet: { ...DEMO_WALLET } };
+  const w = save.wallet || {};
+  wallet = save.wallet = { coins: Math.max(0, w.coins | 0), gems: Math.max(0, w.gems | 0) };
+  shop = save.shop = shopOf(save.shop);
+}
+load();
+function persist(passive) {   // passive = nothing the player did (a timer starting): the demo waits for a real action, as 08 does
+  if (passive && demo) return;
+  save.makeable = canMake().length;   // the Camp badge in 01
+  writeJSON("gamey.save", save); demo = false; noteSource();
+}
+
+const once = {
+  has: k => { const a = readJSON("gamey.once", []); return Array.isArray(a) && a.includes(k); },
+  add(k) { try { const a = readJSON("gamey.once", []), l = Array.isArray(a) ? a : []; if (!l.includes(k)) { l.push(k); localStorage.setItem("gamey.once", JSON.stringify(l)); } } catch (e) {} }
+};
+let sid = "nosid";
+try { sid = sessionStorage.getItem("gamey.sid"); if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7); sessionStorage.setItem("gamey.sid", sid); } } catch (e) {}
+
+/* GDE-00 analytics: console now, a server later */
+function track(e, props) {
+  props = props || {};
+  console.debug("[track]", e, props);
+  try {
+    const l = readJSON("gamey.events", []), log = Array.isArray(l) ? l : [];
+    log.push({ e, t: Date.now(), sid, ...props });
+    localStorage.setItem("gamey.events", JSON.stringify(log.slice(-500)));
+  } catch (err) {}
+}
+
+/* ================= sprites (16×16; block copied whole from states/08-camp.html = 05-almanac.html, palette included) ================= */
+function mk(rows, pal) {
+  const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
+  const g = c.getContext("2d");
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== "." && pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+const P = { h:"#5c3a26", s:"#d9ad86", b:"#3f6f7a", l:"#241f28", w:"#6e4426", y:"#a3713c", k:"#e8bf55",
+  g:"#7aa266", G:"#4a6e3e", e:"#efe9dc", m:"#c4c6cf", M:"#83869a", r:"#cf4656", R:"#922838",
+  p:"#bf4155", c:"#6e4426", d:"#07060a", x:"#ff4a3c", t:"#a07d66", n:"#5e5f6a",
+  o:"#d98a3d", f:"#5f9aa6", F:"#2d5560", v:"#8f7ad1", V:"#c9bdf2", u:"#f3d36b",
+  q:"#120e14", H:"#7a4e33", S:"#b8865f", Y:"#7d5228", L:"#3a3340",
+  i:"#c98a8a", j:"#3d2f1c", J:"#6e5530",   // i, j/J: rat tail and chitin, as in Builds
+  a:"#8c7a3a", A:"#5c4f22" };              // a/A: the mother snake's ochre (o/O in the run state)
+const SPR = {
+  // items
+  dagger: mk([
+    "................", "................", "................", "...........MM...",
+    "..........mMn...", "........M.M.....", ".......MmMn.....", ".....kMMMnn.....",
+    ".....AaMn.......", "......Aan.......", ".....hjAa.......", "....Jj..........",
+    "...aJ...........", "...A............", "................", "................"
+  ], P),
+  sharp:  mk([
+    "................", "................", ".............m..", "...........em...",
+    "..........emM...", "........eemM....", ".......eemM.....", ".....ueemMn.....",
+    ".....akmMn......", "......akn.......", ".....Hjak.......", "....hh..........",
+    "..ukj...........", "...a............", "................", "................"
+  ], P),
+  viper:  mk([
+    "..............me", ".............mgG", "............mgG.", "...........mgG..",
+    "..........mGG...", "...G.....mgG....", "....k...mGG.....", "....yk.mgG......",
+    ".....yx.........", "......yk........", ".....w.yk.......", "....hh..yk......",
+    "...ww.....G.....", "..kh............", ".kky............", "..y............."
+  ], P),
+  shortsword: mk([
+    "................", "................", "............em..", "...........emM..",
+    "..........emM...", ".........emM....", "........emM.....", ".....u.emM......",
+    ".....akmM.......", "......ak........", ".....whak.......", "....wh..........",
+    "...kh...........", "...a............", "................", "................"
+  ], P),
+  sword:  mk([
+    "................", ".............em.", "............emM.", "...........emM..",
+    "..........emM...", ".........emM....", "...u....emM.....", "...u...emM......",
+    "...ak.emM.......", "....akmM........", ".....ak.........", "....Hhak........",
+    "...Hh..aak......", ".ukh............", ".ka.............", "................"
+  ], P),
+  longsword: mk([
+    "...............e", "..............eM", ".............eM.", "............eM..",
+    "...........eM...", "..........eM....", ".........eM.....", "........mM......",
+    ".......mM.......", "...u..mM........", "...akmM.........", "....ak..........",
+    "...whak.........", "..Hj..a.........", "uwh.............", "ak.............."
+  ], P),
+  greatsword: mk([
+    "..............mm", "............emmM", "...........emmM.", "..........emMMn.",
+    ".........emMMn..", "..u.....emMMn...", "..u....emMMn....", "..ak..emMMn.....",
+    "...akemMMn......", "....akmMn.......", ".....akn........", "....Hhak........",
+    "...Hh..akk......", ".ukh....aa......", "kka.............", "Aa.............."
+  ], P),
+  knife:  mk([
+    "................", "................", "................", "............e...",
+    "...........e....", "..........em....", ".........emM....", "........emM.....",
+    ".......emM......", "......yw........", ".....Yw.........", "....yw..........",
+    "...Yw...........", "................", "................", "................"
+  ], P),
+  dirk:   mk([
+    "................", "..............m.", "............em..", "...........em...",
+    "..........emM...", ".........emM....", "........emM.....", ".......emM......",
+    "....u.emM.......", "....akmM........", ".....ak.........", "....Hjak........",
+    "...hj...........", ".ukj............", ".ka.............", "................"
+  ], P),
+  assassin: mk([
+    "...............x", ".............xr.", "............rnl.", "...........xLL..",
+    "..........rLL...", ".........rnL....", "........rLLl....", "....V..rLLl.....",
+    "....V.rLnl......", "....vvLLl.......", ".....vvl........", "....Llvvv.......",
+    "...nL...........", ".Vvl............", ".vR.............", "................"
+  ], P),
+  longbow: mk([
+    "..........YYYYYS", ".......YYYwww.e.", ".....YYwww...e..", "...SSww.....e...",
+    "...St......e....", "..Yw......e.....", "..Yw.....e......", ".Yw.....e.......",
+    ".Yw....e........", ".Yw...e.........", "Yw...e..........", "Yw..e...........",
+    "Yw.e............", "Y.e.............", "Ye..............", "S..............."
+  ], P),
+  crossbow: mk([
+    "..............me", ".......Mm.....mM", "......n.Mm...S..", "......e..MmmS...",
+    "......e...Mmm...", "......e...yMm...", ".......e.yY.Mm..", ".......eyY...Mm.",
+    ".......yYe....M.", "......yY..eeen..", ".....yYk........", "....yY.k........",
+    "...yYw..........", "..yYw...........", ".yYw............", "yYw............."
+  ], P),
+  arbalest: mk([
+    "..............me", "......nMm....m.M", "......enMmm.m.M.", "......e.nMmmnn..",
+    "......e..nMmm...", "......e...nMmm..", ".......e.mMnMm..", ".......emMn.nMm.",
+    ".......mMn...nM.", "......mMn.eeeen.", ".....mMnk.......", "....mMn.k.......",
+    "...mMn..........", "..mMn...........", ".mMn............", "mMn............."
+  ], P),
+  hatchet: mk([
+    "................", "................", "........mm......", ".......emMn.....",
+    "......emMMMn.y..", ".....emMMMMnyY..", ".....mMMMMnyY...", "......mnnnyY....",
+    ".........yY.....", "........yY......", ".......yY.......", "......yY........",
+    ".....yY.........", "....yY..........", "...wY...........", "................"
+  ], P),
+  handaxe: mk([
+    ".........e......", "........emM...Yh", ".......emMMn.Yh.", "......emMMMMnnn.",
+    ".....emMMMMMnnn.", "....emMMMnnYhn..", "...emMMn..Yh....", "...emn...Yh.....",
+    "...m....Yh......", ".......Yh.......", "......Yh........", ".....Yh.........",
+    "....Yh..........", "...Yh...........", "..Yh............", ".wh............."
+  ], P),
+  battleaxe: mk([
+    "................", ".........mm.....", "........mMMn.Y..", ".......mMMMnYh..",
+    ".......mMMnYnn..", "........nnYnMMm.", ".........YhMMMm.", "........YhnMMm..",
+    ".......Yh..mm...", "......Yh........", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..Yh............", ".Yh.............", "wh.............."
+  ], P),
+  greataxe: mk([
+    "..........em....", "........eemM....", ".......eemMM.hj.", ".......emMMnhj..",
+    "......emMMnhnMMm", "......mMn.hnMMme", ".........hjMMme.", "........hjnMmee.",
+    ".......hj.Mmee..", "......hj..me....", ".....hj.........", "....hj..........",
+    "...hj...........", "..hj............", ".uk.............", "ka.............."
+  ], P),
+  club:   mk([
+    "................", "...........SSy..", "..........SyyYY.", ".........SyyYww.",
+    "........SyhyYww.", ".......SyyYYwh..", "......SSyYYw....", "......SyYhw.....",
+    "......yYw.......", ".....yYw........", "....yw..........", "...yw...........",
+    "..yw............", ".yw.............", "Yh..............", "................"
+  ], P),
+  mace:   mk([
+    "................", "...........mM.m.", "..........eMnmM.", ".........mMneM..",
+    ".........MnmMnMn", "..........mMnMn.", ".........YnnMn..", "........Yw..n...",
+    ".......Yw.......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".kw.............", "ka.............."
+  ], P),
+  flail:  mk([
+    "............m..m", "...........meMM.", "..........meMMn.", ".........mMMMnnn",
+    "..........MMnnn.", "..........nnnn..", "........mM..n...", "........Mn......",
+    ".......M........", ".....mM.........", ".....Mn.........", "....ka..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "wh.............."
+  ], P),
+  hammer: mk([
+    ".........e......", "........emm.....", "........eMMm....", ".........nMMm...",
+    "..........nMMm..", "..........nnMMm.", ".........YwnnMLn", "........Yw...LL.",
+    ".......Yw.......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".kw.............", "ka.............."
+  ], P),
+  spear:  mk([
+    "...............e", ".............em.", "............emM.", "...........emMn.",
+    "...........mMn..", "..........nM....", ".........yn.....", "........yY......",
+    ".......yY.......", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "yY.............."
+  ], P),
+  pike:   mk([
+    "...............m", "..............m.", "............emM.", "...........emM..",
+    "..........emM...", ".........emMn...", "........umMn....", "........kan.....",
+    ".......Ywk......", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "nM.............."
+  ], P),
+  glaive: mk([
+    "...............e", "............eeM.", "..........emmMn.", ".........emmMn..",
+    "........emmMn...", "........emMn....", "........mMn.....", ".......ukn......",
+    ".......waa......", "......wh........", ".....wh.........", "....wh..........",
+    "...wh...........", "..wh............", ".wh.............", "wh.............."
+  ], P),
+  halberd: mk([
+    ".........ee....e", "........emm...mM", ".......emmM..mM.", "......emmMMnmM..",
+    "......emMMnnM...", ".....em..nnn....", ".........nnMM...", "........Yw..Mn..",
+    ".......Yw....n..", "......Yw........", ".....Yw.........", "....Yw..........",
+    "...Yw...........", "..Yw............", ".Yw.............", "nn.............."
+  ], P),
+  rusty:  mk([
+    "................", "................", "............mt..", "...........mMH..",
+    "..........ttn...", "..........oH....", "........mMn.....", ".....t.tH.......",
+    ".....HaHH.......", "......Ha........", ".....hjHa.......", "....hj..........",
+    "...aj...........", "...A............", "................", "................"
+  ], P),
+  rose:   mk([
+    "......rrrr......", "....rrRrrrrr....", "...rRrrRRrrRr...", "...rrRRrrRrRR...",
+    "...RrrrrrRRRR...", "....RRrRRRRR....", ".....RRRRRR.....", "......GgG.......",
+    "......gGR.......", "..ggg.gG........", ".gGGGGgG........", "..GG..gG..ggg...",
+    ".....RgGgGGGG...", "......gG..GG....", "......gGR.......", "......gG........"
+  ], P),
+  ironthorn: mk([
+    "...........e..Mm", "............mMnL", "............MnLm", "........e..MnL.e",
+    ".........mMnL...", ".........MnLme..", ".....e..MnL.....", "......mMnL......",
+    "......MnLme.....", ".t...MnL........", ".Ht.MnL.........", "..HtnL..........",
+    "...Rt...........", "..RpHt..........", ".Rp..Ht.........", "nM.............."
+  ], P),
+  bentbar: mk([
+    "........emn.....", "........mMn.....", "........mtn.....", "........mMn.....",
+    "........mMn.....", "........mMn.....", ".......mMMn.....", "......mMMn......",
+    ".....mMtn.......", "....mMMn........", "...mMMn.........", "..mMtn..........",
+    ".mMMn...........", "mMMn............", "eMn.............", "................"
+  ], P),
+  hilt:   mk([
+    "................", "................", "................", "................",
+    "....uk...mM.....", ".....ak.emM.....", "......akmGn.....", ".......akM......",
+    "......YhGg......", ".....yw..aa.....", "....Yh..........", "...yw...........",
+    ".uYh............", "ukk.............", "kga.............", "aa.............."
+  ], P),
+  note:   mk([
+    "................", "................", "...e............", "...eee..eee.....",
+    "..eeeeeeeeeee...", "..eMMeMMeeMMem..", "..eeeeeeeeeeem..", ".eeMeMMeMMeeem..",
+    ".eeeeeeeeeeeem..", "..eMMeeMeeeeem..", "..eeeeeeeettem..", "..eMeMMeetHHt...",
+    "..eeeeeeetHt....", "...eee.eett.....", "....e....e......", "................"
+  ], P),
+  wolf:   mk([
+    "................", "....n.n.........", "....nMn........m", "..nMMMMnn.....mM",
+    ".nMxMMMnnnnnnnMn", "nMMMMMMnMMMMMMn.", "qeqeMMMnMMMMMMn.", ".nMMmMnMMMMMMMn.",
+    "...nmMnmMMMMMMn.", "....mmmmmmmmMn..", "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn",
+    "....Mn.Mn..Mn.Mn", "....Mn.Mn..Mn.Mn", "...nn.nn..nn.nn.", "................"
+  ], P),
+  lockbox: mk([
+    "................", "................", "................", "................",
+    "..hHHHHHHHHHHh..", "..HyyyyyyyyyyH..", "..nYYYYYYYYYYn..", "..nwwwwmmwwwwn..",
+    "..nwywmwwmwywn..", "..nwywMMMMwywn..", "..nwywMmmMwywn..", "..nwywMddMwywn..",
+    "..nwywMMMMwywn..", "..nwwwwwwwwwwn..", "..nnnnnnnnnnnn..", "................"
+  ], P),
+  paper:  mk([
+    "................", "..eeeeeeeem.....", "..eeeeeeeemm....", "..eeMMMMMemmm...",
+    "..eeeeeeeMMMMm..", "..eeeeeeeeeeem..", "..eeMMMMMMMMem..", "..eeeeeeeeeeem..",
+    "..eeMMMMMMMeem..", "..eeeeeeeeeeem..", "..eeMMMMMMMMem..", "..eeeeeeeeeeem..",
+    "..eeMMMMMeeeem..", "..eeeeeeeeeeem..", "..mmmmmmmmmmmm..", "................"
+  ], P),
+  crystal: mk([
+    "..e.....f.......", ".eee...eff......", "..e...effFF.....", "......eeffFb....",
+    ".....eeffFFb....", ".....efefFFb....", ".....fffeFFb....", ".....fffeffb....",
+    ".....ffffeFb....", "..f..ffffFFb....", "..ef.ffffFFb....", "..eff.ffFFb.....",
+    "...fF.ffFFb.....", "...fFb.fFF......", "....FF..F.......", "................"
+  ], P),
+  scrap:  mk([
+    "................", "................", "............e.e.", "...........emmMn",
+    "..........emmtMn", ".........emmmMn.", "........emmtHMn.", ".......emmmmMn..",
+    ".eeeeeemmmmMMn..", ".mmmmmmmmmMMn...", "emmtmmmmmMMn....", ".mmHtmmmmMn.....",
+    ".MMMMMMtMMn.....", ".nnnnnnnnn......", "................", "................"
+  ], P),
+  ember:  mk([
+    "................", "........x.......", ".......xo.......", "......xokx......",
+    "......okuo......", ".....xouukx.....", ".....okuuko.....", "....nnLokoLLL...",
+    "..nnnLLLxLLLLL..", ".nnLLLLxoLLLLLl.", ".nLLxxLLLxLLLLl.", ".nLxLLLLLoxLLLl.",
+    ".LLLLLLoLLLxlll.", "..lLLLLxLLLlll..", "...lllllllll....", "................"
+  ], P),
+  quiver: mk([
+    "........y.......", ".......eym......", ".....y.eym.y....", "....ryR.y.ryR...",
+    "....ryR.y.ryR...", "....hyjjyjjyh...", "....SSSSSSSSt...", ".....yHHHHHh....",
+    ".....yHHHHHh....", ".....JaJJJaj....", ".....yHHHHHh....", ".....yHHHHHh....",
+    ".....yHHHHHh....", ".....JaJJJaj....", ".....yHHHHHh....", "......hhhhh....."
+  ], P),
+  sling:  mk([
+    "............em..", "..........HmmmM.", ".........hHmmMnH", "........S.hHMnHh",
+    ".......S...hHHht", "......S.....hht.", ".....S.......t..", ".....S......t...",
+    "....S......t....", "....S.....t.....", "....S...tt......", "....tttt........",
+    ".ukt............", "u..k............", "k..a............", ".aa............."
+  ], P),   // a stone in the pouch, two cords looping down to the finger ring
+  wand:   mk([
+    "..............f.", ".............fef", "..............f.", "...........ef...",
+    "..........ffb...", ".........fbF....", ".........bF.....", "........Hh......",
+    ".......Hh.......", "......Hh........", ".....Hh.........", "....Hh..........",
+    "...Hh...........", "..ka............", "................", "................"
+  ], P),
+  staff2: mk([
+    "..............ef", "............mffF", "...........MffF.", "...........MfbF.",
+    "...........nnnn.", "..........yY....", ".........yY.....", "........yY......",
+    ".......yY.......", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "ww.............."
+  ], P),
+  scroll: mk([
+    "................", ".............S..", "............eSt.", "...........eesSt",
+    "..........eessS.", ".........eessS..", "........eessS...", ".......eessS....",
+    "......rrssS.....", ".....eerRSR.....", "....eessRr......", "...eessSR.......",
+    "..eessS.........", ".SSssS..........", "..tSS...........", "...t............"
+  ], P),
+  book:   mk([
+    "................", "..Rrrrrrrrrrr...", "..RrRpppppppRe..", "..RrRpppppppRe..",
+    "..RrRpppppppRe..", "..RrRpppupppRe..", "..RrRppkukppRe..", "..RrRpkkrkkpRe..",
+    "..RrRppkkappRe..", "..RrRpppapppRe..", "..RrRpppppppRe..", "..RrRpppppppRe..",
+    "..RrRpppppppRe..", "..RrRpppppppRe..", "..RRRRRRRRRRRe..", "...eeeeeeeeeee.."
+  ], P),
+  runeblade: mk([
+    "..............MM", "............MvnL", "...........MnVL.", "..........MVnL..",
+    ".........MnvL...", "........MvnL....", "...u...MnVL.....", "...k..MVnL......",
+    "...akMnvL.......", "....aknL........", ".....vV.........", "....Lvak........",
+    "...vl..akk......", ".Vvl............", ".vv.............", "v..............."
+  ], P),
+  trident: mk([
+    "...........e...e", ".........eeM..eM", ".........eM..eM.", "........eM..eM..",
+    ".......mM..eM..m", "........mMeM..mn", "........kmM..mnn", "........ukmMmn..",
+    ".......yYu.mM...", "......yY........", ".....yY.........", "....yY..........",
+    "...yY...........", "..yY............", ".yY.............", "ka.............."
+  ], P),
+  kris:   mk([
+    "...............m", ".............eM.", "............em..", "............eM..",
+    ".........eemmM..", ".........mMM....", "...u....em......", "...ku...eM......",
+    "....akemmM......", ".....akmM.......", ".....rak........", "....pR.aa.......",
+    "...rR...........", "kukR............", ".ka.............", "................"
+  ], P),
+  greatbow: mk([
+    ".........yyyyyuk", "......yymYYYYYk.", "....yyYYMhhhhe..", "...mmYhhn...e...",
+    "..ymMn.....e....", "..yYn.....e.....", ".yYh.....e......", ".yYh....e.......",
+    ".mMn...e........", "yYh...e.........", "yYh..e..........", "yYh.e...........",
+    "yYhe............", "yYe.............", "uk..............", "k..............."
+  ], P),
+  elvenbow: mk([
+    "..............kk", "..........gggg.u", "........ggkkkV..", "......ggkk..V...",
+    ".....ukk...V....", "....uk....V.....", "...gk....V......", "...gk...V.......",
+    "..gk...V........", "..gk..V.........", ".gk..V..........", ".gk.V...........",
+    ".gkV............", ".gV.............", "k...............", "ku.............."
+  ], P),
+  handxbow: mk([
+    "................", "..............e.", ".........Mm..m..", "........n.MmS...",
+    "........e..Mm...", "........e.yYMm..", "........eyY..M..", "........yYeen...",
+    ".......yY.......", "......yY........", "......Hhn.......", "......Hh........",
+    ".....Hh.........", ".....Hh.........", ".....nn.........", "................"
+  ], P),
+  lightxbow: mk([
+    "...............e", ".......Yy.....m.", "......w.Yy...S..", "......e..YyyS...",
+    "......e...Yyy...", "......e...HYy...", ".......e.Hh.Yy..", ".......eHh...Yy.",
+    ".......Hhe....Y.", "......Hh..eeew..", ".....Hh.........", "....Hh..........",
+    "...Hh...........", "..Hh............", ".Hh.............", "Hh.............."
+  ], P),
+  repeater: mk([
+    "..............me", ".......Mm.....mM", "......k.Mm...S..", "...ukkkk.MmmS...",
+    "...HyHHh..Mmm...", "...HyHHh..yMm...", "...HHHHh.yY.Mm..", "...HHHHhyY...Mm.",
+    "...akkkaYe....M.", "......yY..eeek..", ".....yYk........", "....yY.k........",
+    "...yYw..........", "..yYw...........", ".yYw............", "yYw............."
+  ], P),
+  labrys: mk([
+    "........eeem...e", ".......emMk...e.", "......emMk...mM.", "......eMkk.kka..",
+    "......mk..kua..m", "......m...ka..km", ".........hj.kknm", "........hj..knMm",
+    ".......hj..knMm.", "......hj..MMmm..", ".....hj.........", "....hj..........",
+    "...hj...........", "..ka............", ".uk.............", "ka.............."
+  ], P),
+  maul:   mk([
+    ".........mm.....", "........mMMm....", ".......mMnnMm...", ".......MnnMnMm..",
+    "........LnnnnMm.", ".........LnnMnML", ".........hLnnnLL", "........hj.LnLL.",
+    ".......hj...LL..", "......hj........", ".....HH.........", "....hj..........",
+    "...HH...........", "..hj............", ".hj.............", "nn.............."
+  ], P),
+  scepter: mk([
+    "........u..u..u.", "........k.kkk.k.", "........ukkkkkk.", "........kkirRka.",
+    "........kkrRRka.", "........aaaaaaa.", ".........ka.....", "........ka......",
+    ".......ka.......", "......ka........", ".....ka.........", "....ka..........",
+    "...uk...........", "...ka...........", "................", "................"
+  ], P),
+  archstaff: mk([
+    "..............Ve", "......u.....VeeV", "......ku...VVeVv", "......kku..VVvv.",
+    "......kkkukvvv..", "......a.a.ka....", ".........Yhu....", "........Yhaku...",
+    ".......Yh..kku..", "......ka..akkku.", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..ka............", ".Yh.............", "uk.............."
+  ], P),
+  tome:   mk([
+    "................", ".yyyyyyyyyyy....", ".hyhHHHHHHHHhe..", ".hHhHHHHHHHHhem.",
+    ".kukkkkkkkkkkkm.", ".hHhHHHHHHHHhem.", ".hHhHHHyyHHHhem.", ".hHhHHykkhHHhem.",
+    ".hHhHHykkhHHhem.", ".hHhHHHhhHHHhem.", ".hHhHHHHHHHHhem.", ".kukkkkkkkkkkkm.",
+    ".hHhHHHHHHHHhem.", ".hhhhhhhhhhhhem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  atlas:  mk([
+    "................", ".kkbbbbbbbbkk...", ".kFFFFFFFFFFke..", ".bFFFFffFFFFbem.",
+    ".bFFFfgffFFFbem.", ".bFFfggffgFFbem.", ".bFfeggfffgFbem.", ".bFffgffggfFbem.",
+    ".bFfffffgffFbem.", ".bFFfffgffFFbem.", ".bFFFffffFFFbem.", ".bFFFFffFFFFbem.",
+    ".kFFFFFFFFFFkem.", ".kkbbbbbbbbkkem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  grimoire: mk([
+    "................", ".kkVVVVVVVVkk...", ".kvvvvvvvvvvke..", ".Vvvvvvvvvvvvem.",
+    ".VvvvVVVVvvvvem.", ".VvvVeeeeVvvvem.", ".VvVeexdxeVvkkk.", ".VvVeexxxeVvkuk.",
+    ".VvvVeeeeVvvkkk.", ".VvvvVVVVvvvvem.", ".Vvvvvvvvvvvvem.", ".Vvvvvvvvvvvvem.",
+    ".kvvvvvvvvvvkem.", ".kkvvvvvvvvkkem.", "..eeeeeeeeeeeem.", "...mmmmmmmmmmm.."
+  ], P),
+  longstaff: mk([
+    "............VVv.", "...........VeVvv", "..........kVVvvv", "..........kvvvvv",
+    "..........akvvv.", "..........Yakk..", ".........Yh.....", "........Yh......",
+    ".......Yh.......", "......Yh........", ".....Yh.........", "....Yh..........",
+    "...Yh...........", "..Yh............", ".Yh.............", "kk.............."
+  ], P),
+  bow:    mk([
+    "................", "..........yyyyk.", "........yyYYYe..", "......yyYY..e...",
+    ".....wYY...e....", "....ww....e.....", "...yY....e......", "...yY...e.......",
+    "..yY...e........", "..yY..e.........", ".yY..e..........", ".yY.e...........",
+    ".yYe............", ".ye.............", ".k..............", "................"
+  ], P),
+  jacket: mk([
+    "................", ".....SS..SS.....", "...yySSjjSSyY...", "..yyyySjjSyyYY..",
+    ".SyyyyySYyyyYYY.", ".SyyyyytYyyyYYY.", ".Syy.yytYyy.YYY.", ".Syy.yytYyy.YYY.",
+    ".Syy.yytYyy.YYY.", ".Syy.yykYyy.YYY.", ".Syy.wwtYhh.YYY.", ".Syy.yytYyy.YYY.",
+    ".www.yytYyy.hhh.", ".....yytYyy.....", ".....wwtYhh.....", "................"
+  ], P),
+  ring:   mk([
+    "................", "................", "......irrR......", ".....ixrrRR.....",
+    ".....rrrrRR.....", ".....kRRRRa.....", "....ukk..kka....", "...uk......ka...",
+    "...u........a...", "..uk........aa..", "..uk........aa..", "..kk........aA..",
+    "...ka......aA...", "...kaa....aaA...", "....kaaaaaAA....", "......aaAA......"
+  ], P),
+  oldboots: mk([
+    "................", ".........HtHtH..", ".tSStS...Hhhhj..", ".yYYYH...Hhhhj..",
+    ".yYYYH...HJJhj..", ".yYqqH...HJJhj..", ".yYqqH...Hhhhj..", ".yYYYH...Hhhhj..",
+    ".yYYYH...Hhhhjj.", ".yYYYYH..Hhhhhhj", ".yYYYYYYHhhhhhhj", ".yYYYYYYYYHjjjjj",
+    ".yYYYYYYYYH.....", "jjjjjjjjjjj.....", "................", "................"
+  ], P),
+  boots:  mk([
+    "................", "................", "......SSSSt.....", "m.....tyyyY.....",
+    "Mm....yyyyY.....", "MMmm..yyyyY.....", "MMMMmmyyyyY.....", "MnMMnMyyyyYY....",
+    "n..n.MyyyyyYY...", "......yyyyyyyY..", "......yyyyyyyyY.", "......YYYYYYYYY.",
+    "......jjjjjjjjj.", "................", "................", "................"
+  ], P),
+  lid:    mk([
+    "................", "................", "................", "......nmMn......",
+    "......n..n......", "....emnmmnmM....", "..eemmmmmmmmMM..", ".emmmMMMMMMmmMM.",
+    ".emmMmmmnMmMmMMn", ".mmmMmmmMemnMMMn", ".MmmeeeeeeeeMMMn", "..MnnmmmmmmMMMn.",
+    "......MMMMMMMn..", ".......nnnnnn...", "................", "................"
+  ], P),
+  stone:  mk([
+    "................", "................", "................", "................",
+    ".....mmmmmmmmm..", "...mmeeemmmmmmMn", "..mmmmmmmmmMmMMn", ".MmmmmmmmmmmMMnn",
+    ".MMMMMMMMMMMMnnL", ".MMnMMMMMMnMMnnL", ".nMMMMMMMMMMnnL.", ".nnMMMMnMMMnnLL.",
+    "..nnnnnnnnnnLL..", "................", "................", "................"
+  ], P),
+  fang:   mk([
+    ".....tttt.......", "....tSSSSt......", "....tttttt......", ".....eeeeem.....",
+    ".....eeeeem.....", "......eeeem.....", "......eeeem.....", ".......eeem.....",
+    ".......eeem.....", "........eem.....", "........eem.....", ".........em.....",
+    ".........em.....", "..........m.....", "..........g.....", "................"
+  ], P),
+  tail:   mk([
+    "................", "............ii..", "..............ip", ".............ii.",
+    "...........iiip.", "..........ii....", ".........ii.....", ".........ii.....",
+    "..........ii....", "..........iip...", ".........ii.....", ".......iii......",
+    "...nMnni........", "..nMnnn.........", "...nnn..........", "................"
+  ], P),
+  chitin: mk([
+    "................", "................", ".....JJJJJJ.....", "...JeeeJJJJJJ...",
+    "..JeeeJJJJJJJJ..", ".JjjjjjjjjjjjjJ.", ".JJaaJJJJJJJJJJ.", ".JJJJJJJJJJJJJJ.",
+    ".JjjjjjjjjjjjjJ.", "..JJJJJJJJJJjJ..", "..JJJJJJJJJJJj..", "..jjjjjjjjjjjj..",
+    ".....JJJJJJ.....", "................", "................", "................"
+  ], P),
+  pelt:   mk([
+    "................", ".mm..........Mn.", ".mMM...mm...MMn.", "..mMMmmMMMnMMn..",
+    "...mMMMMMMMMMn..", "...mMmmMMMMMMn..", "..mMMMMmMMMMMMn.", "..mMMMMMMMMMnMn.",
+    "..mMmmMMMMMMMMn.", "...mMMmMMMMnMn..", "...mMMMMMMMMMn..", "..mMMMMMMMMnMMn.",
+    ".mMMn.nMMMn.nMn.", ".mMn...nMn...nn.", "........Mn......", ".........m......"
+  ], P),
+  sticks: mk([
+    "...............S", ".hY...........SY", "..wY.........yY.", "...wY.......yY..",
+    "....wY.....yY...", ".....wYsS.yY....", "......wstyY.....", ".....sssSSt.....",
+    ".....SSSttt.Y...", "...y..yStwYw....", "....YyYSt.wY....", "....yY.....wY...",
+    "...yY.......wY..", "..yY.........wY.", ".SY...........wY", "................"
+  ], P),
+  silk:   mk([
+    ".......m........", ".......m........", "......mem.......", "......eeM.......",
+    ".....eeemM......", ".....mmeeM......", "....eeemmmM.....", "....eeeeemM.....",
+    "....mmeeemmM....", "....eemmeemM....", "....eeeemmmM....", "....emeeeemM....",
+    ".....emmeemM....", ".....eeemmM.....", "......eemM......", "........m......."
+  ], P),
+  gland:  mk([
+    ".......G........", "........g.......", "........G.......", "......gggg......",
+    "....gggggggg....", "...ggeegggggg...", "...ggegggGGGg...", "..ggVgggggGGGg..",
+    "..ggggggggGGGg..", "..gggggggggGGG..", "...ggggggggGGG..", "...gggggggGGG...",
+    "....gggggGGG....", "......GGGG......", ".......g........", ".......G........"
+  ], P),
+  wing:   mk([
+    "................", "..........e.....", "..........mm....", ".......mmenmm...",
+    "......mnmmnmnm..", ".....mnmnmnmnnm.", "....mnmnnmnmnnnm", "..mmLLmLLmLLmLL.",
+    ".mLLLmLLmLLLmL..", "mLLLmLLLmLLLmL..", "LLLmLLLLmLLLm...", "LLLmLLLLmL..Lm..",
+    "..mL..LmL....m..", ".......m........", ".......m........", "................"
+  ], P),
+  shaft:  mk([
+    "..............yw", ".............Sy.", "............SyY.", "...........SyY..",
+    "..........SyY...", ".........SyY....", "........SyY.....", ".......SyY......",
+    "......SyY.......", ".....SyY........", "....SyY.........", "...SyY..........",
+    "..SyY...........", ".SyY............", "MyY.............", "nM.............."
+  ], P),
+  pet:    mk([
+    "................", "................", "................", "................",
+    "....Mi..........", "...Miim.mmmm....", "..mMMMrmMMMMm...", ".mMdMMrMMMMMMm..",
+    "imMMMMrMMMMMMMn.", ".nnMMnRMMMMMMMn.", "..nnnnRnMMMMMn.i", "...i..kinnnnn.i.",
+    "........i..iii..", "................", "................", "................"
+  ], P),   // the Builds companion: dark eye, red collar
+  potion: mk([
+    "......SyyY......", "......yYYw......", ".....mmmmmM.....", "......mLLM......",
+    ".....mLLLLM.....", "....mLLLLLLM....", "...meLLLLLLLM...", "..meLLLLLLLLLM..",
+    "..mxxxxxxrrrrM..", "..mirrrrrrrrRM..", "..mirrrrrrrrRM..", "..mrrrrrrrrRRM..",
+    "..MrrrrrrrrRRM..", "...MrrrrrrRRM...", "....MRRRRRRM....", ".....MMMMMM....."
+  ], P),
+  arrows: mk([
+    ".........mee.mee", "..........mM..mM", ".........y.M.y.M", "........y...y...",
+    ".......y...y....", "......y...y.....", ".....y...y......", "....y...y.......",
+    "..ry...y........", ".ryR..y.........", "ryR..y..........", "mR..y...........",
+    "..ry............", ".ryR............", "ryR.............", "mR.............."
+  ], P),
+  // foes
+  snake:  mk([
+    "........GGG.....", ".......GggGGG...", ".......GggxggGG.", ".......GggGGGGG.",
+    ".......GgRRRe...", ".......GgRe.....", ".......GgaaaG...", "........GaaG....",
+    ".......GgaG.....", "......GgaG......", "......GGgaG.....", "..GGGGGGGgaGG...",
+    ".GgggggGGgggGG..", "GggGGGGGGGGGggG.", "GgaaGGGGGGGGaagG", ".GGGaaaaaaaaGG.G"
+  ], P),
+  mother: mk([
+    ".....k.kk.k.....", ".....kukkuk.....", "...A.akkkka.A...", "..AAaeaaaaaaAA..",
+    ".AAaeaaaaaaaaAA.", ".AkaxxaaaaxxakA.", "AAkAaaaaaaaaAkAA", "AAAkAaaRRaaAkAAA",
+    "AAAAkAeRReAkAAAA", ".AAAAAarraAAAAA.", "..AAAAakkaAAAA..", "....aakkkaAA....",
+    "..aeaaakkaaaaA..", ".AAAAAAAAAAAAAA.", "aeaakaaaaakaaaaA", ".AAAAAAAAAAAAAA."
+  ], P),
+  rat:    mk([
+    "................", "................", "................", "................",
+    "................", "..........mM....", ".........miiM...", ".....mmmmmiiMn..",
+    "...mmMMMMMMMMMn.", "..mMMMMMMMMMxMMn", "..MMMMMMMMMMMMMi", ".nMMMMMMMMMMMnn.",
+    "inMMMMMMMMMnn...", "i.nnnnnnnnnn....", ".i..ii...ii.....", "..ii............"
+  ], P),
+  roach:  mk([
+    ".J............J.", "..J..........J..", "...J........J...", "....J.hhhh.J....",
+    ".....JhHHhJ.....", "h...hSyyyyYh...h", ".h.hSeyyyyyYh.h.", "..hHyyyyyyyYHh..",
+    "...HHHHHHHHHH...", "h.HyyYYYhYYYYH.h", ".hHyYYYYhYYYYHh.", "..HySYYYhYYYYH..",
+    ".hHyYYYYhYYYYHh.", "h.HyYYYYhYYYHH.h", "...HHYYYhYYHH...", ".....HHHhHHH...."
+  ], P),
+  shadow: mk([
+    "......nnnn......", "....nnLLLLll....", "...nLLLLLLLLl...", "..nLLLlllllLLl..",
+    "..nLLlqqqqqlLl..", ".nLLlqqqqqqqlLl.", ".nLLqqxqqxqqLLl.", ".nLLqqqqqqqqLLl.",
+    ".nLLlqqqqqqlLLl.", "nLLLLlqqqqlLLLll", "nLLLLLLllLLLLlll", "nLLLLLLLLLLLLll.",
+    ".nLLLLLLLLLLlll.", ".nLLLlLLLLlLlll.", "..nLl.LLl.Lll.l.", "..n...Ll...l...."
+  ], P),
+  mimic:  mk([
+    "................", "..kyyyykkyyyyk..", ".kSSyyykkyyyyYk.", ".kyyyyykkyyyyYk.",
+    ".akkkkkkkkkkkka.", ".hReeRReeRReeRh.", ".hqqeqqeeqqeqqh.", ".hqeqqrrrrqqeqh.",
+    ".hReeRrrrrReeRh.", ".akkkkrrrpkkkka.", ".kyyyyyrrpyyyYk.", ".kSyyyyyrpyyyYk.",
+    ".kyyyyykrpkyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+  ], P),
+  swarm:  mk([
+    "................", "...........mM...", "..i....mmmmmiM..", ".i...mMMMMMMMMn.",
+    ".i.mmMMMMMMMMxMn", "..iMMMMMMMMMMMMi", "..Mi.nnnnnnnnnn.", ".MMMMMMMM..mi...",
+    "nxnnnnnmmmmmmmM.", "innnnnnmmmmmmxmM", ".nnnnnnmmmmmmmmi", "..LLLLLMmmmmmMM.",
+    "..i.i.iMMMMMMM..", "....ii..i.i.i.i.", "..ii............", "................"
+  ], P),
+  spider: mk([
+    "..M..........M..", "...M........M...", "....n.nLLl.n....", ".MM..nLLLLl..MM.",
+    "M..MnLxLLxlnM..M", ".....nLxxLn.....", ".....nlLLln.....", "...MnnLLLLlnM...",
+    ".MM.nnLLLLLl.MM.", "M...nLLLLLLl...M", "...MLLLLLLllM...", "...MLLLLLlllM...",
+    "..M..LLLlll..M..", "..M...llll...M..", ".M............M.", "................"
+  ], P),
+  bat:    mk([
+    "................", "................", "................", ".....n....n.....",
+    ".....ni..in.....", "m....nnnnnn....m", "mm...nxnnxn...mm", "MMm..nnnnnn..mMM",
+    "MMMmmnnnnnnmmMMM", "MMMMMMnnnnMMMMMM", "MnMMnMnnnnMnMMnM", "n..n.M.nn.M.n..n",
+    "......n..n......", "................", "................", "................"
+  ], P),
+  mold:   mk([
+    "....v......V....", ".V.....v.......v", "......g.g.v.....", "..v..gggggg.....",
+    "....gggVggggg...", "...ggeggggggGg..", "..gggggggggggGg.", ".ggggxggggxgggG.",
+    ".gegxxgggxxgvGG.", "ggggggggggggGGGg", "gggvgggggGgggGGG", "ggggGGGGGGGgGGGG",
+    ".gGgggggggggVGG.", "GGgGGgGGgGGGGGGG", ".G.GG.G..G.GG.G.", "................"
+  ], P),
+  bucket: mk([
+    "................", "....nMMMMMMn....", "...n........n...", "..n..........n..",
+    ".emmmmmmmmmmmmM.", ".mllllllllllllM.", ".emmmmmmmmmmmMn.", "..emmmmmmmmmMn..",
+    "..emnmmmmmmnMn..", "..emmnnmmnnmMn..", "..emmxxmmxxmMn..", "..emmmmmmmmmMn..",
+    "..emmmddddmmMn..", "..emmdededdmMn..", "...emmmmmmmMn...", "...MMMMMMMMMn..."
+  ], P),
+  mop:    mk([
+    "..............yY", ".............yY.", "............yY..", "...........yY...",
+    "..........yY....", ".........yY.....", "........yY......", ".....akkkkka....",
+    "....akkkkkkka...", "...mmmMmmMmmMn..", "..mmxdmmmmxdMMn.", "..mmmMmmmMmmMMn.",
+    ".mmMmmMmmMmmMmMn", ".mMmmMmmMmMmMmMn", ".m.mM.mMm.mMm.M.", "m..m..M..m..M..n"
+  ], P),
+  // classes and races
+  shield: mk([
+    "................", ".emmmmmmmmmmmmM.", ".mmMMMMrRMMMMnM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mrrrrrrrrrrrRM.", ".mRRRRRrRRRRRRM.", ".mMMMMMrRMMMMnM.",
+    ".mMMMMMrRMMMMnM.", ".mMMMMMrRMMMnnM.", "..mMMMMrRMMMnM..", "..mMMMMrRMMnnM..",
+    "...mMMMrRMMnM...", "....mMMrRMnM....", ".....mMrRnM.....", "......mMMM......"
+  ], P),
+  staff:  mk([
+    "............VVv.", "...........VeVvv", "..........kVVvvv", "..........kvvvvv",
+    "..........kkvvv.", ".........yYkk...", "........yY......", ".......yY.......",
+    "......yY........", ".....yY.........", "....yY..........", "...yY...........",
+    "..yY............", ".yY.............", "yY..............", "k..............."
+  ], P),
+  orb:    mk([
+    "................", ".....VVVVvv.....", "....VeeVvvvv....", "...VeVVvvvvvv...",
+    "...VVVvvvvvvv...", "...VVvvvVvvvL...", "...vvvvVVvvvL...", "...vvvvvvvvLL...",
+    "....vvvvvvLL....", ".....vvvvLL.....", "....kkkkkkkk....", ".....yyyyYY.....",
+    "......yyYY......", ".....yyyyYYY....", "....yyyyyyYYY...", "....wwwwwwwww..."
+  ], P),
+  player: mk([
+    ".....m..m.M.....", ".....mmmmmM.....", "....mMmmmmMM....", "....mMMsssMM....",
+    "....MsdssdsM....", ".....sssssS.....", "......ssSS......", "....eeeeeemm....",
+    "...eeeeeeemmm...", "...eeeeeeemmm...", "...seeeeeemmS...", ".....LLLLLl.....",
+    ".....LL..Ll.....", ".....LL..Ll.....", ".....LL..Ll.....", "....hhh..hhh...."
+  ], P),
+  cat:    mk([
+    "....o......y....", "....oi....iy....", "....oooooooy....", "....oooooooy....",
+    "....oodoodoy....", "....ooeiieoy....", "......oeey......", "....bbbbbbFF....",
+    "...obbbbbbFFy...", "...obbbbbbFFy...", "...obbbbbbFFy...", ".....LLLLLly.o..",
+    ".....LL..Ll.oo..", ".....LL..Ll.....", ".....LL..Ll.....", "....ooo..ooo...."
+  ], P),
+  dwarf:  mk([
+    "......mmmM......", "....emmmmmMn....", "....mmmmmmMn....", "...MMMMMMMMMn...",
+    "....ysdssdsy....", "....yyysSyyY....", "....yyyyyyyY....", "...rryyyyyYRR...",
+    "...rrryyyYRRR...", "...rrrryYRRRR...", "...skkkkkkkkS...", ".....nnnnnn.....",
+    ".....nn..nn.....", ".....nn..nn.....", ".....nn..nn.....", "....hhh..hhh...."
+  ], P),
+  elf:    mk([
+    "................", ".....ukkkkk.....", "....ukkkkkka....", "..s.kssssssa.s..",
+    "...sksdssdsas...", "....ksssssSa....", "....kkssSSaa....", "....gggggGGG....",
+    "...ggggggGGGG...", "...ggggggGGGG...", "...sYYYYYYYYS...", ".....GGGGGG.....",
+    ".....GG..GG.....", ".....GG..GG.....", ".....GG..GG.....", "....hhh..hhh...."
+  ], P),
+  fish:   mk([
+    ".......bb.......", ".....fbffbf.....", "..b.ffffffFF.b..", "..bbeeffffeebb..",
+    "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
+    "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
+    ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
+  ], P)
+};
+/* shop extras: the Stars star and the pouch (as in 01), both chests (as in 03), and drawn for this screen: the currencies,
+   the keeper and the supplies. 16×16, lit from the top-left, no black outline */
+const CHEST = [
+  "................", "................", "..kyyyykkyyyyk..", ".kSSyyykkyyyyYk.",
+  ".kSyyyykkyyyyYk.", ".kyyyyykkyyyyYk.", ".kYYYYYkkYYYYYk.", ".akkkkuuuukkkka.",
+  ".kyyyyukkayyyYk.", ".kSyyyukqayyyYk.", ".kyyyyukqayyyYk.", ".kyyyyaaaAyyyYk.",
+  ".kyyyyyyyyyyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+], CHEST_OPEN = [
+  "..kkkkkkkkkkkk..", ".kjhhhhhhhhhhjA.", ".kjwwwwwwwwwwjA.", ".akkkkkkkkkkkkA.",
+  ".kqqqqqqqqquqqa.", ".kqqqqqqqqueuqa.", ".kqqqqqqqqquqqa.", ".akkkkuuuukkkka.",
+  ".kyyyyukkayyyYk.", ".kSyyyukqayyyYk.", ".kyyyyukqayyyYk.", ".kyyyyaaaAyyyYk.",
+  ".kyyyyyyyyyyyYk.", ".kYYYYYYYYYYYYk.", ".akkkkkkkkkkkka.", "................"
+];
+const PC = { ...P, k:"#83869a", y:"#3a3340", S:"#5e5f6a", Y:"#241f28", u:"#c9bdf2", a:"#5e5f6a", A:"#241f28",   // the component chest:
+  q:"#8f7ad1", h:"#3a3340", j:"#241f28", w:"#5e5f6a" };                                                        // iron, a violet lock and glow
+function layer(base, rows) { const c = document.createElement("canvas"); c.width = c.height = 16; const g = c.getContext("2d"); g.drawImage(base, 0, 0); g.drawImage(mk(rows, P), 0, 0); return c; }
+Object.assign(SPR, {
+  chest: mk(CHEST, P), open: mk(CHEST_OPEN, P), pchest: mk(CHEST, PC), popen: mk(CHEST_OPEN, PC),
+  star:   mk([
+    "................", ".......u........", "......uuk.......", "......uuk.......",
+    ".....uuukk......", ".....ueukk......", "uuuuuuuukkkkkkk.", ".uuuuuuukkkkka..",
+    "..uuuuuukkkka...", "...uuuuukkka....", "...uuuukkkkk....", "..uuuukkkkkkk...",
+    "..uuuka..akkka..", ".uuuka.....akka.", ".uua.........aa.", "................"
+  ], P),
+  pouch:  mk([
+    ".............e..", "............eue.", ".............e..", ".....SSHHHh.....",
+    "....SSSHSHHh....", ".....SHSHHh.....", "......hHHh......", ".....rrrrrRR....",
+    "....HHrRrRHh....", "...HHSrHHRHHh...", "..HSSSrHHRHHHh..", ".HSSSHHHHHHHHhh.",
+    ".HSSHHHHHHHHHhh.", ".HHHHHHHHHHHhhh.", "..hHHHHHHHHhhh..", "...hhhhhhhhhh..."
+  ], P),
+  coin:   mk([
+    "................", "................", "......uuuk......", "....uukkkkkk....",
+    "...ukkaaaakkk...", "...ukakkkkaka...", "..ukakkkkkkaka..", "..ukakkaakkakA..",
+    "..ukakkaakkakA..", "..kkakkkkkkaaA..", "...kkakkkkaaA...", "...kkkaaaaaaA...",
+    "....akaaaaAA....", "......AAAA......", "................", "................"
+  ], P),
+  gem:    mk([
+    "................", "................", "....VVVVVVvv....", "...VeVVVVvvvv...",
+    "..VeVVVVVvvvvL..", ".VVVVVVVVVVVVLL.", ".vVvvvvvvvvLLLL.", "..vVvvvvvvLLLL..",
+    "...vVvvvvLLLL...", "....vVvvLLLL....", ".....vVvLLL.....", "......vvLL......",
+    ".......vL.......", "................", "................", "................"
+  ], P),
+  keeper: mk([
+    "......LLLL......", ".....LnnnLl.....", "....LnLLLLLl....", "...LnLssssLLl...",
+    "...LLsdssdsLl...", "...LLssSssSLl...", "...LLmeeeemLl...", "..LLLeeeeemLLl..",
+    "..LkLmeeeemLkl..", ".nLkLLmeemLLkLl.", ".nLkLLLmmLLLkLl.", ".nLkLLLLLLLLkLl.",
+    ".LLkLLLLLLLLkLl.", ".lLkkkkkkkkkkLl.", ".llllllllllllll.", "................"
+  ], P),
+  sack:   mk([
+    "................", "................", "......hHHh......", ".......kk.......",
+    "......HSSH......", ".....HSSSHh.....", "....HSSSSHHh....", "...HSSSSSHHHh...",
+    "..HSSSSSSHHHHh..", "..HSSSSSHHHHHh..", "..HSSSSHHHHHhh..", "..HSSSHHHHHHhh..",
+    "..hHHHHHHHHhhh..", "...hhhhhhhhhh...", "................", "................"
+  ], P),
+  glass:  mk([
+    "................", "..SyyyyyyyyyyY..", "...Smeeeeeemh...", "...SmkkkkkkMh...",
+    "...S.mkkkkM.h...", "...S..mkkM..h...", "...S...mM...h...", "...S...kM...h...",
+    "...S...mM...h...", "...S..mekM..h...", "...S.mekkkM.h...", "...SmkkkkkkMh...",
+    "...SmkkkkkkMh...", "..SyyyyyyyyyyY..", "................", "................"
+  ], P),
+  frame:  mk([
+    "................", ".uuuuuuuuuuuuuk.", ".ukkkkkkkkkkkka.", ".ukqqqqqqqqqqaA.",
+    ".ukqqqqLLqqqqaA.", ".ukqqqLLLLqqqaA.", ".ukqqqLLLLqqqaA.", ".ukqqqqLLqqqqaA.",
+    ".ukqqqLLLLqqqaA.", ".ukqqLLLLLLqqaA.", ".ukqLLLLLLLLqaA.", ".ukqLLLLLLLLqaA.",
+    ".ukqqqqqqqqqqaA.", ".kaaaaaaaaaaaaA.", ".AAAAAAAAAAAAAA.", "................"
+  ], P)
+});
+SPR.seal = layer(SPR.paper, [   // loot insurance: the almanac's paper with a wax seal
+  "................", "................", "................", "................",
+  "................", "................", "................", "................",
+  "................", "................", "..........rrr...", ".........rxrrR..",
+  ".........rrrRR..", ".........rrRRR..", "..........RRR...", ".........R...R.."
+]);
+const urls = {};
+const sprURL = k => urls[k] || (urls[k] = SPR[k].toDataURL());
+const img = (k, cls) => SPR[k] ? `<img${cls ? ` class="${cls}"` : ""} src="${sprURL(k)}" alt="">` : "";
+const SIL = "#463d46", SIL_MET = "#6c6170";   // unknown recipe / creature met once
+const sils = {};
+function silURL(k, col) {   // the sprite's shape in one flat colour
+  const id = k + col;
+  if (!sils[id]) {
+    const s = SPR[k], c = document.createElement("canvas"); c.width = s.width; c.height = s.height;
+    const g = c.getContext("2d"); g.drawImage(s, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = col; g.fillRect(0, 0, c.width, c.height);
+    sils[id] = c.toDataURL();
+  }
+  return sils[id];
+}
+const sil = (k, col) => SPR[k] ? `<img src="${silURL(k, col)}" alt="">` : "?";
+document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+
+// stack counts in a 3×5 pixel font with a drop shadow, as in Builds (Pixelify's small 2 and 5 read as 8 and S)
+const DIGITS = ["#####.##.##.###", ".#.##..#..#.###", "###..#####..###", "###..#.##..####", "#.##.####..#..#",
+                "####..###..####", "####..####.####", "###..#..#.#..#.", "####.#####.####", "####.####..####"];
+const counts = {};
+function countImg(q) {
+  if (!counts[q]) {
+    const s = String(q), c = document.createElement("canvas"); c.width = s.length * 4; c.height = 6;
+    const g = c.getContext("2d");
+    [["#000", 1], ["#ece3d2", 0]].forEach(([col, o]) => {   // shadow first, then the digit
+      g.fillStyle = col;
+      [...s].forEach((d, k) => [...DIGITS[d]].forEach((p, j) => { if (p === "#") g.fillRect(k * 4 + j % 3 + o, (j / 3 | 0) + o, 1, 1); }));
+    });
+    counts[q] = { src: c.toDataURL(), w: c.width * 2, h: c.height * 2 };
+  }
+  const n = counts[q];
+  return `<img class="n" src="${n.src}" width="${n.w}" height="${n.h}" alt="">`;
+}
+
+/* ================= mask icons (take currentColor) ================= */
+const MASK = {
+  back:   ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
+  lock:   ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
+  plus:   ["..##..","..##..","######","######","..##..","..##.."],
+  play:   ["##....","####..","######","######","####..","##...."]
+};
+const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1)), masks = {};
+function maskURL(k, cell) {
+  const id = k + cell;
+  if (!masks[id]) {
+    const rows = MASK[k], s = cell * DPR;
+    const c = document.createElement("canvas"); c.width = rows[0].length * s; c.height = rows.length * s;
+    const g = c.getContext("2d"); g.fillStyle = "#fff";
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === "#") g.fillRect(x * s, y * s, s, s); }));
+    masks[id] = c.toDataURL();
+  }
+  return masks[id];
+}
+const ico = (k, cls, s) => `<i class="ico${cls ? " " + cls : ""}" style="--m:url('${maskURL(k, s || 2)}')" aria-hidden="true"></i>`;
+document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m", `url("${maskURL(el.dataset.ico, +(el.dataset.s || 3))}")`));
+document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+document.querySelectorAll("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
+
+/* ================= shared: narrator, toasts (GDE-00) ================= */
+function narrate(key, text, host) {   // italic, muted, under the strip; once per player
+  if (once.has("narrate." + key)) return false;
+  once.add("narrate." + key);
+  const p = document.createElement("p"); p.className = "narr"; p.textContent = text; host.after(p);
+  return true;
+}
+let toastT = 0, toastNext = null;
+function toast(type, text) {   // recipe | unlock, and stub for prototype placeholders (as in 01): at the top for 2 s; one waits at most
+  if (toastT) { toastNext = [type, text]; return; }
+  const el = $("toast");
+  el.className = "toast " + type; el.textContent = text; el.hidden = false;
+  toastT = setTimeout(() => { el.hidden = true; toastT = 0; const n = toastNext; toastNext = null; if (n) toast(...n); }, 2000);
+}
+const haptic = k => { if (window.GY && window.GY.haptic) window.GY.haptic(k); };
+
+/* ================= the keeper's strip (pixel art, 3 screen px per art px) ================= */
+const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
+function glow(g, x, y, r, rgb, a) {
+  const gr = g.createRadialGradient(x, y, 1, x, y, r);
+  gr.addColorStop(0, `rgba(${rgb},${a})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+}
+const SCENES = {
+  stall(g, W, H) {   // the locked stall in 01, open: an awning, shelves of jars, the keeper behind a counter of goods
+    const fy = H - 5;
+    const planks = ["#2e2620", "#2a221c", "#322a23", "#2c241e"];
+    for (let x = 0, i = 0; x < W; x += 7, i++) { g.fillStyle = planks[hash(i + 41) % 4]; g.fillRect(x, 0, 6, fy); g.fillStyle = "#1c1612"; g.fillRect(x + 6, 0, 1, fy); }
+    g.fillStyle = "#151215"; g.fillRect(0, fy, W, H - fy);
+    const bw = 54, bx = W - bw - 5, top = Math.max(1, fy - 40), ct = fy - 11, lx = bx + bw - 8;   // the stall, its counter top, the lantern
+    g.fillStyle = "#1e1714"; g.fillRect(bx, top + 6, bw, ct - top - 6);
+    glow(g, lx, top + 12, 34, "255,190,110", .45);
+    const sy = top + 16;   // a shelf of jars behind the keeper
+    g.fillStyle = "#5a3a22"; g.fillRect(bx + 2, sy, bw - 4, 1); g.fillStyle = "#3a2616"; g.fillRect(bx + 2, sy + 1, bw - 4, 1);
+    [[4, "#cf4656"], [8, "#5f9aa6"], [12, "#7aa266"], [bw - 16, "#8f7ad1"], [bw - 12, "#d98a3d"], [bw - 8, "#cf4656"]].forEach(([dx, c], i) => {
+      const h = 3 + hash(i + 7) % 2;
+      g.fillStyle = c; g.fillRect(bx + dx, sy - h, 3, h);
+      g.fillStyle = "#c4c6cf"; g.fillRect(bx + dx, sy - h - 1, 3, 1);
+      g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(bx + dx, sy - h, 1, 1);
+    });
+    g.drawImage(SPR.keeper, bx + (bw >> 1) - 8, ct - 12);   // only his head and shoulders clear the counter
+    for (let x = bx - 3, i = 0; x < bx + bw + 3; x += 4, i++) { g.fillStyle = i % 2 ? "#3a2a2e" : "#6a2e36"; g.fillRect(x, top, 4, 5); g.fillStyle = i % 2 ? "#2a1e22" : "#4e2028"; g.fillRect(x, top + 5, 4, 1); }   // awning
+    g.fillStyle = "#3a2616"; g.fillRect(bx - 2, top + 6, 2, ct - top - 6); g.fillRect(bx + bw, top + 6, 2, ct - top - 6);   // posts
+    g.fillStyle = "#8a5a30"; g.fillRect(lx, top + 6, 1, 3); g.fillStyle = "#e8bf55"; g.fillRect(lx - 1, top + 9, 3, 4); g.fillStyle = "#ffe9a8"; g.fillRect(lx, top + 10, 1, 2);
+    g.fillStyle = "#a3713c"; g.fillRect(bx - 3, ct, bw + 6, 1); g.fillStyle = "#6e4426"; g.fillRect(bx - 3, ct + 1, bw + 6, 2);   // counter
+    g.fillStyle = "#4a3020"; g.fillRect(bx - 1, ct + 3, bw + 2, fy - ct - 3);
+    g.fillStyle = "#3a2616"; for (let x = bx + 3; x < bx + bw - 2; x += 8) g.fillRect(x, ct + 4, 1, fy - ct - 5);
+    g.fillStyle = "#c4c6cf"; g.fillRect(bx + 6, ct - 5, 2, 1); g.fillStyle = "#cf4656"; g.fillRect(bx + 5, ct - 4, 4, 4); g.fillStyle = "#ff8a8a"; g.fillRect(bx + 5, ct - 4, 1, 1);   // a potion
+    g.fillStyle = "#8c7a3a"; g.fillRect(bx + 12, ct - 1, 5, 1); g.fillStyle = "#e8bf55"; g.fillRect(bx + 12, ct - 2, 5, 1);   // coins
+    g.fillStyle = "#8c7a3a"; g.fillRect(bx + 13, ct - 3, 4, 1); g.fillStyle = "#f3d36b"; g.fillRect(bx + 13, ct - 4, 4, 1);
+    const cx = bx + bw - 13;   // a small chest
+    g.fillStyle = "#7d5228"; g.fillRect(cx, ct - 5, 8, 5); g.fillStyle = "#a3713c"; g.fillRect(cx, ct - 5, 8, 1);
+    g.fillStyle = "#e8bf55"; g.fillRect(cx, ct - 3, 8, 1); g.fillRect(cx + 3, ct - 4, 2, 2);
+  }
+};
+function paintStrip(el) {
+  const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
+  const S = 3, W = Math.ceil(w / S), H = Math.ceil(h / S), key = W + "x" + H;
+  if (el._key === key) return; el._key = key;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+  SCENES[el.dataset.scene](g, W, H);
+  el.style.backgroundImage = `url(${c.toDataURL()})`;
+  el.style.backgroundSize = `${W * S}px ${H * S}px`;
+}
+const ro = "ResizeObserver" in window ? new ResizeObserver(es => es.forEach(e => paintStrip(e.target))) : null;
+
+/* ================= rules ================= */
+const N = n => `<span class="num">${n}</span>`;   // a number inside Pixelify text
+const have = k => save.bag.reduce((s, x) => s + (x.key === k ? x.n : 0), 0);
+const snap = () => Object.fromEntries(save.bag.map(x => [x.key, have(x.key)]));
+const known = r => save.recipes.includes(r.out);
+const revealed = r => known(r) || !r.hint;
+const short = r => r.in.filter(([k, n]) => have(k) < n);
+const canMake = () => RECIPES.filter(r => !short(r).length);
+function give(k, n) { const x = save.bag.find(y => y.key === k); if (x) x.n += n; else save.bag.push({ key: k, n }); }
+const owned = sku => shop.owned.includes(sku);
+let devCrown = false;   // the notes' switch: as if the Bone crown were in the bag
+const hasCrown = () => have("bonecrown") > 0 || devCrown;
+const day = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;   // local date
+const dayNo = () => { const d = new Date(); return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
+const midnight = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); };
+const dur = ms => ms >= 36e5 ? t("in.h", { n: Math.ceil(ms / 36e5) }) : t("in.m", { n: Math.max(1, Math.ceil(ms / 6e4)) });
+const clock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+const FMT = { left: ms => t("left", { t: dur(ms) }), next: ms => t("daily.next", { t: dur(ms) }), clock };
+const until = (at, fmt, cls) => `<span class="${cls}" data-until="${at}" data-fmt="${fmt}">${FMT[fmt](at - Date.now())}</span>`;   // the ticker keeps it running
+
+function offerNow() { const o = shop.offer; return o && o.until > Date.now() ? OFFERS.find(x => x.id === o.id) || null : null; }
+function trigger(kind, force) {   // a trigger starts its offer, unless another one is still running (one at a time)
+  if (offerNow() && !force) return null;
+  const o = OFFERS.find(x => x.trigger === kind || x.id === kind); if (!o) return null;
+  shop.offer = { id: o.id, until: Date.now() + o.hours * 36e5 }; persist(true);
+  return o;
+}
+
+/* every sku: what it is, its currency and its price */
+const GOODS = {};
+GEM_PACKS.forEach(p => { GOODS[p.sku] = { ...p, cat: "pack", cur: "stars", price: p.stars }; });
+GOODS[STARTER.sku] = { ...STARTER, cat: "starter", cur: "stars", price: STARTER.stars };
+OFFERS.forEach(o => { GOODS[o.sku] = { ...o, cat: "offer", cur: "stars", price: o.stars }; });
+CATALOG.heroes.forEach(h => { GOODS[h.sku] = { ...h, cat: "hero", cur: "gems", price: h.gems }; });
+CATALOG.bundles.forEach(b => { GOODS[b.sku] = { ...b, cat: "bundle", cur: "gems", price: b.gems }; });
+CATALOG.supplies.forEach(s => { GOODS[s.sku] = { ...s, cat: "supply", cur: s.coins ? "coins" : "gems", price: s.coins || s.gems }; });
+GOODS.chest_parts   = { sku: "chest_parts",   cat: "chest", chest: "parts", n: 1,  cur: "gems",  price: CHESTS.parts.gems };
+GOODS.chest_parts10 = { sku: "chest_parts10", cat: "chest", chest: "parts", n: 10, cur: "gems",  price: CHESTS.parts.gems10 };
+GOODS.chest_coin    = { sku: "chest_coin",    cat: "chest", chest: "coin",  n: 1,  cur: "coins", price: CHESTS.coin.coins };
+const priceOf = sku => { const p = GOODS[sku].price; return Array.isArray(p) ? p[Math.min(shop.bagX, p.length - 1)] : p; };
+const CUR = { stars: "star", gems: "gem", coins: "coin" };
+const cost = (cur, n) => `${img(CUR[cur])}${N(n)}`;
+function nameOf(sku) {
+  const g = GOODS[sku];
+  if (g.cat === "pack") return t("packs.n", { n: g.gems });
+  if (g.cat === "starter") return t("starter.title");
+  if (g.cat === "offer") return t("offer." + g.id);
+  if (g.cat === "chest") return t("chests." + g.chest) + (g.n > 1 ? ` ×${g.n}` : "");
+  if (g.kind === "slot") return t("hero.slot", { n: g.n });
+  if (g.cat === "supply") return item(sku).name;
+  return t(sku);
+}
+function sprOf(sku) {
+  const g = GOODS[sku];
+  if (g.cat === "pack") return "gem";
+  if (g.cat === "starter") return "pouch";
+  if (g.cat === "chest") return g.chest === "parts" ? "pchest" : "chest";
+  if (g.kind === "slot") return "player";
+  if (g.cat === "supply") return item(sku).spr;
+  const items = (g.gives || g).items;
+  return items ? item(items[0][0]).spr : g.spr || "gem";
+}
+const subOf = sku => { const g = GOODS[sku]; return g.kind ? t("kind." + g.kind) : g.cat === "bundle" ? t("kind.bundle") : g.cat === "supply" ? t("tab.supplies") : ""; };
+function blocked(sku) {   // why it can't be bought right now, or null
+  const g = GOODS[sku];
+  if (g.cat === "hero") {
+    if (owned(sku)) return "owned";
+    if (g.later) return "later";
+    if (g.after && !owned(g.after)) return "after";
+    if (g.needs && !hasCrown()) return "needs";
+  }
+  if (g.cat === "supply") {
+    if (g.floor && save.floor < g.floor) return "floor";
+    if (Array.isArray(g.price) && shop.bagX >= g.price.length) return "max";
+  }
+  if (g.cat === "chest") {
+    if (g.chest === "parts" && !SHOP_FLAGS.paidChests) return "region";
+    if (g.chest === "coin" && shop.coinChest === day()) return "today";
+  }
+  if (g.cat === "starter" && (shop.starterBought || !(shop.starterUntil > Date.now()))) return "gone";
+  if (g.cat === "offer" && (offerNow() || {}).id !== g.id) return "gone";
+  return null;
+}
+function whyText(sku, why) {
+  const g = GOODS[sku];
+  if (why === "after") return t("hero.after", { n: GOODS[g.after].n });
+  if (why === "needs") return t("needs", { name: item(g.needs).name });
+  if (why === "floor") return t("lock.floor", { n: g.floor });
+  if (why === "max") return t("sup.max");
+  if (why === "region") return t("chests.region");
+  if (why === "today") return FMT.next(midnight() - Date.now());
+  return t("later");
+}
+
+/* giving: gems, coins, items and a frame; a pouch opens on the spot. Returns what was actually given */
+function grant(gv) {
+  const got = { gems: gv.gems || 0, coins: gv.coins || 0, items: [], frame: gv.frame || null };
+  wallet.gems += got.gems; wallet.coins += got.coins;
+  for (const [k, n] of gv.items || []) {
+    const drops = POUCH[k] ? Array.from({ length: n }, () => [pick(POOL[POUCH[k]]), 1]) : [[k, n]];
+    for (const [key, m] of drops) {
+      if (STOCK.includes(key)) shop.stock[key] = (shop.stock[key] | 0) + m; else give(key, m);
+      const x = got.items.find(y => y[0] === key); if (x) x[1] += m; else got.items.push([key, m]);
+    }
+  }
+  if (got.frame && !owned("frame_" + got.frame)) shop.owned.push("frame_" + got.frame);
+  return got;
+}
+function recipeToast(before) {   // a find that closes a missing ingredient of a recipe the camp's book already shows
+  for (const r of RECIPES.filter(revealed)) {
+    if (r.in.every(([k, n]) => (before[k] || 0) >= n)) continue;
+    if (!short(r).length) { toast("recipe", t("toast.ready", { name: item(r.out).name })); return; }
+    if (r.in.some(([k]) => !have(k))) continue;   // only recipes under way, as the camp's "Almost"
+    const done = r.in.find(([k, n]) => (before[k] || 0) < n && have(k) >= n);
+    if (done) { toast("recipe", t("toast.part", { name: item(r.out).name, item: item(done[0]).name })); return; }
+  }
+}
+
+/* chests: odds by rarity, then any item of that rarity; the pity counts opens in a row without a rare */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function rarity(odds, least) {
+  const ok = Object.keys(odds).filter(r => RANK[r] >= RANK[least]);
+  let x = Math.random() * ok.reduce((s, r) => s + odds[r], 0);
+  for (const r of ok) { x -= odds[r]; if (x < 0) return r; }
+  return ok[ok.length - 1];
+}
+function roll(chest) {
+  const p = PITY[chest], sure = p && shop.pity[chest] >= p - 1;
+  const rar = rarity(CHESTS[chest].odds, sure ? "rare" : "common");
+  if (p) shop.pity[chest] = RANK[rar] >= RANK.rare ? 0 : shop.pity[chest] + 1;
+  return { key: pick(POOL[rar]), rar };
+}
+
+/* ================= the four sections ================= */
+const TABS = ["featured", "heroes", "chests", "supplies"];
+let tab = (() => { try { const v = localStorage.getItem("gamey.tab.shop"); return TABS.includes(v) ? v : "featured"; } catch (e) { return "featured"; } })();
+const shownOffers = new Set();
+let adBusy = false;
+const priceLabel = sku => `${priceOf(sku)} ${t("cur." + GOODS[sku].cur)}`;
+const priceBtn = (sku, x) => { const g = GOODS[sku]; return `<button class="price ${g.cur}" type="button" data-buy="${sku}" aria-label="${x ? x + " · " : ""}${priceLabel(sku)}"${blocked(sku) ? " disabled" : ""}>${x ? `<span class="x">${x}</span>` : ""}${cost(g.cur, priceOf(sku))}</button>`; };
+const pricePill = sku => `<span class="price ${GOODS[sku].cur}">${cost(GOODS[sku].cur, priceOf(sku))}</span>`;
+const lockPill = text => `<span class="pill off">${ico("lock", "", 1)}${text}</span>`;
+function givesHTML(gv) {   // icon chips with amounts; names are in the label
+  const chip = (spr, n, label) => `<span class="give" role="img" aria-label="${label}">${img(spr)}${n || ""}</span>`;
+  return [
+    gv.gems ? chip("gem", N(gv.gems), `${gv.gems} ${t("cur.gems")}`) : "",
+    gv.coins ? chip("coin", N(gv.coins), `${gv.coins} ${t("cur.coins")}`) : "",
+    ...(gv.items || []).map(([k, n]) => chip(item(k).spr, n > 1 ? `<i>×</i>${N(n)}` : "", `${item(k).name}${n > 1 ? " ×" + n : ""}`)),
+    gv.frame ? chip("frame", "", t("frame." + gv.frame)) : ""
+  ].join("");
+}
+function gotRows(got) {   // the same things as a list with names, for the sheets
+  const row = (spr, name, n) => `<div class="lrow">${img(spr)}<b>${name}</b><span>${n}</span></div>`;
+  return [
+    got.gems ? row("gem", t("cur.gems"), `+${got.gems}`) : "",
+    got.coins ? row("coin", t("cur.coins"), `+${got.coins}`) : "",
+    ...(got.items || []).map(([k, n]) => row(item(k).spr, item(k).name, `×${n}`)),
+    got.frame ? row("frame", t("frame." + got.frame), "") : ""
+  ].join("");
+}
+function lineOf(sku) {
+  const g = GOODS[sku];
+  if (g.kind === "slot") return g.after && !owned(g.after) ? t("hero.after", { n: GOODS[g.after].n }) : t("hero.slot.line");
+  if (g.cat === "hero") return g.needs && !hasCrown() ? t("needs", { name: item(g.needs).name }) : t(sku + ".line");
+  if (g.cat === "bundle") return g.items.map(([k, n]) => `<span class="it">${img(item(k).spr)}${n > 1 ? N(n) : ""}</span>`).join("") + (g.frame ? `<span class="it">${img("frame")}</span>` : "");
+  const n = shop.stock[sku] | 0, bits = [];
+  if (sku === "potion") bits.push(t("sup.potion", { n: g.perRun }));
+  if (sku === "insurance") bits.push(t("sup.insurance", { n: g.perRun }));
+  if (sku === "bag") { bits.push(t("sup.bag", { n: g.slots })); if (shop.bagX < g.price.length) bits.push(t("sup.step", { a: shop.bagX + 1, b: g.price.length })); }
+  if (sku === "autoclear") bits.push(t("sup.autoclear"));
+  if (n) bits.push(t("sup.have", { n }));
+  return bits.join(" · ");
+}
+const faceOf = sku => GOODS[sku].kind === "slot" && !owned(sku) ? sil("player", SIL_MET) : img(sprOf(sku));
+function rowHTML(sku) {   // the whole row opens the sheet with the price, so there is no button inside it
+  const g = GOODS[sku], why = blocked(sku);
+  const right = why === "owned" ? `<span class="pill ok">${t("owned")}</span>`
+    : why === "later" ? lockPill(t("later"))
+    : why === "floor" ? lockPill(t("pill.floor", { n: N(g.floor) }))
+    : why === "max" ? `<span class="pill off">${t("sup.max")}</span>`
+    : why ? lockPill("")
+    : pricePill(sku);
+  const status = why === "owned" ? t("owned") : why === "floor" ? t("lock.floor", { n: g.floor }) : why ? whyText(sku, why) : priceLabel(sku);
+  return `<button class="row${why && why !== "owned" ? " dim" : ""}" type="button" data-sku="${sku}" aria-label="${nameOf(sku)}: ${status}">
+    <span class="face">${faceOf(sku)}</span>
+    <span class="rbody"><b>${nameOf(sku)}${g.tbd ? ` <i class="tag">${t("tbd")}</i>` : ""}</b><span class="line">${lineOf(sku)}</span></span>
+    ${right}
+  </button>`;
+}
+function offerCard(o) {
+  if (!shownOffers.has(o.id)) { shownOffers.add(o.id); track("offer_shown", { id: o.id, trigger: o.trigger }); }
+  const off = o.gives.gems ? Math.round((1 - o.stars / (o.gives.gems * GEM_PACKS[0].stars / GEM_PACKS[0].gems)) * 100) : 0;   // against the smallest pack
+  return `<div class="card feat offer">
+    <div class="fhead"><div><span class="eyebrow">${t("offer.eyebrow")}${off > 0 ? ` <i class="off">−${off}%</i>` : ""}</span><b class="ftitle">${t("offer." + o.id)}</b></div>${until(shop.offer.until, "clock", "timer")}</div>
+    <div class="frow"><span class="gives">${givesHTML(o.gives)}</span>${priceBtn(o.sku)}</div>
+  </div>`;
+}
+
+function paneFeatured() {
+  const dDone = shop.daily === day(), aDone = shop.ad === day();
+  const card = (label, gv, done, act) => `<div class="card gift${done ? " done" : ""}"><span class="eyebrow">${label}</span><span class="gives">${givesHTML(gv)}</span>${done ? until(midnight(), "next", "when") : act}</div>`;
+  let h = `<h3 class="sec">${t("daily.sec")}</h3><div class="duo">
+    ${card(t("daily.gift"), DAILY[dayNo() % DAILY.length], dDone, `<button class="btn sm" type="button" id="claim">${t("daily.claim")}</button>`)}
+    ${card(t("daily.ad"), AD, aDone, `<button class="btn sm ghost" type="button" id="watch"${adBusy ? " disabled" : ""}>${adBusy ? "…" : ico("play", "", 2) + t("daily.watch")}</button>`)}
+  </div>`;
+  if (!blocked(STARTER.sku)) h += `<div class="card feat">
+      <div class="fhead"><div><span class="eyebrow">${t("starter.eyebrow")}</span><b class="ftitle">${t("starter.title")}</b></div>${until(shop.starterUntil, "left", "timer")}</div>
+      <div class="frow"><span class="gives">${givesHTML(STARTER.gives)}</span>${priceBtn(STARTER.sku)}</div>
+    </div>`;
+  const o = offerNow();
+  if (o) h += offerCard(o);
+  return h + `<h3 class="sec">${t("bundles.sec")}</h3><div class="rows">${CATALOG.bundles.map(b => rowHTML(b.sku)).join("")}</div>`;
+}
+function paneHeroes() {
+  const rows = kind => `<div class="rows">${CATALOG.heroes.filter(h => h.kind === kind).map(h => rowHTML(h.sku)).join("")}</div>`;
+  return `<h3 class="sec">${t("heroes.slots")}</h3><p class="cap">${t("heroes.slotsCap")}</p>${rows("slot")}
+    <h3 class="sec">${t("heroes.races")}</h3>${rows("race")}
+    <h3 class="sec">${t("heroes.subs")}</h3><p class="cap">${t("heroes.subsCap")}</p>${rows("sub")}
+    <h3 class="sec">${t("heroes.classes")}</h3>${rows("class")}`;
+}
+function paneChests() {
+  const p = PITY.parts, n = shop.pity.parts;
+  const meter = `<span class="meter" style="--n:${p}" aria-hidden="true">${Array.from({ length: p }, (_, i) => `<i${i < n ? ' class="on"' : i === p - 1 ? ' class="next"' : ""}></i>`).join("")}</span>`;
+  const off10 = Math.round((1 - CHESTS.parts.gems10 / (CHESTS.parts.gems * 10)) * 100);
+  const parts = SHOP_FLAGS.paidChests ? `<div class="card chest parts">
+      <span class="pic">${img("pchest")}</span>
+      <div class="cbody"><b>${t("chests.parts")}</b><span>${t("chests.pity", { n: N(p - n) })}</span>${meter}</div>
+      <div class="acts">${priceBtn("chest_parts", "×1")}${priceBtn("chest_parts10", "×10")}${off10 > 0 ? `<i class="off">−${off10}%</i>` : ""}<button class="linkbtn" type="button" data-odds="parts">${t("chests.odds")}</button></div>
+    </div>` : `<div class="region">${ico("lock", "", 2)}<b>${t("chests.region")}</b></div>`;
+  const used = shop.coinChest === day();
+  const coin = `<div class="card chest">
+      <span class="pic">${img(used ? "open" : "chest")}</span>
+      <div class="cbody"><b>${t("chests.coin")}</b>${used ? until(midnight(), "next", "") : `<span>${t("chests.perDay")}</span>`}</div>
+      <div class="acts">${priceBtn("chest_coin", "×1")}<button class="linkbtn" type="button" data-odds="coin">${t("chests.odds")}</button></div>
+    </div>`;
+  return parts + coin;
+}
+const paneSupplies = () => `<div class="rows">${CATALOG.supplies.map(s => rowHTML(s.sku)).join("")}</div>`;
+const PANES = { featured: paneFeatured, heroes: paneHeroes, chests: paneChests, supplies: paneSupplies };
+
+function renderSeg() {   // a dot: something free today
+  const dot = { featured: shop.daily !== day() || shop.ad !== day(), chests: !blocked("chest_coin") && wallet.coins >= priceOf("chest_coin") };
+  $("seg").innerHTML = TABS.map(k => `<button type="button" role="tab" data-seg="${k}" aria-selected="${k === tab}">${t("tab." + k)}${dot[k] ? '<i class="dot" aria-hidden="true"></i>' : ""}</button>`).join("");
+}
+function render(anim) {
+  renderSeg();
+  const p = $("pane");
+  p.innerHTML = PANES[tab]();
+  p.setAttribute("aria-label", t("tab." + tab));
+  if (anim && !still) { p.classList.remove("in"); void p.offsetWidth; p.classList.add("in"); }
+}
+const viewsEl = $("views");
+function setTab(k) {
+  if (k === tab) return;
+  tab = k;
+  try { localStorage.setItem("gamey.tab.shop", k); } catch (e) {}
+  render(true);
+  const top = $("seg").offsetTop - 16; if (viewsEl.scrollTop > top) viewsEl.scrollTop = top;   // the new section starts under the tabs
+}
+const painted = {};
+function paint() {   // the top bar's coins and crystals; a change makes the chip jump
+  ["coins", "gems"].forEach(k => {
+    const v = wallet[k];
+    if (painted[k] != null && painted[k] !== v && !still) { const c = $(k); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }
+    $(k + "N").textContent = v; painted[k] = v;
+  });
+  $("coins").setAttribute("aria-label", t("aria.coins", { n: wallet.coins }));
+  $("gems").setAttribute("aria-label", t("aria.gems", { n: wallet.gems }));
+}
+
+/* ================= sheets ================= */
+let lastFocus = null, pending = null, payDone = null, opening = 0;   // pending: a confirm sheet waiting for Buy; payDone: the Stars stub's answer
+function openSheet(pic, title, sub, body, label) {
+  const sh = $("sheet"), open = !sh.hidden;
+  if (!open) lastFocus = document.activeElement;
+  opening++;
+  sh.innerHTML = `<div class="grab"></div>${pic ? `<div class="plinth" id="plinth">${pic}</div>` : ""}
+    <div class="sh-head"><div class="sh-title"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div><button class="btn ghost sm" type="button" data-close>${t("close")}</button></div>
+    ${body}`;
+  sh.setAttribute("aria-label", label || title);
+  sh.hidden = $("backdrop").hidden = false;
+  sh.scrollTop = 0;
+  if (!open && !still) { sh.classList.remove("in"); void sh.offsetWidth; sh.classList.add("in"); }
+  sh.querySelector("[data-close]").focus({ preventScroll: true });
+  syncBack();
+}
+function cancelPending() { if (pending) { track("purchase_cancel", pending); pending = null; } }
+function closeSheet() {
+  cancelPending();
+  if (payDone) { const d = payDone; payDone = null; d(false); }
+  opening++;   // a chest still rattling stops here
+  $("sheet").hidden = $("backdrop").hidden = true;
+  if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
+  syncBack();
+}
+function openBuy(sku) {   // the detail and confirm sheet for crystals and coins: price, balance, balance after
+  cancelPending();
+  const g = GOODS[sku], why = blocked(sku), p = priceOf(sku), bal = wallet[g.cur], ok = !why && bal >= p;
+  track("shop_item_view", { sku });
+  let body = "";
+  if (g.cat === "hero") body += `<p class="desc">${g.kind === "slot" ? t("heroes.slotsCap") : t("side")}${g.kind === "sub" ? ` ${t("heroes.subsCap")}.` : ""}</p>`;
+  if (g.cat === "supply") body += `<p class="desc">${lineOf(sku)}</p>`;
+  if (g.items) body += `<div class="list">${gotRows({ items: g.items, frame: g.frame })}</div>`;
+  if (why === "owned") body += `<div class="okrow"><b>${t("owned")}</b></div>`;
+  else if (why) body += `<div class="lockrow">${ico("lock", "", 2)}<b>${whyText(sku, why)}</b></div>`;
+  else {
+    body += `<dl class="facts"><div><dt>${t("buy.price")}</dt><dd>${cost(g.cur, p)}</dd></div>
+      <div><dt>${t("buy.have")}</dt><dd${ok ? "" : ' class="short"'}>${cost(g.cur, bal)}</dd></div>
+      ${ok ? `<div><dt>${t("buy.after")}</dt><dd>${cost(g.cur, bal - p)}</dd></div>` : ""}</dl>
+      <div class="acts">${ok ? `<button class="btn" type="button" data-confirm="${sku}">${t("buy.buy")}</button>`
+        : g.cur === "gems" ? `<button class="btn" type="button" data-low>${img("gem")}${t("buy.get")}</button>`
+        : `<button class="btn" type="button" disabled>${t("buy.noCoins")}</button>`}</div>`;
+  }
+  openSheet(faceOf(sku), `${nameOf(sku)}${g.tbd ? ` <i class="tag">${t("tbd")}</i>` : ""}`, subOf(sku), body, nameOf(sku));
+  if (ok) { pending = { sku, currency: g.cur, price: p }; track("purchase_start", pending); }
+}
+function openOdds(chest) {
+  track("odds_view", { chest });
+  const rows = Object.entries(CHESTS[chest].odds).map(([r, p]) => `<div class="r-${r}"><dt class="rtext">${t("rar." + r)}</dt><dd>${N(p + "%")}</dd></div>`).join("");
+  openSheet(img(chest === "parts" ? "pchest" : "chest"), t("odds.title"), t("chests." + chest),
+    `<dl class="facts">${rows}</dl>${PITY[chest] ? `<p class="desc">${t("odds.pity", { n: PITY[chest] })}</p>` : ""}<p class="desc">${t("odds.tower")}</p>`);
+}
+function openPacks(source, quiet) {   // from the + in the top bar, or on its own when crystals run short
+  cancelPending();
+  if (!quiet) track("shop_open", { tab: "gems", source });
+  const o = offerNow(), base = GEM_PACKS[0].gems / GEM_PACKS[0].stars;
+  const rows = GEM_PACKS.map(p => {
+    const bonus = Math.round((p.gems / p.stars / base - 1) * 100);
+    return `<div class="pack${p.best ? " best" : ""}">${img("gem")}<span class="pk"><b>${p.gems}</b>${bonus > 0 ? `<i class="bonus">${t("packs.bonus", { n: bonus })}</i>` : ""}${p.best ? `<i class="bestv">${t("packs.best")}</i>` : ""}</span>${priceBtn(p.sku)}</div>`;
+  }).join("");
+  openSheet("", t("packs.title"), t("packs.sub"), `${o && o.trigger === "low_gems" ? offerCard(o) : ""}<div class="packs">${rows}</div>`);
+}
+function lowGems() { if (trigger("low_gems")) render(); openPacks("low_gems"); }
+function openGot(sku, got) { openSheet(img(sprOf(sku)), nameOf(sku), t("got.sub"), `<div class="list">${gotRows(got)}</div>`); }
+
+/* ================= buying ================= */
+function pay(sku) {   // every Stars purchase goes through here: in Telegram the platform layer's GY.pay (tools/tg.js), elsewhere the stub
+  const stub = () => new Promise(done => paySheet(sku, done));
+  return window.GY && window.GY.pay ? window.GY.pay(sku, stub) : stub();
+}
+function paySheet(sku, done) {   // stands in for Telegram's own invoice: Pay ★N / Cancel
+  cancelPending();
+  if (payDone) payDone(false);
+  payDone = done;
+  const g = GOODS[sku], p = priceOf(sku);
+  openSheet(img("star"), `${t("pay.title")} <i class="tag">${t("stub")}</i>`, nameOf(sku),
+    `<span class="gives">${givesHTML(g.cat === "pack" ? { gems: g.gems } : g.gives)}</span>
+     <div class="acts"><button class="btn" type="button" data-pay>${t("pay.pay")} ${cost("stars", p)}</button><button class="btn ghost" type="button" data-close>${t("buy.cancel")}</button></div>`, t("pay.title"));
+}
+function grantStars(sku) {   // a pack gives crystals only; the starter and offers keep their contents with the purchase, for a refund (GDE-05)
+  const g = GOODS[sku], rec = { sku, stars: g.price, t: Date.now() };
+  let got;
+  if (g.cat === "pack") got = grant({ gems: g.gems });
+  else {
+    got = grant(g.gives); rec.gives = got;
+    if (g.cat === "starter") { shop.starterBought = true; shop.starterUntil = null; }
+    if (g.cat === "offer") shop.offer = null;
+  }
+  shop.purchases.push(rec);
+  return got;
+}
+function buyStars(sku) {
+  if (blocked(sku)) return;
+  cancelPending();
+  const o = { sku, currency: "stars", price: priceOf(sku) };
+  track("purchase_start", o);
+  pay(sku).then(paid => {
+    if (!paid) { track("purchase_cancel", o); return; }
+    const before = snap(), got = grantStars(sku);
+    persist(); track("purchase_success", o); haptic("ok"); paint(); render();
+    openGot(sku, got); recipeToast(before);
+  });
+}
+function tapBuy(sku, again) {   // a price button on a card; "again" after a chest skips the confirm, its price is on the button
+  const g = GOODS[sku];
+  if (g.cur === "stars") return buyStars(sku);
+  if (blocked(sku)) return;
+  const p = priceOf(sku);
+  if (g.cur === "gems" && wallet.gems < p) return lowGems();
+  if (again && wallet[g.cur] >= p) { cancelPending(); pending = { sku, currency: g.cur, price: p }; track("purchase_start", pending); return confirmBuy(sku); }
+  openBuy(sku);
+}
+function confirmBuy(sku) {
+  const g = GOODS[sku], p = priceOf(sku);
+  if (blocked(sku) || wallet[g.cur] < p) return;
+  const o = pending || { sku, currency: g.cur, price: p }; pending = null;
+  wallet[g.cur] -= p;
+  track("purchase_success", o);
+  if (g.cat === "chest") { openChest(sku); paint(); render(); return; }
+  const before = snap(); let got = null;
+  if (g.cat === "hero") { shop.owned.push(sku); toast("unlock", g.kind === "slot" ? t("toast.slot", { n: g.n }) : t("toast." + g.kind, { name: nameOf(sku) })); }
+  if (g.cat === "bundle") got = grant({ items: g.items, frame: g.frame });
+  if (sku === "bag") { shop.bagX++; toast("unlock", t("toast.bag", { n: g.slots })); }
+  else if (g.cat === "supply") shop.stock[sku] = (shop.stock[sku] | 0) + 1;
+  persist(); haptic("ok"); paint(); render();
+  if (got) { openGot(sku, got); recipeToast(before); } else closeSheet();
+}
+function openChest(sku) {   // the chest rattles, opens, and the find drops into the bag
+  const g = GOODS[sku], c = g.chest, before = snap(), pityBefore = shop.pity[c] | 0;
+  if (c === "coin") shop.coinChest = day();
+  const drops = Array.from({ length: g.n }, () => roll(c));
+  drops.forEach(d => give(d.key, 1));
+  const best = drops.reduce((b, d) => RANK[d.rar] > RANK[b.rar] ? d : b);
+  persist();
+  track("chest_open", { chest: c, n: g.n, rarity: best.rar, pity_before: pityBefore });
+  const lid = c === "parts" ? "popen" : "open";
+  const found = drops.length > 1
+    ? `<div class="drops wait">${drops.map((d, i) => `<span class="drop r-${d.rar}" style="animation-delay:${i * 60}ms">${img(item(d.key).spr)}<span>${item(d.key).name}</span></span>`).join("")}</div>`
+    : `<div class="drop1 wait r-${best.rar}"><b>${item(best.key).name}</b><span class="pill">${t("rar." + best.rar)}</span></div>`;
+  const again = blocked(sku) ? "" : `<div class="acts"><button class="btn" type="button" data-again="${sku}">${t("buy.again")} ${cost(g.cur, priceOf(sku))}</button></div>`;
+  openSheet(`<img class="box${still ? "" : " shake"}" src="${sprURL(sprOf(sku))}" alt=""><img class="loot" src="${sprURL(item(best.key).spr)}" alt="" hidden>`,
+    nameOf(sku), t("got.bag"), found + again);
+  $("plinth").classList.add("reveal");   // room above the chest for the find to rise into
+  const token = opening;
+  setTimeout(() => {
+    recipeToast(before);
+    const pl = $("plinth");
+    if (token !== opening || !pl) return;
+    const box = pl.querySelector(".box");
+    pl.classList.add("lit", "r-" + best.rar);
+    box.src = sprURL(lid); box.classList.remove("shake");
+    pl.querySelector(".loot").hidden = false;
+    $("sheet").querySelectorAll(".wait").forEach(el => el.classList.remove("wait"));
+    haptic(RANK[best.rar] >= RANK.rare ? "ok" : "light");
+  }, still ? 0 : 650);
+}
+
+/* ================= daily: a gift and an ad, once per local day each ================= */
+const rewardTag = gv => [gv.gems && `gems:${gv.gems}`, gv.coins && `coins:${gv.coins}`, ...(gv.items || []).map(([k, n]) => `${k}:${n}`)].filter(Boolean).join(",");
+function claimDaily() {
+  if (shop.daily === day()) return;
+  const r = DAILY[dayNo() % DAILY.length], before = snap();
+  grant(r); shop.daily = day(); persist();
+  track("daily_claim", { reward: rewardTag(r) });
+  haptic("ok"); paint(); render(); recipeToast(before);
+}
+function watchAd() {
+  if (shop.ad === day() || adBusy) return;
+  adBusy = true; toast("stub", t("stub.ad")); render();
+  setTimeout(() => {
+    adBusy = false;
+    const before = snap();
+    grant(AD); shop.ad = day(); persist();
+    track("ad_claim", { reward: rewardTag(AD) });
+    haptic("ok"); paint(); render(); recipeToast(before);
+  }, still ? 300 : 1500);
+}
+
+/* ================= navigation and input ================= */
+const goHome = () => { location.href = HOME; };
+function syncBack() {   // Telegram's own back button: a sheet first, then home
+  if (window.GY) window.GY.back($("sheet").hidden ? goHome : closeSheet);
+}
+document.addEventListener("click", e => {
+  const el = e.target.closest("button"); if (!el || el.disabled) return;
+  const d = el.dataset;
+  if (d.seg) setTab(d.seg);
+  else if (el.id === "claim") claimDaily();
+  else if (el.id === "watch") watchAd();
+  else if (d.buy) tapBuy(d.buy);
+  else if (d.again) tapBuy(d.again, true);
+  else if (d.sku) openBuy(d.sku);
+  else if (d.confirm) confirmBuy(d.confirm);
+  else if (d.odds) openOdds(d.odds);
+  else if ("low" in d) lowGems();
+  else if ("pay" in d) { const done = payDone; payDone = null; if (done) done(true); }
+  else if ("close" in d) closeSheet();
+  else if (el.id === "gems") openPacks("topbar_plus");
+  else if (el.id === "back") goHome();
+  else if (d.dev) dev(d.dev, el);
+});
+$("backdrop").addEventListener("click", closeSheet);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+
+let today0 = day();
+setInterval(() => {   // timers tick; one that runs out, or a new day, redraws the section
+  let gone = false;
+  document.querySelectorAll("[data-until]").forEach(el => {
+    const ms = +el.dataset.until - Date.now();
+    if (ms > 0) { el.textContent = FMT[el.dataset.fmt](ms); return; }
+    el.removeAttribute("data-until"); gone = true;
+  });
+  if (gone || day() !== today0) { today0 = day(); if (shop.offer && !offerNow()) { shop.offer = null; persist(true); } render(); }
+}, 1000);
+
+/* ================= design-notes helpers (the Telegram build drops the notes) ================= */
+function noteSource() {
+  const n = $("srcNote"); if (!n) return;
+  n.innerHTML = demo ? "Сейчас: демо — 600 монет и 400 кристаллов, <code>gamey.save</code> нет; запишется при первой покупке." : "Сейчас: <code>gamey.save</code>, поля <code>wallet</code> и <code>shop</code>.";
+}
+function dev(k, el) {
+  if (k === "coins") wallet.coins += 500;
+  if (k === "gems") wallet.gems += 500;
+  if (k === "zero") wallet.coins = wallet.gems = 0;
+  if (k === "day") shop.daily = shop.ad = shop.coinChest = null;
+  if (k === "pity") shop.pity.parts = PITY.parts - 1;
+  if (k === "crown") { devCrown = !devCrown; el.setAttribute("aria-pressed", String(devCrown)); }
+  if (k === "reset") {
+    save.shop = shopOf(null);
+    try { const a = readJSON("gamey.once", []); localStorage.setItem("gamey.once", JSON.stringify((Array.isArray(a) ? a : []).filter(x => x !== "narrate.shop:first"))); localStorage.removeItem("gamey.tab.shop"); } catch (e) {}
+    if (!demo) writeJSON("gamey.save", save);
+    location.reload(); return;
+  }
+  if (k !== "crown") persist();
+  paint(); render();
+}
+
+/* ================= init ================= */
+const qOffer = Q.get("offer");
+if (!shop.starterBought && !shop.starterUntil) { shop.starterUntil = Date.now() + STARTER.hours * 36e5; persist(true); }   // the starter's clock starts at the first visit
+if (qOffer && trigger(qOffer, true)) tab = "featured";
+if (shop.offer && !offerNow()) shop.offer = null;
+$("draft").hidden = !PRICES_DRAFT;
+const sc = $("scene"); paintStrip(sc); if (ro) ro.observe(sc);
+narrate("shop:first", t("narr.first"), sc);
+paint(); render(); noteSource(); syncBack();
+const from = Q.has("gems") ? "topbar_plus" : qOffer ? "offer" : /01-first|index\.html/.test(document.referrer) ? "tab" : "direct";
+track("shop_open", { tab, source: from });
+if (Q.has("gems")) openPacks("topbar_plus", true);
+})();
+</script>
+
+</body>
+</html>

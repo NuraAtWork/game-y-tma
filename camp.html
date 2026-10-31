@@ -406,7 +406,7 @@ button.entry{cursor:pointer}
         <a class="tab" href="index.html"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></a>
         <button class="tab" type="button" data-tab="camp"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span></button>
         <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
-        <a class="tab" href="index.html"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></a>
+        <a class="tab" href="shop.html"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></a>
       </nav>
 
       <div class="backdrop" id="backdrop" hidden></div>
@@ -453,8 +453,13 @@ const STR = {
   "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt",
   "item.lockbox": "Locked box", "item.tail": "Rat tail", "item.jacket": "Leather jacket",
   "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
+  "item.paper": "Paper", "item.scrap": "Scrap iron", "item.chitin": "Chitin", "item.sticks": "Sticks", "item.silk": "Spider silk",
+  "item.crystal": "Crystal shard", "item.rose": "Wild rose", "item.gland": "Venom gland", "item.wing": "Bat wing", "item.ember": "Ember",
   "at.dagger": "Chest · Floor 1", "at.stone": "Chest · Floor 1", "at.fang": "Snake · Floor 1",
   "at.pelt": "Dire wolf · Floor 1", "at.lockbox": "Closet · Floor 1",
+  "at.paper": "Chest · Floor 2", "at.scrap": "Chest · Floor 3", "at.chitin": "Cockroach · Floor 3", "at.sticks": "Chest · Floor 5",
+  "at.silk": "Spider · Floor 6", "at.crystal": "Chest · Floor 7", "at.rose": "Chest · Floor 4", "at.gland": "Spider · Floor 6",
+  "at.wing": "Bat · Floor 7", "at.ember": "Chest · Floor 10",
   "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat",
   "foe.snake.many": "Snakes", "foe.wolf.many": "Dire wolves", "foe.rat.many": "Rats",
   "close": "Close",
@@ -481,7 +486,18 @@ const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
   scroll:  { type:"weapon",  spr:"scroll",  floor:3 },   // only in the hints for now
   spear:   { type:"weapon",  spr:"spear",   floor:8 },
   book:    { type:"weapon",  spr:"book" },
-  vspear:  { type:"weapon",  spr:"spear" }
+  vspear:  { type:"weapon",  spr:"spear" },
+  // from the shop's chests and bundles (states/09-shop.html); each also drops in the tower, as in the almanac
+  paper:   { type:"mat", spr:"paper",   at:true },
+  scrap:   { type:"mat", spr:"scrap",   at:true },
+  chitin:  { type:"mat", spr:"chitin",  at:true },
+  sticks:  { type:"mat", spr:"sticks",  at:true },
+  silk:    { type:"mat", spr:"silk",    at:true },
+  crystal: { type:"mat", spr:"crystal", at:true },
+  rose:    { type:"mod", spr:"rose",    at:true },
+  gland:   { type:"mod", spr:"gland",   at:true },
+  wing:    { type:"mod", spr:"wing",    at:true },
+  ember:   { type:"mod", spr:"ember",   at:true }
 };
 for (const k in ITEMS) { ITEMS[k].name = t("item." + k); ITEMS[k].at = ITEMS[k].at ? t("at." + k) : ""; }
 const item = k => ITEMS[k] || { name:k[0].toUpperCase() + k.slice(1), type:"mat", spr:k };   // a key from a newer run still shows up
@@ -1031,10 +1047,10 @@ const SPR = {
   ], P),
   // foes
   snake:  mk([
-    "................", "......gggg......", ".....geegggg...r", ".....gexgggggrr.",
-    ".....ggggGGGG..r", "......gGGGG.....", ".......ggG......", ".......ggG......",
-    "....ggggggGgg...", "..ggGGGGGGGGGgg.", ".geGG.......GGgg", ".gg..........Ggg",
-    ".egg........gggG", "..egggggggggggG.", "...GGGGGGGGGGGG.", "..............gG"
+    "........GGG.....", ".......GggGGG...", ".......GggxggGG.", ".......GggGGGGG.",
+    ".......GgRRRe...", ".......GgRe.....", ".......GgaaaG...", "........GaaG....",
+    ".......GgaG.....", "......GgaG......", "......GGgaG.....", "..GGGGGGGgaGG...",
+    ".GgggggGGgggGG..", "GggGGGGGGGGGggG.", "GgaaGGGGGGGGaagG", ".GGGaaaaaaaaGG.G"
   ], P),
   mother: mk([
     ".....k.kk.k.....", ".....kukkuk.....", "...A.akkkka.A...", "..AAaeaaaaaaAA..",
