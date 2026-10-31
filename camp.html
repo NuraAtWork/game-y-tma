@@ -49,6 +49,7 @@ img{max-width:100%}
   --moss:#7fa48a;
   --moss-dim:#26332b;
   --arcane:#8f7ad1;
+  --gem:#c9bdf2;
   --ember:#d98a3d;
   --star:#f3d36b;
   --star-dim:#6a5a2a;
@@ -107,8 +108,14 @@ img{image-rendering:pixelated}
 .who{min-width:0;display:flex;flex-direction:column;gap:2px}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chip{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px 0 8px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:500 14px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--star)}
-.chip .ico{width:14px;height:14px}
+.purse{flex:none;display:flex;gap:5px}
+.chip{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 6px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
+.chip img{width:16px;height:16px}
+.chip.coins{color:var(--torch)}
+.chip.gems{padding-right:3px;color:var(--gem);cursor:pointer}   /* the + opens the crystal packs in the shop (GDE-05) */
+.chip .plus{width:20px;height:20px;display:grid;place-items:center;margin-left:2px;border-radius:10px;background:var(--arcane);color:var(--torch-ink)}
+.chip .plus .ico{width:8px;height:8px}
+.chip.gems:active{transform:translateY(1px)}
 .tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
 .back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
 .back .ico{width:16px;height:14px}
@@ -385,7 +392,10 @@ button.entry{cursor:pointer}
             <span class="avatar"><img src="img/ari-face.jpg" alt=""></span>
             <span class="who"><b data-t="hero.name"></b><span id="heroSub"></span></span>
           </div>
-          <span class="chip" id="stars"><i class="ico" data-ico="star" data-s="1"></i>0</span>
+          <div class="purse">
+            <span class="chip coins" id="coins"><img data-spr="coin" alt=""><span id="coinsN">0</span></span>
+            <button class="chip gems" id="gems" type="button"><img data-spr="gem" alt=""><span id="gemsN">0</span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
+          </div>
         </div>
         <div class="tb-sub" id="tbSub" hidden>
           <button class="back" id="back" type="button" data-ta="aria.back"><i class="ico" data-ico="back" data-s="2"></i></button>
@@ -424,7 +434,7 @@ button.entry{cursor:pointer}
 const STR = {
   "hero.name": "Ari", "hero.class": "Human · No class",
   "tab.lobby": "Lobby", "tab.campaigns": "Campaigns", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
-  "aria.back": "Back", "aria.sections": "Sections", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
   "camp.basement": "Basement", "camp.landing": "Stair landing", "camp.shelter": "Shelter",
   "camp.cleared": "Floor {n} cleared", "camp.new": "New at camp",
   "camp.table": "Alchemy table", "camp.ready": "{n} ready", "camp.almost": "Almost: {name}",
@@ -472,6 +482,7 @@ document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const HOME = "index.html";   // the lobby copy; the Telegram build maps it to index.html
+const SHOP = "shop.html";   // the shop copy; the Telegram build maps it to shop.html
 
 /* ================= data (keys from GDE/CONTRACT.md) ================= */
 const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
@@ -1167,6 +1178,18 @@ const SPR = {
     "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
     "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
     ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
+  ], P),
+  coin:   mk([   // the shop's currencies, as in 09 and the lobby
+    "................", "................", "......uuuk......", "....uukkkkkk....",
+    "...ukkaaaakkk...", "...ukakkkkaka...", "..ukakkkkkkaka..", "..ukakkaakkakA..",
+    "..ukakkaakkakA..", "..kkakkkkkkaaA..", "...kkakkkkaaA...", "...kkkaaaaaaA...",
+    "....akaaaaAA....", "......AAAA......", "................", "................"
+  ], P),
+  gem:    mk([
+    "................", "................", "....VVVVVVvv....", "...VeVVVVvvvv...",
+    "..VeVVVVVvvvvL..", ".VVVVVVVVVVVVLL.", ".vVvvvvvvvvLLLL.", "..vVvvvvvvLLLL..",
+    "...vVvvvvLLLL...", "....vVvvLLLL....", ".....vVvLLL.....", "......vvLL......",
+    ".......vL.......", "................", "................", "................"
   ], P)
 };
 const urls = {};
@@ -1185,6 +1208,13 @@ function silURL(k, col) {   // the sprite's shape in one flat colour
 }
 const sil = (k, col) => SPR[k] ? `<img src="${silURL(k, col)}" alt="">` : "?";
 document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
+// coins and crystals from the save, as in the lobby (GDE-05: the shop writes them); the + opens the crystal packs
+const wallet = { coins: Math.max(0, ((save && save.wallet) || {}).coins | 0), gems: Math.max(0, ((save && save.wallet) || {}).gems | 0) };
+const brief = n => n < 1000 ? String(n) : n < 10000 ? `${Math.floor(n / 100) / 10}k` : `${Math.floor(n / 1000)}k`;   // the top bar is tight: 1150 → 1.1k
+$("coinsN").textContent = brief(wallet.coins); $("gemsN").textContent = brief(wallet.gems);
+$("coins").setAttribute("aria-label", t("aria.coins", { n: wallet.coins }));
+$("gems").setAttribute("aria-label", t("aria.gems", { n: wallet.gems }));
+$("gems").addEventListener("click", () => { location.href = SHOP + "?gems"; });
 
 // stack counts in a 3×5 pixel font with a drop shadow, as in Builds (Pixelify's small 2 and 5 read as 8 and S)
 const DIGITS = ["#####.##.##.###", ".#.##..#..#.###", "###..#####..###", "###..#.##..####", "#.##.####..#..#",
@@ -1213,6 +1243,7 @@ const MASK = {
   bag:    ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
   flask:  ["...####...","....##....","....##....","...####...","..##..##..",".##....##.",".#......#.",".########.",".########.","..######.."],
   shield: [".########.","##########","####..####","####..####","##......##","####..####",".###..###.",".########.","..######..","....##...."],
+  plus:   ["..##..","..##..","######","######","..##..","..##.."],
   star:   ["....##....","....##....","...####...","##########",".########.","..######..","..######..",".###..###.",".##....##.","##......##"],
   lock:   ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
   back:   ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
