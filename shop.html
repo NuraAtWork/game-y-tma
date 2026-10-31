@@ -54,12 +54,13 @@ img{max-width:100%}
   --gem:#c9bdf2;
   --star:#f3d36b;
   --star-dim:#6a5a2a;
-  --rare:#6fb3c2;
+  --super:#6fb3c2;
   --epic:#a98ff0;
   --g-common:rgba(157,146,154,.16);
-  --g-uncommon:rgba(127,164,138,.26);
-  --g-rare:rgba(111,179,194,.32);
+  --g-rare:rgba(127,164,138,.26);
+  --g-super:rgba(111,179,194,.32);
   --g-epic:rgba(169,143,240,.42);
+  --g-legend:rgba(243,211,107,.42);
   --scrim:rgba(20,18,22,.95);
   --scrim-mid:rgba(20,18,22,.7);
   --veil:rgba(8,6,9,.6);
@@ -211,7 +212,7 @@ button.price{cursor:pointer}
 .cbody .num{color:var(--fg);font-weight:600}
 .meter{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;max-width:160px}
 .meter i{height:6px;border-radius:1px;background:var(--seg)}
-.meter i.on{background:var(--rare)}
+.meter i.on{background:var(--super)}
 .meter i.next{background:var(--epic)}
 .chest .acts{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .chest .acts .linkbtn{margin-left:auto}
@@ -221,10 +222,45 @@ button.price{cursor:pointer}
 
 /* rarity */
 .r-common{--rc:var(--muted);--rg:var(--g-common)}
-.r-uncommon{--rc:var(--moss);--rg:var(--g-uncommon)}
-.r-rare{--rc:var(--rare);--rg:var(--g-rare)}
+.r-rare{--rc:var(--moss);--rg:var(--g-rare)}
+.r-super{--rc:var(--super);--rg:var(--g-super)}
 .r-epic{--rc:var(--epic);--rg:var(--g-epic)}
+.r-legend{--rc:var(--star);--rg:var(--g-legend)}
 .rtext{color:var(--rc)}
+
+/* ---------- the two halves: the hero banner and the keeper's stall ---------- */
+.area{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:6px 0 -10px}
+.area button{position:relative;padding:10px 0 12px;border:0;background:none;color:var(--muted);font:500 16px/1 var(--display);cursor:pointer}
+.area button[aria-selected="true"]{color:var(--torch)}
+.area button[aria-selected="true"]::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:var(--torch)}
+.area .dot{position:absolute;top:8px;right:14%;width:5px;height:5px;background:var(--torch)}
+.view.in{animation:fwd .2s ease-out}
+img.art{image-rendering:auto}   /* painted art, not pixels */
+.banner{position:relative;border:1px solid var(--star-dim);border-radius:8px;overflow:hidden;background:var(--well)}
+.banner .art{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.btop{position:absolute;top:10px;left:10px;right:10px;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill.lim{background:var(--star);color:var(--torch-ink)}
+.binfo{position:absolute;left:0;right:0;bottom:0;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:56px 14px 14px;background:linear-gradient(0deg, var(--scrim) 0%, var(--scrim) 40%, var(--scrim-mid) 70%, transparent 100%)}   /* the dark grows with the text: a two-line title stays on it */
+.btitle{font:700 28px/1.02 var(--display);color:var(--star);text-shadow:0 2px 0 var(--bg)}
+.bhero{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font:500 17px/1.1 var(--display)}
+.stars{color:var(--star);font:400 13px/1 var(--body);letter-spacing:.04em}
+.btags{display:flex;flex-wrap:wrap;gap:6px}
+.btags span{padding:4px 7px;border-radius:3px;background:var(--seg);font-size:12px}
+.bline{font-size:13px;color:var(--muted)}
+.pull{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.prow .num{color:var(--fg);font-weight:600}
+.bar{display:block;height:4px;border-radius:2px;background:var(--seg);overflow:hidden}
+.bar i{display:block;width:calc(var(--p) * 100%);height:100%;background:var(--star)}
+.pullbtn{flex-direction:column;gap:5px;min-height:56px;padding:0 10px;white-space:nowrap}
+.pullbtn .pc{display:inline-flex;align-items:center;gap:4px;font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
+.btn.ghost.pullbtn .pc{color:var(--gem)}
+.plinth>img.art{border-radius:6px}
+.plinth .box.pop{animation:rise .45s ease-out both}
+.plinth.hero{height:240px;overflow:hidden}
+.plinth.hero>img.bust{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;animation:shine .5s ease-out both}
+@keyframes shine{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
+.drop img.art{border-radius:3px}
 
 /* ---------- toast, sheet ---------- */
 .toast{position:absolute;left:16px;right:16px;top:10px;z-index:30;padding:11px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:6px;background:var(--panel-hi);font:500 14px/1.25 var(--body);box-shadow:0 10px 30px var(--bezel);pointer-events:none;animation:toast .2s ease-out}
@@ -321,7 +357,7 @@ button.price{cursor:pointer}
   .topbar{padding-top:10px}
   .sheet{padding-bottom:16px}
 }
-@media (prefers-reduced-motion:reduce){.pane.in,.sheet.in,.toast,.chip.bump,.plinth .box.shake,.plinth .loot,.drop{animation:none}}
+@media (prefers-reduced-motion:reduce){.pane.in,.view.in,.sheet.in,.toast,.chip.bump,.plinth .box.shake,.plinth .box.pop,.plinth .loot,.plinth.hero>img.bust,.drop{animation:none}}
 </style>
 
 <div class="stage">
@@ -345,11 +381,13 @@ button.price{cursor:pointer}
             <button class="chip gems" id="gems" type="button"><img data-spr="gem" alt=""><span id="gemsN"></span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
           </div>
         </div>
+        <div class="area" role="tablist" id="area" data-ta="aria.area"></div>
       </header>
 
       <div class="main">
         <div class="views" id="views">
-          <section class="view" id="shop" data-ta="shop.title">
+          <section class="view" id="summon" data-ta="area.summon"></section>
+          <section class="view" id="shop" data-ta="area.stall">
             <div class="strip" data-scene="stall" id="scene">
               <span class="tag draft" id="draft" data-t="draft" hidden></span>
               <span class="eyebrow" data-t="keeper.eyebrow"></span>
@@ -375,6 +413,12 @@ button.price{cursor:pointer}
 /* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
 const STR = {
   "shop.title": "Shop", "aria.home": "Home", "aria.tabs": "Shop sections",
+  "aria.area": "Shop", "area.summon": "Summon", "area.stall": "Keeper's stall",
+  "banner.eyebrow": "Limited hero", "banner.title": "The Favorite Heir",
+  "hero.heir": "Corvin Ashvale", "hero.heir.line": "Third son of a dragon house. Duels for sport.",
+  "tag.dragonborn": "Dragonborn", "tag.duelist": "Duelist", "tag.fire": "Fire",
+  "summon.n": "Summon ×{n}", "summon.go": "Summon", "summon.pity": "Hero guaranteed in {n}", "summon.new": "New hero", "summon.owned": "Owned ×{n}",
+  "odds.pityHero": "{name} at least once in {n} summons.", "odds.parts": "Every component here also drops in the tower.", "toast.hero": "{name} joined",
   "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more",
   "keeper.eyebrow": "Basement", "keeper.title": "Keeper's stall", "draft": "draft prices",
   "narr.first": "You again. Alive, even.",
@@ -385,25 +429,30 @@ const STR = {
   "starter.eyebrow": "One time", "starter.title": "Starter pack",
   "offer.eyebrow": "Offer", "offer.boss_death": "Rematch kit", "offer.biome_clear": "Next biome kit", "offer.low_gems": "Crystal deal",
   "bundles.sec": "Bundles", "kit_pyro": "Pyromancer kit", "kit_hunter": "Hunter kit", "kit_smith": "Smith kit",
-  "left": "{t} left", "in.h": "{n} h", "in.m": "{n} min",
+  "left": "{t} left", "in.d": "{n} d", "in.h": "{n} h", "in.m": "{n} min",
   "heroes.slots": "Hero slots", "heroes.slotsCap": "Slots 1–3 open as you play", "heroes.races": "Races",
   "heroes.subs": "Subclasses", "heroes.subsCap": "Choose at class level 5", "heroes.classes": "Classes",
   "hero.slot": "Hero slot {n}", "hero.slot.line": "One more hero", "hero.after": "After slot {n}",
-  "race_dwarf": "Dwarf", "race_dwarf.line": "Hard to knock down",
-  "race_elf": "Elf", "race_elf.line": "Sees traps first",
-  "race_fish": "Fishfolk", "race_fish.line": "Breathes underwater",
+  "heroes.racesCap": "Open after tower 1", "lock.tower": "Opens after tower {n}",
+  "race_cat": "Catfolk", "race_cat.line": "Sees into the next room",
+  "race_elf": "Elf", "race_elf.line": "Magic in the blood",
+  "race_nightelf": "Night elf", "race_nightelf.line": "Strikes from the dark",
+  "race_orc": "Orc", "race_orc.line": "Hits first, thinks later",
+  "race_lizard": "Lizardfolk", "race_lizard.line": "Thick scales, hard to drop",
+  "race_dragon": "Dragonborn", "race_dragon.line": "Crits that scorch",
+  "race_minotaur": "Minotaur", "race_minotaur.line": "Horns first",
   "sub_berserker": "Berserker", "sub_berserker.line": "Hits harder when hurt",
   "sub_gunslinger": "Gunslinger", "sub_gunslinger.line": "Two shots, long reload",
   "sub_warlock": "Warlock", "sub_warlock.line": "Pays HP for power",
   "class_summoner": "Summoner", "class_summoner.line": "An army fights for you",
   "kind.slot": "Hero slot", "kind.race": "Race", "kind.sub": "Subclass", "kind.class": "Class", "kind.bundle": "Bundle",
   "side": "Different, not stronger.", "owned": "Owned", "later": "Later", "tbd": "TBD", "needs": "Needs {name}",
-  "chests.parts": "Component chest", "chests.coin": "Coin chest", "chests.pity": "Rare guaranteed in {n}",
+  "chests.parts": "Component chest", "chests.coin": "Coin chest", "chests.pity": "Super rare guaranteed in {n}",
   "chests.perDay": "1 per day", "chests.odds": "Odds", "chests.region": "Not available in your region",
-  "odds.title": "Odds", "odds.pity": "Rare or better at least once in {n} opens.", "odds.tower": "Every item here also drops in the tower.",
-  "rar.common": "Common", "rar.uncommon": "Uncommon", "rar.rare": "Rare", "rar.epic": "Epic",
+  "odds.title": "Odds", "odds.pity": "Super rare or better at least once in {n} opens.", "odds.tower": "Every item here also drops in the tower.",
+  "rar.common": "Common", "rar.rare": "Rare", "rar.super": "Super rare", "rar.epic": "Epic", "rar.legend": "Legendary",
   "sup.potion": "Belt: {n} per run", "sup.insurance": "Keep loot on death · {n} per run", "sup.bag": "+{n} slots",
-  "sup.autoclear": "Clears a beaten floor", "sup.have": "Have {n}", "sup.step": "Step {a} of {b}", "sup.max": "Max",
+  "sup.autoclear": "Clears a beaten floor", "sup.energy": "Uses energy", "sup.have": "Have {n}", "sup.step": "Step {a} of {b}", "sup.max": "Max",
   "lock.floor": "Opens after floor {n}", "pill.floor": "Floor {n}",
   "buy.buy": "Buy", "buy.price": "Price", "buy.have": "You have", "buy.after": "After", "buy.get": "Get crystals",
   "buy.noCoins": "Not enough coins", "buy.again": "Again", "buy.cancel": "Cancel",
@@ -418,7 +467,7 @@ const STR = {
   "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt", "item.silk": "Spider silk", "item.crystal": "Crystal shard",
   "item.rose": "Wild rose", "item.gland": "Venom gland", "item.wing": "Bat wing", "item.ember": "Ember",
   "item.potion": "Healing potion", "item.insurance": "Loot insurance", "item.bag": "Bag expansion", "item.autoclear": "Auto-clear",
-  "item.pouch_rare": "Rare pouch", "item.bonecrown": "Bone crown",
+  "item.pouch_super": "Super rare pouch", "item.bonecrown": "Bone crown",
   "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger", "item.jacket": "Leather jacket",
   "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
   "close": "Close"
@@ -428,7 +477,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const HOME = "index.html";   // relative: the Telegram build maps it to index.html
+const HOME = (/(0[12]-[\w-]+\.html)/.exec(document.referrer) || [, "index.html"])[1];   // back to the screen that opened it (01, its lobby copy or 02); the Telegram build maps 01 to index.html
 const Q = new URLSearchParams(location.search);
 
 /* ================= catalog: every price, pack, odd and set lives here, none in the markup (GDE-05). Draft prices ================= */
@@ -436,14 +485,20 @@ const PRICES_DRAFT = true;   // shows the "draft prices" badge on the keeper's s
 const GEM_PACKS = [ { sku: "gems_50",  stars: 50,   gems: 50 }, { sku: "gems_150", stars: 150, gems: 160 },
                     { sku: "gems_500", stars: 500,  gems: 550 }, { sku: "gems_1000", stars: 1000, gems: 1150, best: true },
                     { sku: "gems_2500", stars: 2500, gems: 3000 } ];
-const STARTER = { sku: "starter", stars: 99, hours: 48, gives: { gems: 300, items: [["pouch_rare", 3]], frame: "starter" } };
+const STARTER = { sku: "starter", stars: 99, hours: 48, gives: { gems: 300, items: [["pouch_super", 3]], frame: "starter" } };
 const CATALOG = {
   heroes: [
     { sku: "slot_4", kind: "slot", n: 4, gems: 250 },
     { sku: "slot_5", kind: "slot", n: 5, gems: 400, after: "slot_4" },
-    { sku: "race_dwarf", kind: "race", spr: "dwarf", gems: 400, tbd: true },   // the paid race is still open in the concept
-    { sku: "race_elf",   kind: "race", spr: "elf",  later: true },
-    { sku: "race_fish",  kind: "race", spr: "fish", later: true },
+    // races for your own hero (Notion "Races"): they open after tower 1, by a quest or for crystals, not decided yet, so no price.
+    // The rest (Gifted, Bogatyr, Birdfolk, Dogfolk, Dwarf, Fairy, Tiefling, Aasimar) come only as ready heroes from a gacha, not here yet
+    { sku: "race_cat",      kind: "race", spr: "cat", tower: 1 },
+    { sku: "race_elf",      kind: "race", spr: "elf", tower: 1 },
+    { sku: "race_nightelf", kind: "race", spr: "elf", tower: 1 },   // a variant of the elf: the elf's shape until it has its own
+    { sku: "race_orc",      kind: "race", tower: 1 },
+    { sku: "race_lizard",   kind: "race", tower: 1 },
+    { sku: "race_dragon",   kind: "race", tower: 1 },
+    { sku: "race_minotaur", kind: "race", tower: 1 },
     { sku: "sub_berserker",  kind: "sub", spr: "greataxe", gems: 300 },
     { sku: "sub_gunslinger", kind: "sub", spr: "handxbow", gems: 300 },
     { sku: "sub_warlock",    kind: "sub", spr: "grimoire", gems: 300 },
@@ -458,12 +513,17 @@ const CATALOG = {
     { sku: "potion",    coins: 40, perRun: 2, floor: 3 },          // the potion belt opens after floor 3
     { sku: "insurance", gems: 30, perRun: 1 },                     // a death keeps the floor's loot
     { sku: "bag",       gems: [100, 200, 400], slots: 4 },         // step by step, the price grows
-    { sku: "autoclear", gems: 20, floor: 5 }                       // like the farm
+    { sku: "autoclear", gems: 20, floor: 5, energy: true }         // time, not loot: spends energy as a quick battle does
   ]
 };
-const CHESTS = { parts: { gems: 60, gems10: 540, odds: { common: 70, uncommon: 24, rare: 5, epic: 1 } },
-                 coin:  { coins: 500, perDay: 1, odds: { common: 80, uncommon: 18, rare: 2 } } };
-const PITY = { parts: 10 };   // the 10th open in a row without a rare is a rare
+const CHESTS = { parts: { gems: 60, gems10: 540, odds: { common: 70, rare: 24, super: 5, epic: 1 } },
+                 coin:  { coins: 500, perDay: 1, odds: { common: 80, rare: 18, super: 2 } } };
+const PITY = { parts: 10, heir: 60 };              // the 10th chest in a row without a super rare is one; the 60th summon without the hero is the hero
+const SURE = { parts: "super", heir: "legend" };   // what the pity gives
+const BANNER = { id: "heir", hero: "heir", art: "img/heir-banner.jpg", bust: "img/heir-bust.jpg", face: "img/heir-face.jpg",
+                 tags: ["dragonborn", "duelist", "fire"], gems: 120, gems10: 1080,
+                 days: 14,                                        // banners change every 14 days; the prototype has one, so it comes back
+                 odds: { rare: 60, super: 30, epic: 9, legend: 1 } };   // draft: past the hero, components (gacha heroes aren't designed yet)
 const OFFERS = [   // one at a time; in the prototype ?offer=<id> starts one
   { id: "boss_death",  sku: "offer_boss_death",  trigger: "boss_death",  stars: 49, hours: 2,  gives: { items: [["insurance", 2], ["potion", 2]] } },
   { id: "biome_clear", sku: "offer_biome_clear", trigger: "biome_clear", stars: 99, hours: 24, gives: { items: [["gland", 2], ["silk", 3], ["wing", 1]] } },   // stand-in: no Slimes parts yet
@@ -475,17 +535,18 @@ const SHOP_FLAGS = { paidChests: true };   // false in regions that ban paid loo
 if (Q.has("nogacha")) SHOP_FLAGS.paidChests = false;
 
 /* ================= what the chests hold: every one of these also drops in the tower (states/05-almanac.html, "at") ================= */
-const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3 };
+const RANK = { common: 0, rare: 1, super: 2, epic: 3, legend: 4 };   // the gear's tiers, ★ to ★★★★★; only a hero is legendary
 const POOL = {
   common:   ["tail", "paper", "scrap", "chitin", "sticks"],
-  uncommon: ["stone", "fang", "pelt", "silk", "crystal"],
-  rare:     ["rose", "gland", "wing"],
+  rare:     ["stone", "fang", "pelt", "silk", "crystal"],
+  super:    ["rose", "gland", "wing"],
   epic:     ["ember"]
 };
-const POUCH = { pouch_rare: "rare" };                  // a pouch opens on the spot into one item of that rarity
+const POUCH = { pouch_super: "super" };                // a pouch opens on the spot into one item of that rarity
 const STOCK = ["potion", "insurance", "autoclear"];   // supplies wait for the run in shop.stock, not in the bag
-const SPRITE = { insurance: "seal", bag: "sack", autoclear: "glass", pouch_rare: "pouch" };   // anything else: the key is the sprite
+const SPRITE = { insurance: "seal", bag: "sack", autoclear: "glass", pouch_super: "pouch" };   // anything else: the key is the sprite
 const item = k => ({ name: t("item." + k), spr: SPRITE[k] || k });
+const rarName = r => `${"★".repeat(RANK[r] + 1)} ${t("rar." + r)}`;
 const RECIPES = [   // copy of RECIPES in states/08-camp.html: for makeable (CONTRACT) and the recipe toast
   { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
   { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
@@ -518,7 +579,8 @@ function shopOf(o) {   // the shop's part of the save (GDE-05), with the empty s
     daily: o.daily || null, ad: o.ad || null, coinChest: o.coinChest || null,
     pity: Object.fromEntries(Object.keys(PITY).map(k => [k, Math.max(0, (o.pity && o.pity[k]) | 0)])),
     offer: o.offer && o.offer.id ? o.offer : null, purchases: arr(o.purchases),
-    stock: o.stock && typeof o.stock === "object" ? o.stock : {}, bagX: Math.max(0, o.bagX | 0) };
+    stock: o.stock && typeof o.stock === "object" ? o.stock : {}, bagX: Math.max(0, o.bagX | 0),
+    heroes: o.heroes && typeof o.heroes === "object" ? o.heroes : {} };   // from the banner: hero -> copies
 }
 let save, demo, wallet, shop;
 function load() {
@@ -1141,23 +1203,11 @@ const SPR = {
     "...obbbbbbFFy...", "...obbbbbbFFy...", "...obbbbbbFFy...", ".....LLLLLly.o..",
     ".....LL..Ll.oo..", ".....LL..Ll.....", ".....LL..Ll.....", "....ooo..ooo...."
   ], P),
-  dwarf:  mk([
-    "......mmmM......", "....emmmmmMn....", "....mmmmmmMn....", "...MMMMMMMMMn...",
-    "....ysdssdsy....", "....yyysSyyY....", "....yyyyyyyY....", "...rryyyyyYRR...",
-    "...rrryyyYRRR...", "...rrrryYRRRR...", "...skkkkkkkkS...", ".....nnnnnn.....",
-    ".....nn..nn.....", ".....nn..nn.....", ".....nn..nn.....", "....hhh..hhh...."
-  ], P),
   elf:    mk([
     "................", ".....ukkkkk.....", "....ukkkkkka....", "..s.kssssssa.s..",
     "...sksdssdsas...", "....ksssssSa....", "....kkssSSaa....", "....gggggGGG....",
     "...ggggggGGGG...", "...ggggggGGGG...", "...sYYYYYYYYS...", ".....GGGGGG.....",
     ".....GG..GG.....", ".....GG..GG.....", ".....GG..GG.....", "....hhh..hhh...."
-  ], P),
-  fish:   mk([
-    ".......bb.......", ".....fbffbf.....", "..b.ffffffFF.b..", "..bbeeffffeebb..",
-    "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
-    "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
-    ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
   ], P)
 };
 /* shop extras: the Stars star and the pouch (as in 01), both chests (as in 03), and drawn for this screen: the currencies,
@@ -1374,8 +1424,9 @@ const hasCrown = () => have("bonecrown") > 0 || devCrown;
 const day = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;   // local date
 const dayNo = () => { const d = new Date(); return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
 const midnight = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); };
-const dur = ms => ms >= 36e5 ? t("in.h", { n: Math.ceil(ms / 36e5) }) : t("in.m", { n: Math.max(1, Math.ceil(ms / 6e4)) });
+const dur = ms => ms > 2 * 864e5 ? t("in.d", { n: Math.ceil(ms / 864e5) }) : ms >= 36e5 ? t("in.h", { n: Math.ceil(ms / 36e5) }) : t("in.m", { n: Math.max(1, Math.ceil(ms / 6e4)) });
 const clock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+const bannerEnd = () => { const c = BANNER.days * 864e5; return Math.floor(Date.now() / c) * c + c; };
 const FMT = { left: ms => t("left", { t: dur(ms) }), next: ms => t("daily.next", { t: dur(ms) }), clock };
 const until = (at, fmt, cls) => `<span class="${cls}" data-until="${at}" data-fmt="${fmt}">${FMT[fmt](at - Date.now())}</span>`;   // the ticker keeps it running
 
@@ -1398,6 +1449,8 @@ CATALOG.supplies.forEach(s => { GOODS[s.sku] = { ...s, cat: "supply", cur: s.coi
 GOODS.chest_parts   = { sku: "chest_parts",   cat: "chest", chest: "parts", n: 1,  cur: "gems",  price: CHESTS.parts.gems };
 GOODS.chest_parts10 = { sku: "chest_parts10", cat: "chest", chest: "parts", n: 10, cur: "gems",  price: CHESTS.parts.gems10 };
 GOODS.chest_coin    = { sku: "chest_coin",    cat: "chest", chest: "coin",  n: 1,  cur: "coins", price: CHESTS.coin.coins };
+GOODS.summon_heir   = { sku: "summon_heir",   cat: "summon", n: 1,  cur: "gems", price: BANNER.gems };
+GOODS.summon_heir10 = { sku: "summon_heir10", cat: "summon", n: 10, cur: "gems", price: BANNER.gems10 };
 const priceOf = sku => { const p = GOODS[sku].price; return Array.isArray(p) ? p[Math.min(shop.bagX, p.length - 1)] : p; };
 const CUR = { stars: "star", gems: "gem", coins: "coin" };
 const cost = (cur, n) => `${img(CUR[cur])}${N(n)}`;
@@ -1407,6 +1460,7 @@ function nameOf(sku) {
   if (g.cat === "starter") return t("starter.title");
   if (g.cat === "offer") return t("offer." + g.id);
   if (g.cat === "chest") return t("chests." + g.chest) + (g.n > 1 ? ` ×${g.n}` : "");
+  if (g.cat === "summon") return t("summon.n", { n: g.n });
   if (g.kind === "slot") return t("hero.slot", { n: g.n });
   if (g.cat === "supply") return item(sku).name;
   return t(sku);
@@ -1416,17 +1470,18 @@ function sprOf(sku) {
   if (g.cat === "pack") return "gem";
   if (g.cat === "starter") return "pouch";
   if (g.cat === "chest") return g.chest === "parts" ? "pchest" : "chest";
+  if (g.cat === "summon") return "star";
   if (g.kind === "slot") return "player";
   if (g.cat === "supply") return item(sku).spr;
   const items = (g.gives || g).items;
   return items ? item(items[0][0]).spr : g.spr || "gem";
 }
-const subOf = sku => { const g = GOODS[sku]; return g.kind ? t("kind." + g.kind) : g.cat === "bundle" ? t("kind.bundle") : g.cat === "supply" ? t("tab.supplies") : ""; };
+const subOf = sku => { const g = GOODS[sku]; return g.kind ? t("kind." + g.kind) : g.cat === "bundle" ? t("kind.bundle") : g.cat === "summon" ? t("banner.title") : g.cat === "supply" ? t("tab.supplies") : ""; };
 function blocked(sku) {   // why it can't be bought right now, or null
   const g = GOODS[sku];
   if (g.cat === "hero") {
     if (owned(sku)) return "owned";
-    if (g.later) return "later";
+    if (g.tower) return "tower";   // no tower is cleared in the prototype yet
     if (g.after && !owned(g.after)) return "after";
     if (g.needs && !hasCrown()) return "needs";
   }
@@ -1438,6 +1493,7 @@ function blocked(sku) {   // why it can't be bought right now, or null
     if (g.chest === "parts" && !SHOP_FLAGS.paidChests) return "region";
     if (g.chest === "coin" && shop.coinChest === day()) return "today";
   }
+  if (g.cat === "summon" && !SHOP_FLAGS.paidChests) return "region";
   if (g.cat === "starter" && (shop.starterBought || !(shop.starterUntil > Date.now()))) return "gone";
   if (g.cat === "offer" && (offerNow() || {}).id !== g.id) return "gone";
   return null;
@@ -1445,6 +1501,7 @@ function blocked(sku) {   // why it can't be bought right now, or null
 function whyText(sku, why) {
   const g = GOODS[sku];
   if (why === "after") return t("hero.after", { n: GOODS[g.after].n });
+  if (why === "tower") return t("lock.tower", { n: g.tower });
   if (why === "needs") return t("needs", { name: item(g.needs).name });
   if (why === "floor") return t("lock.floor", { n: g.floor });
   if (why === "max") return t("sup.max");
@@ -1477,7 +1534,7 @@ function recipeToast(before) {   // a find that closes a missing ingredient of a
   }
 }
 
-/* chests: odds by rarity, then any item of that rarity; the pity counts opens in a row without a rare */
+/* chests and the banner: odds by rarity, then any item of that rarity (the banner's top one is its hero); the pity counts opens in a row without its prize */
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function rarity(odds, least) {
   const ok = Object.keys(odds).filter(r => RANK[r] >= RANK[least]);
@@ -1485,11 +1542,11 @@ function rarity(odds, least) {
   for (const r of ok) { x -= odds[r]; if (x < 0) return r; }
   return ok[ok.length - 1];
 }
-function roll(chest) {
-  const p = PITY[chest], sure = p && shop.pity[chest] >= p - 1;
-  const rar = rarity(CHESTS[chest].odds, sure ? "rare" : "common");
-  if (p) shop.pity[chest] = RANK[rar] >= RANK.rare ? 0 : shop.pity[chest] + 1;
-  return { key: pick(POOL[rar]), rar };
+function roll(id) {   // a chest or the banner
+  const p = PITY[id], sure = p && shop.pity[id] >= p - 1;
+  const rar = rarity((CHESTS[id] || BANNER).odds, sure ? SURE[id] : "common");
+  if (p) shop.pity[id] = RANK[rar] >= RANK[SURE[id]] ? 0 : shop.pity[id] + 1;
+  return { key: rar === "legend" ? BANNER.hero : pick(POOL[rar]), rar };
 }
 
 /* ================= the four sections ================= */
@@ -1529,14 +1586,16 @@ function lineOf(sku) {
   if (sku === "insurance") bits.push(t("sup.insurance", { n: g.perRun }));
   if (sku === "bag") { bits.push(t("sup.bag", { n: g.slots })); if (shop.bagX < g.price.length) bits.push(t("sup.step", { a: shop.bagX + 1, b: g.price.length })); }
   if (sku === "autoclear") bits.push(t("sup.autoclear"));
+  if (g.energy) bits.push(t("sup.energy"));
   if (n) bits.push(t("sup.have", { n }));
   return bits.join(" · ");
 }
-const faceOf = sku => GOODS[sku].kind === "slot" && !owned(sku) ? sil("player", SIL_MET) : img(sprOf(sku));
+const faceOf = sku => GOODS[sku].kind === "slot" && !owned(sku) ? sil("player", SIL_MET)
+  : GOODS[sku].cat === "summon" ? `<img class="art" src="${BANNER.face}" alt="">`
+  : blocked(sku) === "tower" ? sil(GOODS[sku].spr || "player", SIL_MET) : img(sprOf(sku));   // a locked race: its shape only
 function rowHTML(sku) {   // the whole row opens the sheet with the price, so there is no button inside it
   const g = GOODS[sku], why = blocked(sku);
   const right = why === "owned" ? `<span class="pill ok">${t("owned")}</span>`
-    : why === "later" ? lockPill(t("later"))
     : why === "floor" ? lockPill(t("pill.floor", { n: N(g.floor) }))
     : why === "max" ? `<span class="pill off">${t("sup.max")}</span>`
     : why ? lockPill("")
@@ -1575,7 +1634,7 @@ function paneFeatured() {
 function paneHeroes() {
   const rows = kind => `<div class="rows">${CATALOG.heroes.filter(h => h.kind === kind).map(h => rowHTML(h.sku)).join("")}</div>`;
   return `<h3 class="sec">${t("heroes.slots")}</h3><p class="cap">${t("heroes.slotsCap")}</p>${rows("slot")}
-    <h3 class="sec">${t("heroes.races")}</h3>${rows("race")}
+    <h3 class="sec">${t("heroes.races")}</h3><p class="cap">${t("heroes.racesCap")}</p>${rows("race")}
     <h3 class="sec">${t("heroes.subs")}</h3><p class="cap">${t("heroes.subsCap")}</p>${rows("sub")}
     <h3 class="sec">${t("heroes.classes")}</h3>${rows("class")}`;
 }
@@ -1597,14 +1656,39 @@ function paneChests() {
   return parts + coin;
 }
 const paneSupplies = () => `<div class="rows">${CATALOG.supplies.map(s => rowHTML(s.sku)).join("")}</div>`;
+const summonBtn = sku => `<button class="btn pullbtn${GOODS[sku].n > 1 ? "" : " ghost"}" type="button" data-buy="${sku}" aria-label="${nameOf(sku)} · ${priceLabel(sku)}"><b>${nameOf(sku)}</b><span class="pc">${cost("gems", priceOf(sku))}</span></button>`;
+function paneBanner() {   // the hero's art with his name and tags, then the pity and the two Summon buttons
+  const p = PITY[BANNER.id], n = shop.pity[BANNER.id], own = shop.heroes[BANNER.hero] | 0, name = t("hero." + BANNER.hero);
+  const art = `<div class="banner">
+      <img class="art" src="${BANNER.art}" alt="${name}">
+      <div class="btop"><span class="pill lim">${t("banner.eyebrow")}</span>${until(bannerEnd(), "left", "timer")}</div>
+      <div class="binfo">
+        <b class="btitle">${t("banner.title")}</b>
+        <span class="bhero"><span class="stars" aria-label="${t("rar.legend")}">${"★".repeat(RANK.legend + 1)}</span>${name}${own ? `<span class="pill ok">${own > 1 ? t("summon.owned", { n: own }) : t("owned")}</span>` : ""}</span>
+        <span class="btags">${BANNER.tags.map(k => `<span>${t("tag." + k)}</span>`).join("")}</span>
+        <span class="bline">${t("hero." + BANNER.hero + ".line")}</span>
+      </div>
+    </div>`;
+  if (!SHOP_FLAGS.paidChests) return art + `<div class="region">${ico("lock", "", 2)}<b>${t("chests.region")}</b></div>`;
+  return art + `<div class="pull">
+      <div class="prow"><span>${t("summon.pity", { n: N(p - n) })}</span><button class="linkbtn" type="button" data-odds="${BANNER.id}">${t("chests.odds")}</button></div>
+      <span class="bar" style="--p:${n / p}" aria-hidden="true"><i></i></span>
+      <div class="acts">${summonBtn("summon_heir")}${summonBtn("summon_heir10")}</div>
+    </div>`;
+}
 const PANES = { featured: paneFeatured, heroes: paneHeroes, chests: paneChests, supplies: paneSupplies };
 
-function renderSeg() {   // a dot: something free today
+const AREAS = ["summon", "stall"];
+let area = "summon";   // the shop opens on the banner
+function renderSeg() {   // a dot: something free today; the stall's tab shows it too
   const dot = { featured: shop.daily !== day() || shop.ad !== day(), chests: !blocked("chest_coin") && wallet.coins >= priceOf("chest_coin") };
+  $("area").innerHTML = AREAS.map(k => `<button type="button" role="tab" data-area="${k}" aria-selected="${k === area}">${t("area." + k)}${k === "stall" && (dot.featured || dot.chests) ? '<i class="dot" aria-hidden="true"></i>' : ""}</button>`).join("");
   $("seg").innerHTML = TABS.map(k => `<button type="button" role="tab" data-seg="${k}" aria-selected="${k === tab}">${t("tab." + k)}${dot[k] ? '<i class="dot" aria-hidden="true"></i>' : ""}</button>`).join("");
 }
 function render(anim) {
   renderSeg();
+  $("summon").hidden = area !== "summon"; $("shop").hidden = area !== "stall";
+  if (area === "summon") { $("summon").innerHTML = paneBanner(); return; }
   const p = $("pane");
   p.innerHTML = PANES[tab]();
   p.setAttribute("aria-label", t("tab." + tab));
@@ -1617,6 +1701,13 @@ function setTab(k) {
   try { localStorage.setItem("gamey.tab.shop", k); } catch (e) {}
   render(true);
   const top = $("seg").offsetTop - 16; if (viewsEl.scrollTop > top) viewsEl.scrollTop = top;   // the new section starts under the tabs
+}
+function setArea(k) {
+  if (k === area) return;
+  area = k; render(); viewsEl.scrollTop = 0;
+  const v = $(k === "summon" ? "summon" : "shop");
+  if (!still) { v.classList.remove("in"); void v.offsetWidth; v.classList.add("in"); }
+  if (k === "stall") narrate("shop:first", t("narr.first"), $("scene"));
 }
 const painted = {};
 function paint() {   // the top bar's coins and crystals; a change makes the chip jump
@@ -1668,18 +1759,20 @@ function openBuy(sku) {   // the detail and confirm sheet for crystals and coins
     body += `<dl class="facts"><div><dt>${t("buy.price")}</dt><dd>${cost(g.cur, p)}</dd></div>
       <div><dt>${t("buy.have")}</dt><dd${ok ? "" : ' class="short"'}>${cost(g.cur, bal)}</dd></div>
       ${ok ? `<div><dt>${t("buy.after")}</dt><dd>${cost(g.cur, bal - p)}</dd></div>` : ""}</dl>
-      <div class="acts">${ok ? `<button class="btn" type="button" data-confirm="${sku}">${t("buy.buy")}</button>`
+      <div class="acts">${ok ? `<button class="btn" type="button" data-confirm="${sku}">${g.cat === "summon" ? t("summon.go") : t("buy.buy")}</button>`
         : g.cur === "gems" ? `<button class="btn" type="button" data-low>${img("gem")}${t("buy.get")}</button>`
         : `<button class="btn" type="button" disabled>${t("buy.noCoins")}</button>`}</div>`;
   }
   openSheet(faceOf(sku), `${nameOf(sku)}${g.tbd ? ` <i class="tag">${t("tbd")}</i>` : ""}`, subOf(sku), body, nameOf(sku));
   if (ok) { pending = { sku, currency: g.cur, price: p }; track("purchase_start", pending); }
 }
-function openOdds(chest) {
-  track("odds_view", { chest });
-  const rows = Object.entries(CHESTS[chest].odds).map(([r, p]) => `<div class="r-${r}"><dt class="rtext">${t("rar." + r)}</dt><dd>${N(p + "%")}</dd></div>`).join("");
-  openSheet(img(chest === "parts" ? "pchest" : "chest"), t("odds.title"), t("chests." + chest),
-    `<dl class="facts">${rows}</dl>${PITY[chest] ? `<p class="desc">${t("odds.pity", { n: PITY[chest] })}</p>` : ""}<p class="desc">${t("odds.tower")}</p>`);
+function openOdds(id) {   // a chest or the banner
+  track("odds_view", { chest: id });
+  const ban = id === BANNER.id, hero = t("hero." + BANNER.hero);
+  const rows = Object.entries((CHESTS[id] || BANNER).odds).map(([r, p]) => `<div class="r-${r}"><dt class="rtext">${r === "legend" ? `${"★".repeat(RANK[r] + 1)} ${hero}` : rarName(r)}</dt><dd>${N(p + "%")}</dd></div>`).join("");
+  const pity = !PITY[id] ? "" : ban ? t("odds.pityHero", { name: hero, n: PITY[id] }) : t("odds.pity", { n: PITY[id] });
+  openSheet(ban ? `<img class="art" src="${BANNER.face}" alt="">` : img(id === "parts" ? "pchest" : "chest"), t("odds.title"), ban ? t("banner.title") : t("chests." + id),
+    `<dl class="facts">${rows}</dl>${pity ? `<p class="desc">${pity}</p>` : ""}<p class="desc">${t(ban ? "odds.parts" : "odds.tower")}</p>`);
 }
 function openPacks(source, quiet) {   // from the + in the top bar, or on its own when crystals run short
   cancelPending();
@@ -1748,6 +1841,7 @@ function confirmBuy(sku) {
   wallet[g.cur] -= p;
   track("purchase_success", o);
   if (g.cat === "chest") { openChest(sku); paint(); render(); return; }
+  if (g.cat === "summon") { openSummon(sku); paint(); render(); return; }
   const before = snap(); let got = null;
   if (g.cat === "hero") { shop.owned.push(sku); toast("unlock", g.kind === "slot" ? t("toast.slot", { n: g.n }) : t("toast." + g.kind, { name: nameOf(sku) })); }
   if (g.cat === "bundle") got = grant({ items: g.items, frame: g.frame });
@@ -1767,7 +1861,7 @@ function openChest(sku) {   // the chest rattles, opens, and the find drops into
   const lid = c === "parts" ? "popen" : "open";
   const found = drops.length > 1
     ? `<div class="drops wait">${drops.map((d, i) => `<span class="drop r-${d.rar}" style="animation-delay:${i * 60}ms">${img(item(d.key).spr)}<span>${item(d.key).name}</span></span>`).join("")}</div>`
-    : `<div class="drop1 wait r-${best.rar}"><b>${item(best.key).name}</b><span class="pill">${t("rar." + best.rar)}</span></div>`;
+    : `<div class="drop1 wait r-${best.rar}"><b>${item(best.key).name}</b><span class="pill">${rarName(best.rar)}</span></div>`;
   const again = blocked(sku) ? "" : `<div class="acts"><button class="btn" type="button" data-again="${sku}">${t("buy.again")} ${cost(g.cur, priceOf(sku))}</button></div>`;
   openSheet(`<img class="box${still ? "" : " shake"}" src="${sprURL(sprOf(sku))}" alt=""><img class="loot" src="${sprURL(item(best.key).spr)}" alt="" hidden>`,
     nameOf(sku), t("got.bag"), found + again);
@@ -1782,7 +1876,36 @@ function openChest(sku) {   // the chest rattles, opens, and the find drops into
     box.src = sprURL(lid); box.classList.remove("shake");
     pl.querySelector(".loot").hidden = false;
     $("sheet").querySelectorAll(".wait").forEach(el => el.classList.remove("wait"));
-    haptic(RANK[best.rar] >= RANK.rare ? "ok" : "light");
+    haptic(RANK[best.rar] >= RANK.super ? "ok" : "light");
+  }, still ? 0 : 650);
+}
+
+function openSummon(sku) {   // a star rattles and bursts: the hero, or the best component; then everything that fell
+  const g = GOODS[sku], id = BANNER.id, hero = BANNER.hero, before = snap(), pityBefore = shop.pity[id] | 0, fresh = !(shop.heroes[hero] | 0);
+  const drops = Array.from({ length: g.n }, () => roll(id));
+  drops.forEach(d => { if (d.rar === "legend") shop.heroes[hero] = (shop.heroes[hero] | 0) + 1; else give(d.key, 1); });
+  const best = drops.reduce((b, d) => RANK[d.rar] > RANK[b.rar] ? d : b), won = best.rar === "legend";
+  persist();
+  track("summon", { banner: id, n: g.n, rarity: best.rar, heroes: drops.filter(d => d.rar === "legend").length, pity_before: pityBefore });
+  const face = d => d.rar === "legend" ? `<img class="art" src="${BANNER.face}" alt="">` : img(item(d.key).spr);
+  const name = d => d.rar === "legend" ? t("hero." + hero) : item(d.key).name;
+  const found = drops.length > 1
+    ? `<div class="drops wait">${drops.map((d, i) => `<span class="drop r-${d.rar}" style="animation-delay:${i * 60}ms">${face(d)}<span>${name(d)}</span></span>`).join("")}</div>`
+    : `<div class="drop1 wait r-${best.rar}"><b>${name(best)}</b><span class="pill">${rarName(best.rar)}</span></div>`;
+  const again = blocked(sku) ? "" : `<div class="acts"><button class="btn" type="button" data-again="${sku}">${t("buy.again")} ${cost(g.cur, priceOf(sku))}</button></div>`;
+  openSheet(`<img class="box${still ? "" : " shake"}" src="${sprURL("star")}" alt="">`, nameOf(sku), won && fresh ? t("summon.new") : t("got.bag"), found + again);
+  const token = opening;
+  setTimeout(() => {
+    recipeToast(before);
+    const pl = $("plinth");
+    if (token !== opening || !pl) return;
+    pl.classList.add("lit", "r-" + best.rar);
+    if (won) {
+      pl.classList.add("hero"); pl.innerHTML = `<img class="art bust" src="${BANNER.bust}" alt="${t("hero." + hero)}">`;
+      if (fresh) toast("unlock", t("toast.hero", { name: t("hero." + hero) }));
+    } else { const box = pl.querySelector(".box"); box.src = sprURL(item(best.key).spr); box.classList.remove("shake"); box.classList.add("pop"); }
+    $("sheet").querySelectorAll(".wait").forEach(el => el.classList.remove("wait"));
+    haptic(won ? "heavy" : RANK[best.rar] >= RANK.super ? "ok" : "light");
   }, still ? 0 : 650);
 }
 
@@ -1815,7 +1938,8 @@ function syncBack() {   // Telegram's own back button: a sheet first, then home
 document.addEventListener("click", e => {
   const el = e.target.closest("button"); if (!el || el.disabled) return;
   const d = el.dataset;
-  if (d.seg) setTab(d.seg);
+  if (d.area) setArea(d.area);
+  else if (d.seg) setTab(d.seg);
   else if (el.id === "claim") claimDaily();
   else if (el.id === "watch") watchAd();
   else if (d.buy) tapBuy(d.buy);
@@ -1855,6 +1979,7 @@ function dev(k, el) {
   if (k === "zero") wallet.coins = wallet.gems = 0;
   if (k === "day") shop.daily = shop.ad = shop.coinChest = null;
   if (k === "pity") shop.pity.parts = PITY.parts - 1;
+  if (k === "hpity") shop.pity.heir = PITY.heir - 1;
   if (k === "crown") { devCrown = !devCrown; el.setAttribute("aria-pressed", String(devCrown)); }
   if (k === "reset") {
     save.shop = shopOf(null);
@@ -1869,14 +1994,15 @@ function dev(k, el) {
 /* ================= init ================= */
 const qOffer = Q.get("offer");
 if (!shop.starterBought && !shop.starterUntil) { shop.starterUntil = Date.now() + STARTER.hours * 36e5; persist(true); }   // the starter's clock starts at the first visit
-if (qOffer && trigger(qOffer, true)) tab = "featured";
+if (qOffer && trigger(qOffer, true)) { tab = "featured"; area = "stall"; }
+if (Q.has("daily")) { tab = "featured"; area = "stall"; }   // the lobby's Gift: straight to the daily gift
 if (shop.offer && !offerNow()) shop.offer = null;
 $("draft").hidden = !PRICES_DRAFT;
 const sc = $("scene"); paintStrip(sc); if (ro) ro.observe(sc);
-narrate("shop:first", t("narr.first"), sc);
+if (area === "stall") narrate("shop:first", t("narr.first"), sc);
 paint(); render(); noteSource(); syncBack();
-const from = Q.has("gems") ? "topbar_plus" : qOffer ? "offer" : /01-first|index\.html/.test(document.referrer) ? "tab" : "direct";
-track("shop_open", { tab, source: from });
+const from = Q.has("gems") ? "topbar_plus" : qOffer ? "offer" : /01-|02-basement|index\.html/.test(document.referrer) ? "tab" : "direct";
+track("shop_open", { tab: area === "summon" ? "summon" : tab, source: from });
 if (Q.has("gems")) openPacks("topbar_plus", true);
 })();
 </script>

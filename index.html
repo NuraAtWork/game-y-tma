@@ -25,7 +25,7 @@ img{max-width:100%}
 </head>
 <body>
 <meta charset="utf-8">
-<title>Game Y First Touch</title>
+<title>Game Y Lobby</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
@@ -87,8 +87,8 @@ img{image-rendering:pixelated}
 /* ---------- top bar ---------- */
 .topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
 .tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
-.hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
-.avatar{flex:none;width:42px;height:42px;display:grid;place-items:center;overflow:hidden;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
+.hero{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+.avatar{flex:none;width:38px;height:38px;display:grid;place-items:center;overflow:hidden;border-radius:6px;background:var(--panel);border:1px solid var(--line)}
 .avatar img{width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* painted face from art/ari-torch.jpg */
 /* hero screen: the painted bust bleeds edge to edge at the top and fades into the page */
 .herobust{position:relative;height:260px;margin-top:-16px;margin-left:calc(-1 * max(16px, env(safe-area-inset-left, 0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right, 0px)));overflow:hidden}
@@ -238,9 +238,31 @@ button.fl{cursor:pointer}
 .entry.unk span{color:var(--muted)}
 
 
+/* ---------- lobby: the hero in full and one way on, into the campaigns ---------- */
+.view.lobby{display:block;position:relative;height:100%;min-height:420px;padding:0;overflow:hidden;background:var(--stage)}
+.lart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%;image-rendering:auto}
+.lobby::after{content:"";position:absolute;inset:auto 0 0;height:34%;background:linear-gradient(transparent, var(--scrim-mid) 50%, var(--bg));pointer-events:none}
+.lfoot{position:absolute;left:max(16px, env(safe-area-inset-left, 0px));right:max(16px, env(safe-area-inset-right, 0px));bottom:16px;z-index:2}
+.gobig{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;padding:0 18px;border:0;border-radius:6px;background:var(--torch);color:var(--torch-ink);font:500 21px/1 var(--display);cursor:pointer}
+.gobig:active{transform:translateY(1px)}
+.gobig .ico{width:16px;height:14px}
+.gobig.pulse{animation:pulse 1.8s ease-out infinite}
+/* the shortcuts on top of the art, once the shop opens: the hero banner on the left, the daily gift on the right */
+.ltop{position:absolute;top:12px;left:max(12px, env(safe-area-inset-left, 0px));right:max(12px, env(safe-area-inset-right, 0px));z-index:2;display:flex;align-items:flex-start;gap:10px}
+.bcard{display:flex;align-items:center;gap:9px;min-width:0;padding:6px 12px 6px 6px;border:1px solid var(--star-dim);border-radius:10px;background:rgba(20,18,22,.8);color:var(--fg);text-align:left;cursor:pointer}
+.bcard img{flex:none;width:40px;height:40px;border-radius:6px;image-rendering:auto}
+.bcard span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.bcard b{font:500 14px/1.1 var(--display);color:var(--star)}
+.bcard i{font:500 12px/1 var(--body);font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.lico{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;width:60px;margin-left:auto;padding:9px 0 7px;border:1px solid var(--line);border-radius:10px;background:rgba(20,18,22,.8);color:var(--fg);font:500 10px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.lico .ico{width:24px;height:24px}
+.lico .newdot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--torch);box-shadow:0 0 0 2px var(--bg)}
+.bcard:active,.lico:active{transform:translateY(1px)}
+
+
 /* ---------- tab bar & toast ---------- */
-.tabbar{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:opacity .3s}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;cursor:pointer;transition:opacity .3s}   /* five tabs: "Campaigns" has to fit */
 .tab .ico{width:30px;height:30px}
 .tab[aria-current="page"]{color:var(--torch)}
 .tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
@@ -254,7 +276,7 @@ button.fl{cursor:pointer}
 @keyframes toast{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
 /* ---------- notes beside the phone ---------- */
-.notes{display:none;flex:0 1 300px;max-width:300px;flex-direction:column;gap:22px}
+.notes{display:none;flex:0 1 300px;max-width:300px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:thin;flex-direction:column;gap:22px}   /* long notes scroll on their own, the phone stays in view */
 .brand{font:700 34px/1 var(--display);color:var(--torch)}
 .lede{margin:8px 0 0;font-size:15px;color:var(--muted)}
 .note h3{margin:0 0 8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
@@ -275,7 +297,7 @@ button.fl{cursor:pointer}
   .statusbar,.homebar{display:none}
   .tabbar{padding-bottom:8px}
 }
-@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.toast.in,.cta.pulse,.tab.glow,.tab.next::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.toast.in,.cta.pulse,.gobig.pulse,.tab.glow,.tab.next::after{animation:none}}
 </style>
 
 <div class="stage">
@@ -311,8 +333,18 @@ button.fl{cursor:pointer}
       <div class="main">
         <div class="views" id="views">
 
-          <!-- PLAY: first touch without a save, the climb so far with one -->
-          <section class="view" data-view="game" data-ta="tab.play">
+          <!-- LOBBY: the hero in full, one button on into the campaigns -->
+          <section class="view lobby" data-view="lobby" data-ta="tab.lobby">
+            <img class="lart" id="lobbyImg" src="img/lobby-ari.jpg" alt="">
+            <div class="ltop" id="lobbyTop">
+              <button class="bcard" type="button" id="bannerCard"><img src="img/heir-face.jpg" alt=""><span><b data-t="lobby.banner"></b><i id="bannerLeft"></i></span></button>
+              <button class="lico" type="button" id="giftIco"><i class="ico" data-ico="gift" data-s="2"></i><span data-t="lobby.gift"></span><i class="newdot" hidden></i></button>
+            </div>
+            <div class="lfoot"><button class="gobig" type="button" id="toCampaigns"><span data-t="lobby.go"></span><i class="ico" data-ico="next" data-s="2"></i></button></div>
+          </section>
+
+          <!-- CAMPAIGNS (01's Play): first touch without a save, the climb so far with one -->
+          <section class="view" data-view="game" data-ta="tab.campaigns" hidden>
             <button class="strip main" type="button" data-scene="campaign" id="mainStrip">
               <span class="eyebrow" data-t="play.eyebrow"></span>
               <span class="title" data-t="play.title"></span>
@@ -320,11 +352,10 @@ button.fl{cursor:pointer}
               <span class="prog"><span class="floors" id="floors" aria-hidden="true"></span><b id="floorCount"></b></span>
               <span class="cta" id="mainCta"></span>
             </button>
-            <button class="strip locked" type="button" data-scene="quests" data-stub="errands.lock">
+            <button class="strip" type="button" data-scene="quests" data-stub="stub.errands">
               <span class="eyebrow" data-t="errands.eyebrow"></span>
               <span class="title" data-t="errands.title"></span>
-              <span class="meta"><span data-t="errands.lock"></span> <span class="stub" data-t="stub"></span></span>
-              <i class="ico lockmark" data-ico="lock" data-s="2"></i>
+              <span class="meta"><span class="stub" data-t="stub"></span></span>
             </button>
             <button class="strip locked" type="button" data-scene="farm" id="farmStrip" data-stub="farm.lock">
               <span class="eyebrow" data-t="farm.eyebrow"></span>
@@ -381,7 +412,8 @@ button.fl{cursor:pointer}
       </div>
 
       <nav class="tabbar" data-ta="aria.sections">
-        <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span data-t="tab.play"></span></button>
+        <button class="tab" type="button" data-tab="lobby"><i class="ico" data-ico="home"></i><span data-t="tab.lobby"></span></button>
+        <button class="tab" type="button" data-tab="game"><i class="ico" data-ico="tower"></i><span data-t="tab.campaigns"></span></button>
         <button class="tab" type="button" data-tab="camp" id="campTab"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i><b class="tbadge" id="campBadge" hidden></b></button>
         <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i></button>
         <button class="tab" type="button" data-tab="shop"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span><i class="ico tablock" data-ico="lock" data-s="1"></i><i class="newdot" hidden></i></button>
@@ -398,7 +430,7 @@ button.fl{cursor:pointer}
 const STR = {
   "hero.name": "Ari", "hero.class": "Human · No class",
   "hero.gear": "Gear and builds", "hero.gear.sub": "Six slots", "hero.classes": "Classes", "hero.races": "Races",
-  "tab.play": "Play", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
+  "tab.lobby": "Lobby", "tab.campaigns": "Campaigns", "lobby.go": "Campaigns", "lobby.banner": "The Favorite Heir", "lobby.gift": "Gift", "lobby.leftD": "{n} d left", "lobby.leftH": "{n} h left", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
   "aria.back": "Back", "aria.sections": "Sections", "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more", "aria.sound": "Sound",
   "aria.locked": "{tab}, locked", "aria.new": "{tab}, new", "aria.campMake": "Camp, {n} to make",
   "lock.floor1": "Opens after floor 1", "unlock.toast": "Unlocked: {list}",
@@ -436,13 +468,13 @@ const STR = {
   "stub": "placeholder",
   "stub.gear": "Hero screen: gear in six slots and builds. Placeholder.",
   "stub.floor": "Floor {n} is not built yet.",
-  "stub.farm": "Farm — placeholder."
+  "stub.farm": "Farm — placeholder.", "stub.errands": "Errands — placeholder."
 };
 const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
 
 document.documentElement.lang = "en";
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // relative: the Telegram build maps them to run.html / camp.html / shop.html
+const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // the shop: the copy with the hero banner   // relative: the Telegram build maps them to run.html / camp.html / shop.html
 
 /* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
 const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -478,14 +510,7 @@ function startSession() {   // once per sid, whichever screen made it
   once.add("home.session");
 }
 
-/* Telegram first contact: no save and the app was just opened → straight into floor 1, the menu never shows.
-   Back from the run comes here within the same session, so it gets the menu. #tg: the notes' link simulates Telegram. */
-if ((window.GY || location.hash === "#tg") && !save && freshSession) {
-  startSession(); once.add("home.start");
-  document.body.hidden = true;
-  location.replace(LINK.run);
-  return;
-}
+/* For now the first Telegram launch shows the lobby too (01 jumps straight into floor 1): the first-player loop comes later. */
 
 /* demo save "after floor 1", same shape 03 writes on floor_clear (used by the links in the notes) */
 const DEMO_SAVE = { v: 1, floor: 1,
@@ -495,14 +520,13 @@ const DEMO_SAVE = { v: 1, floor: 1,
 
 /* ================= state from the save ================= */
 const DONE = save ? Math.max(0, Math.min(15, save.floor | 0)) : 0;
-const UNLOCK = { camp: 1, almanac: 1, shop: 1, farm: 5 };   // floor after which each part opens
-const opened = k => DONE >= UNLOCK[k];
+const opened = k => true;   // for now everything is open; 01 opens Camp, Almanac and Shop after floor 1 and the farm after floor 5
 const farmOpen = opened("farm");
-const makeable = opened("camp") ? Math.max(0, save.makeable | 0) : 0;
-const GATED = ["camp", "almanac", "shop"];               // tabs behind a padlock until floor 1
-const pending = GATED.filter(k => opened(k) && !once.has("unlock:" + k));   // opened, but the unlock moment hasn't played yet
+const makeable = Math.max(0, (save && save.makeable) | 0);
+const GATED = ["camp", "almanac", "shop"];               // the tabs 01 keeps behind a padlock until floor 1
+const pending = [];                                     // so no unlock moment either
 const locked = new Set(GATED.filter(k => !opened(k) || (pending.includes(k) && !still)));
-const firstRun = !save && !once.has("home.start");     // the very first Start skips the tower screen (GDE-01 P2)
+const firstRun = false;                                 // 01: the very first Start skips the tower screen (GDE-01 P2); later
 
 /* ================= sprites (16×16, the almanac set from 05: keep the whole palette, i j J a A included) ================= */
 function mk(rows, pal, base) {
@@ -688,7 +712,10 @@ const MASK = {
   lock:  ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
   unlock:["..####..",".#....#.",".#......","########","###..###","###..###","########","########"],   // shackle sprung on the right
   back:  ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
-  plus:  ["..##..","..##..","######","######","..##..","..##.."]
+  plus:  ["..##..","..##..","######","######","..##..","..##.."],
+  home:  ["....##....","...####...","..######..",".########.","##########",".########.",".##....##.",".##.##.##.",".##.##.##.",".########."],
+  next:  ["....#...","....##..","#######.","########","#######.","....##..","....#..."],
+  gift:  ["..##..##..",".#..##..#.","..##..##..","####..####","####..####",".###..###.",".###..###.",".###..###.",".###..###.",".########."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1));
 function maskURL(k, cell) {
@@ -944,14 +971,14 @@ if ("ResizeObserver" in window) { const ro = new ResizeObserver(es => es.forEach
 else { strips.forEach(paintStrip); window.addEventListener("resize", () => strips.forEach(paintStrip)); }
 
 /* ================= navigation ================= */
-const TABS = ["game", "camp", "almanac", "shop"];
+const TABS = ["lobby", "game", "camp", "almanac", "shop"];
 const SUB = {
   campaign: { title: t("tower.title"), sub: t("tower.sub", { n: DONE }) },
   hero:     { title: t("hero.name"), sub: t("hero.class") }
 };
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
-let tab = "game", sub = null;
-try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && !((v === "camp" || v === "shop") && opened(v))) tab = v; } catch (e) {}
+let tab = "lobby", sub = null;
+try { const v = localStorage.getItem("gamey.tab"); if (TABS.includes(v) && v !== "game" && !((v === "camp" || v === "shop") && opened(v))) tab = v; } catch (e) {}   // the app opens on the lobby, not on the last Campaigns visit
 const LOCKVIEW = { camp: ["camp", "camp.eyebrow", "camp.title"], almanac: ["shelf", "alm.eyebrow", "alm.title"], shop: ["stall", "shop.eyebrow", "shop.title"] };
 
 function show(dir) {
@@ -989,6 +1016,22 @@ document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () =>
   show("fwd");
   if (tab === "almanac" && !locked.has("almanac")) almView();
 }));
+$("toCampaigns").addEventListener("click", () => tabEl("game").click());
+$("toCampaigns").classList.toggle("pulse", firstRun);   // the very first visit: the way on
+// the lobby's shortcuts into the shop, once it opens: the hero banner (Summon) and the daily gift (the stall)
+const BANNER_DAYS = 14;   // as BANNER.days in 09-shop-copy.html: banners change every 14 days
+const today = (d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)(new Date());   // the shop's local day
+{
+  const c = BANNER_DAYS * 864e5, left = Math.floor(Date.now() / c) * c + c - Date.now();
+  $("bannerLeft").textContent = left > 2 * 864e5 ? t("lobby.leftD", { n: Math.ceil(left / 864e5) }) : t("lobby.leftH", { n: Math.max(1, Math.ceil(left / 36e5)) });
+  $("bannerCard").setAttribute("aria-label", `${t("lobby.banner")}, ${$("bannerLeft").textContent}`);
+  const giftDot = !(save && save.shop && save.shop.daily === today);
+  $("giftIco").querySelector(".newdot").hidden = !giftDot;
+  $("giftIco").setAttribute("aria-label", giftDot ? t("aria.new", { tab: t("lobby.gift") }) : t("lobby.gift"));
+}
+const toShop = (q, target) => { track("lobby_tap", { target }); visit("shop"); SND.leave(() => { location.href = LINK.shop + q; }); };
+$("bannerCard").addEventListener("click", () => toShop("", "banner"));
+$("giftIco").addEventListener("click", () => toShop("?daily", "gift"));
 mainStrip.addEventListener("click", () => { if (firstRun) goRun(); else { sub = "campaign"; show("fwd"); } });
 $("goBtn").addEventListener("click", () => { if (pick === 1) goRun(); else toast("stub", t("stub.floor", { n: pick })); });
 document.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => { sub = b.dataset.open; show("fwd"); }));
@@ -1098,7 +1141,7 @@ function playUnlocks() {
       locked.delete(k); once.add("unlock:" + k); paintTab(k);
       b.classList.add("glow"); setTimeout(() => b.classList.remove("glow"), 1300);
       SND.click(); SND.chime(i); if (window.GY) window.GY.haptic("ok");
-      if (tab === k && !sub) { if (k === "camp") tab = "game"; show(); }   // the tab on screen was showing its lock view; an open Camp is a link, so back to Play
+      if (tab === k && !sub) { if (k === "camp") tab = "lobby"; show(); }   // the tab on screen was showing its lock view; an open Camp is a link, so back to Play
     }, 430);
   }, 700 + i * 950));
   setTimeout(() => { if (!once.has("home.open:camp")) tabEl("camp").classList.add("next"); }, 700 + pending.length * 950 + 400);   // Camp is the next step
