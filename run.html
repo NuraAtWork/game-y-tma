@@ -490,7 +490,7 @@ const STR = {
   nFell:"The cold floor. Then — nothing. Then the cold floor again."
 };
 
-/* ================= shared with the other screens (GDE-00, GDE/CONTRACT.md): storage, analytics, once, narrator, toasts ================= */
+/* ================= shared with the other screens (GDE-00, docs/GDE/CONTRACT.md): storage, analytics, once, narrator, toasts ================= */
 function load(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; } catch (e) { return fallback; } }
 function store(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
 const list = key => { const v = load(key, []); return Array.isArray(v) ? v : []; };
@@ -528,7 +528,7 @@ function toast(type, text, key) {
   toastT = setTimeout(() => { el.hidden = true; toastT = 0; const n = toastNext; toastNext = null; if (n) toast(...n); }, 2000);
 }
 
-/* ================= floor 1, as in GDE/GDE-03-run-floor-1.md ================= */
+/* ================= floor 1, as in docs/GDE/GDE-03-run-floor-1.md ================= */
 const FLOOR = 1, COLS = 5, ROWS = 4, HERO_HP = 15, SLOTS = 4, ROW = 6;   // ROW: bag slots per row; the bag in a run has no limit
 const NODES = {
   A: { x:0, y:3, kind:"room" },
@@ -563,7 +563,7 @@ const RECIPES = [["dagger", "stone", "sharp"], ["sharp", "fang", "viper"]];   //
 const HINTS = { pelt: "jacket" };   // a find that goes into a camp recipe: picking it up hints at that recipe
 const CAMP_UNLOCK = { 1: ["table", "almanac"] };   // what clearing a floor opens at the camp (GDE-04)
 const UNIQUE = ["lockbox"];   // specials that exist once: replaying a floor doesn't add a second one to the saved bag
-// The camp's recipe book, copied from RECIPES in states/08-camp.html (the source of truth): here only to count
+// The camp's recipe book, copied from RECIPES in mockups/08-camp.html (the source of truth): here only to count
 // makeable for the Camp badge, by the camp's own rule (canMake: every ingredient in the bag in the needed count).
 const CAMP_RECIPES = [
   { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
@@ -592,7 +592,7 @@ for (const k in SPEAKERS) {
   if (SPEAKERS[k].img) new Image().src = SPEAKERS[k].img;   // preload, so the first line doesn't open on an empty frame
 }
 
-/* ================= sprites: the shared 16×16 set (states/05-almanac.html, sprites16.json) ================= */
+/* ================= sprites: the shared 16×16 set (mockups/05-almanac.html, sprites16.json) ================= */
 // the full shared palette: a letter missing from P silently drops its pixels
 function mk(rows, pal) {
   const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
@@ -1026,7 +1026,7 @@ function fuseBench() {
   renderAll();
 }
 function loadSave() { const s = load("gamey.save", null); return s && s.v === 1 ? s : null; }
-function writeSave(secs, prev) {   // the stairs are the save point: gamey.save v1, exactly as in GDE/CONTRACT.md
+function writeSave(secs, prev) {   // the stairs are the save point: gamey.save v1, exactly as in docs/GDE/CONTRACT.md
   const old = prev || {}, bag = [], w = weapon();
   const add = (key, n) => { const b = bag.find(x => x.key === key); if (b) b.n += n; else bag.push({ key, n }); };
   // nothing saved earlier is lost (GDE-00): the saved bag, camp crafts included, plus this run's bag on top

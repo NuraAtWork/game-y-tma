@@ -24,14 +24,16 @@ img{max-width:100%}
 </style>
 </head>
 <body>
+<meta charset="utf-8">
 <title>Game Y Camp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
 <style>
 /* Layout: desktop = phone frame with design notes beside it; phone = the app itself, edge to edge.
-   Camp = top bar / scrolling view / tab bar Play · Camp · Almanac · Shop, as in state 1. The alchemy table is a sub-screen,
-   creature and item cards open as bottom sheets. Same single dark world and palette as the other states; sprites 16×16. */
+   Camp, as an experienced player sees it: top bar / scrolling view / tab bar Play · Camp · Almanac · Shop, as in state 1.
+   The alchemy table (recipes, free fusion, feeding) is a sub-screen; weapon, gear, creature, item and floor-star cards open as bottom sheets.
+   Same single dark world and palette as the other states; sprites 16×16. */
 :root{
   --stage:#0c0a0d;
   --bg:#141216;
@@ -99,7 +101,7 @@ img{image-rendering:pixelated}
 .sys svg{display:block}
 .homebar{position:absolute;bottom:8px;left:50%;z-index:30;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--fg);opacity:.75;pointer-events:none}
 
-/* ---------- top bar ---------- */
+/* ---------- top bar: hero and purse, as in 01 ---------- */
 .topbar{flex:none;padding-block:6px 10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-bottom:1px solid var(--line);background:var(--bg)}
 .tb-root{display:flex;align-items:center;gap:12px;min-height:42px}
 .hero{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -108,14 +110,13 @@ img{image-rendering:pixelated}
 .who{min-width:0;display:flex;flex-direction:column;gap:2px}
 .who b{font:500 17px/1.1 var(--display)}
 .who span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.purse{flex:none;display:flex;gap:5px}
+.purse{flex:none;display:flex;align-items:center;gap:6px}
 .chip{display:flex;align-items:center;gap:4px;height:28px;padding:0 8px 0 6px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font:600 14px/1 var(--body);font-variant-numeric:tabular-nums}
 .chip img{width:16px;height:16px}
 .chip.coins{color:var(--torch)}
 .chip.gems{padding-right:3px;color:var(--gem);cursor:pointer}   /* the + opens the crystal packs in the shop (GDE-05) */
 .chip .plus{width:20px;height:20px;display:grid;place-items:center;margin-left:2px;border-radius:10px;background:var(--arcane);color:var(--torch-ink)}
 .chip .plus .ico{width:8px;height:8px}
-.chip.gems:active{transform:translateY(1px)}
 .tb-sub{display:flex;align-items:center;gap:12px;min-height:42px}
 .back{flex:none;width:38px;height:38px;display:grid;place-items:center;border-radius:6px;background:var(--panel);border:1px solid var(--line);cursor:pointer}
 .back .ico{width:16px;height:14px}
@@ -137,14 +138,33 @@ img{image-rendering:pixelated}
 .sec{margin:8px 0 0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:500 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .sec span{font:400 12px/1 var(--body);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
 .ico{display:block;flex:none;background:currentColor;-webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-.narr{margin:-4px 0 0;font-size:14px;font-style:italic;color:var(--muted)}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 18px;border:0;border-radius:4px;background:var(--torch);color:var(--torch-ink);font:500 17px/1 var(--display);cursor:pointer;text-decoration:none}
 .btn.sm{min-height:34px;padding:0 12px;font-size:15px}
+.btn.wide{width:100%}
 .btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.off{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);cursor:default}
+.btn .ico{width:12px;height:12px}
+.btn .cost{display:inline-flex;align-items:center;gap:3px;font:600 14px/1 var(--body)}
+.btn .cost .ico{width:10px;height:10px}
 .btn.pulse{animation:pulse 1.6s ease-out infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--pulse)}100%{box-shadow:0 0 0 14px var(--pulse-0)}}
-.btn:active,.tile:active,.newcard button:active,.go:active,.rowcard:active,button.entry:active,button.cell:active,.where:active,.back:active{transform:translateY(1px)}
+.btn:not(.off):active,.tile:active,.rowcard:active,button.entry:active,button.cell:active,.where:active,.back:active,.lrow:not(.on):active,.tgt:active,.fstars:active,.hcard:active,.dslot:active,.rct:active,.mv:active,.chip.gems:active{transform:translateY(1px)}
+.shake{animation:shake .32s linear}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+
+/* ★ tiers and levels, as on the weapon screen (06): stars = tier, the fraction = level / the tier's cap */
+.stars{font-size:13px;letter-spacing:1px;color:var(--star);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star-dim)}
+.lv{font:600 14px/1 var(--body);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lv small{font-size:12px;font-weight:400;color:var(--muted)}
+.lv.up{animation:lvup .6s ease-out}
+@keyframes lvup{0%{color:var(--torch);transform:scale(1.25)}100%{color:inherit;transform:none}}
+.xbar{position:relative;height:6px;background:var(--well);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.xbar i,.xbar u{position:absolute;top:0;bottom:0;display:block}
+.xbar i{left:0;background:var(--arcane)}
+.xbar u{background:var(--torch);opacity:.6;text-decoration:none}   /* what the chosen food will add */
+.xbar.max i{background:var(--torch)}
 
 /* ---------- camp: scene strip (pixel art, 3 screen px per art px) ---------- */
 .strip{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:4px;width:100%;min-height:148px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background-color:var(--panel);background-repeat:no-repeat;background-position:right bottom;image-rendering:pixelated;overflow:hidden}
@@ -153,22 +173,22 @@ img{image-rendering:pixelated}
 .strip .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .strip .title{font:700 25px/1.05 var(--display);margin-top:2px}
 .strip .meta{font-size:13px;color:var(--muted)}
+.fstars{display:flex;gap:4px;margin-top:4px;padding:5px 7px;border:1px solid var(--line);border-radius:4px;background:var(--scrim-mid);cursor:pointer}   /* the floor's three stars; a tap shows the conditions */
+.fstars .ico{width:14px;height:14px;color:var(--star-dim)}
+.fstars .ico.on{color:var(--star)}
 
-/* one card: what opened on this return */
-.newcard{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--torch-dim);border-radius:6px;background:var(--panel);box-shadow:inset 0 0 0 1px var(--torch-dim)}
-.newcard .eyebrow{font:500 11px/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--torch)}
-.newrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.newcard button,.newcard .nitem{min-width:0;display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:4px;background:var(--seg);font:500 15px/1.15 var(--display);text-align:left;cursor:pointer}
-.newcard .nitem{cursor:default}
-.newcard .ico{width:22px;height:22px;color:var(--torch)}
+/* the weapon in hand (its sheet): tier, level, Feed and Ascend */
+.wrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 
-/* tiles: table and almanac */
+/* tiles: the table */
 .tile{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
 .tface{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;background:var(--seg);color:var(--fg)}
 .tface .ico{width:26px;height:26px}
-.tbody{min-width:0;display:flex;flex-direction:column;gap:3px}
+.tbody{min-width:0;display:flex;flex-direction:column;gap:4px}
 .tbody b{font:500 18px/1.1 var(--display)}
-.tbody span{font-size:13px;color:var(--muted)}
+.outs{display:flex;gap:2px;min-height:32px}   /* what can be made right now, as icons */
+.outs img{width:32px;height:32px}
 .badge{min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;border-radius:12px;background:var(--blood);color:var(--fg);font:600 13px/1 var(--body);font-variant-numeric:tabular-nums}
 .chev{width:10px;height:14px;color:var(--muted)}
 .pill{flex:none;padding:5px 7px;border-radius:3px;font:500 12px/1 var(--display);letter-spacing:.06em;white-space:nowrap}
@@ -176,26 +196,92 @@ img{image-rendering:pixelated}
 .pill.ok{background:var(--moss-dim);color:var(--moss)}
 .pill.off{background:var(--seg);color:var(--muted)}
 
-/* shelf: special items stand on a plank */
+/* heroes: a card per hero the player has, the pixel skin at 2× over its shadow, name below; the torch marks who goes to the next floor */
+.roster{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hcard{position:relative;min-width:0;display:flex;flex-direction:column;gap:7px;padding:10px 8px 9px;border:1px solid var(--line);border-radius:6px;background:radial-gradient(60% 42% at 50% 38%, var(--glow-soft), transparent 75%), var(--well);overflow:hidden;color:var(--fg);text-decoration:none;cursor:pointer}
+.hcard.on{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch), 0 0 18px var(--glow-soft)}
+.hsk{position:relative;height:128px;display:flex;align-items:flex-end;justify-content:center}
+.hsk::after{content:"";position:absolute;left:50%;bottom:0;width:64px;height:7px;margin-left:-32px;border-radius:50%;background:var(--shadow)}   /* the floor under the feet */
+.hsk img{position:relative;z-index:1;width:96px;height:128px;image-rendering:pixelated}   /* a 48×64 skin at 2× */
+.hsk img.paint{width:100%;height:100%;object-fit:cover;object-position:50% 20%;image-rendering:auto;border-radius:4px}   /* no skin file: the painted bust */
+.hname{display:flex;flex-direction:column;gap:3px;text-align:left}
+.hname b{font:500 15px/1.1 var(--display)}
+.hname span{display:flex;align-items:center;gap:5px;font:500 11px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.hname .stars,.bwho .stars{color:var(--star)}
+.hname .stars{font-size:9px;letter-spacing:0}
+.torch{position:absolute;top:6px;left:6px;z-index:2;width:22px;height:22px;display:grid;place-items:center;border-radius:3px;background:var(--torch);color:var(--torch-ink)}
+.torch .ico{width:10px;height:10px}
+.hcard.free{display:grid;place-items:center;border-style:dashed;background:transparent;color:var(--muted)}
+.hcard.free .ico{width:18px;height:18px}
+/* a hero's build as a paper doll: the full-height skin in the middle, gear on both sides */
+.bwho{display:flex;flex-direction:column;gap:6px}
+.bwho b{font:700 25px/1.05 var(--display)}
+.bwho span{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.doll{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:12px 8px;align-items:center;padding:16px 12px 14px;border:1px solid var(--line);border-radius:6px;background:radial-gradient(45% 50% at 50% 42%, var(--glow-soft), transparent 75%), var(--well)}
+.dcol{display:flex;flex-direction:column;gap:10px}
+.dslot{position:relative;width:64px;height:64px;display:grid;place-items:center;padding:0;border:0;background:var(--slot);box-shadow:inset 2px 2px 0 var(--bevel-lo), inset -2px -2px 0 var(--bevel-hi);cursor:pointer}   /* bevelled, as the bag */
+.dslot img{width:32px;height:32px}
+.dslot .wl{position:absolute;left:3px;right:3px;bottom:3px;padding:1px 0;background:var(--veil);font:600 10px/1.2 var(--body);font-variant-numeric:tabular-nums;color:var(--fg);text-align:center;pointer-events:none}   /* the weapon's level */
+.skinbox{position:relative;height:212px;display:flex;align-items:flex-end;justify-content:center}
+.skinbox::after{content:"";position:absolute;left:50%;bottom:2px;width:96px;height:10px;margin-left:-48px;border-radius:50%;background:var(--shadow)}   /* the floor under the feet */
+.skinbox img{position:relative;z-index:1;height:192px;width:auto;image-rendering:pixelated}   /* 48×64 or 64×96 skins: whole-number scale */
+.skinbox img.paint{height:100%;width:100%;object-fit:cover;object-position:50% 20%;image-rendering:auto;border-radius:4px;-webkit-mask-image:linear-gradient(180deg, #000 72%, transparent);mask-image:linear-gradient(180deg, #000 72%, transparent)}   /* until the pixel skins exist: the painted bust */
+.skinbox .torch{top:0;left:0}
+/* under the doll: race and class, the hero's level, stats, the four moves in battle */
+.rc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rct{min-width:0;display:flex;flex-direction:column;gap:5px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.rct .lbl{font:500 10px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rct b{font:500 17px/1.1 var(--display)}
+.rct .sub{display:flex;align-items:center;gap:5px;min-height:14px;font-size:12px;color:var(--muted)}
+.rct .sub .ico{width:10px;height:10px}
+.hlv{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:0 2px}
+.hlv b{font:500 16px/1 var(--display)}
+.hlv span{font:500 12px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--muted)}
+.stats{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid var(--line);border-radius:6px;background:var(--line);overflow:hidden}
+.stats div{display:flex;flex-direction:column;gap:5px;padding:9px 10px;background:var(--panel)}
+.stats dt{font-size:11px;color:var(--muted)}
+.stats dd{margin:0;font:600 16px/1 var(--body);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats dd small{margin-left:5px;font-size:11px;font-weight:500;color:var(--muted)}   /* what the gear adds, as in 07 */
+.moves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mv{min-width:0;min-height:50px;display:grid;grid-template-columns:32px minmax(0,1fr);gap:8px;align-items:center;padding:8px 10px 8px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.mv img{width:32px;height:32px}
+.mv b{min-width:0;font:500 14px/1.15 var(--display)}
+.mv.free{border-style:dashed;background:transparent;color:var(--muted)}
+.mv.free .ico{width:12px;height:12px;justify-self:center}
+/* a class's skill tree: a tab per class (two at most), rows by class level, a core in the middle, two subclass branches from Lv 5 */
+.seg button.locked{color:var(--line)}
+.seg button.locked .ico{width:10px;height:10px}
+.pts{color:var(--torch)}
+.tree{position:relative;margin-top:2px}
+.tlines{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.tlines line{stroke:var(--line);stroke-width:2;vector-effect:non-scaling-stroke}
+.tlines line.lit{stroke:var(--torch-dim)}
+.trow{position:absolute;left:0;right:0;border-top:1px dashed var(--seg)}
+.trow span{position:absolute;left:0;top:5px;display:flex;align-items:center;gap:4px;font:500 11px/1 var(--body);font-variant-numeric:tabular-nums;color:var(--muted)}
+.trow.off span{color:var(--line)}
+.trow .ico{width:8px;height:8px}
+.tnode{position:absolute;z-index:1;width:52px;height:52px;margin:-26px 0 0 -26px;display:grid;place-items:center;padding:0;border:0;background:var(--slot);box-shadow:inset 2px 2px 0 var(--bevel-lo), inset -2px -2px 0 var(--bevel-hi);cursor:pointer}
+.tnode img{width:32px;height:32px}
+.tnode .rk{position:absolute;left:3px;right:3px;bottom:3px;padding:1px 0;background:var(--veil);font:600 10px/1.2 var(--body);font-variant-numeric:tabular-nums;color:var(--fg);text-align:center;pointer-events:none}
+.tnode.got{box-shadow:inset 0 0 0 2px var(--torch-dim), inset 2px 2px 0 2px var(--bevel-lo)}
+.tnode.max{box-shadow:inset 0 0 0 2px var(--torch), inset 2px 2px 0 2px var(--bevel-lo)}
+.tnode.can{outline:2px solid var(--torch);outline-offset:-2px;animation:pulse 1.6s ease-out infinite}   /* a point can go here; the pulse animates box-shadow, so the frame is an outline */
+.tnode.lock img,.tnode.dim img{opacity:.45}
+.tnode.closed{opacity:.3}   /* the other subclass's branch */
+.ndesc{margin:0;font-size:14px;color:var(--fg)}
+
+
+/* shelf: special and quest items stand on a plank */
 .shelf{position:relative;display:flex;gap:8px;padding:8px 12px 0;border:1px solid var(--line);border-radius:6px;background:linear-gradient(180deg, var(--panel) 0%, var(--panel) calc(100% - 12px), var(--wood-hi) calc(100% - 12px), var(--wood-hi) calc(100% - 10px), var(--wood) calc(100% - 10px), var(--wood-lo) 100%)}
 .shelf .islot{width:50px;margin-bottom:12px}
 .shelf .islot.empty{background:transparent;box-shadow:none;border:1px dashed var(--line)}
-.shelf .islot.shake{animation:shake .32s linear}
-@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
 
-/* sticky: the next floor */
-.go{position:sticky;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;margin-top:4px;padding:12px 16px;border:0;border-radius:6px;background:var(--torch);color:var(--torch-ink);cursor:pointer;box-shadow:0 -14px 22px var(--bg)}
-.go b{font:500 21px/1.05 var(--display)}
-.go span{font-size:12px;font-weight:500;opacity:.8}
-.go b .num{font-size:1.1em;font-weight:600}
 
 /* ---------- table ---------- */
 .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 .seg button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 0;border:0;border-radius:4px;background:transparent;color:var(--muted);font:500 14px/1 var(--display);cursor:pointer}
 .seg button[aria-selected="true"]{background:var(--panel-hi);color:var(--torch)}
-.seg button.locked{opacity:.6}
-.seg .ico{width:10px;height:10px}
 .seg .dot{position:absolute;top:5px;right:6px;width:5px;height:5px;background:var(--torch)}
 
 .recs{display:flex;flex-direction:column;gap:8px}
@@ -217,12 +303,15 @@ img{image-rendering:pixelated}
 .ing img{width:16px;height:16px}
 .ing i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--blood)}
 .ing.ok i{color:var(--moss)}
-.where{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;color:var(--torch);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.where .chev{width:6px;height:9px;color:var(--torch)}
+.wheres{display:flex;flex-wrap:wrap;gap:6px}
+.where{display:inline-flex;align-items:center;gap:5px;padding:3px 7px 3px 4px;border:1px solid var(--line);border-radius:4px;background:var(--seg);color:var(--fg);font:500 12px/1 var(--body);font-variant-numeric:tabular-nums;cursor:pointer}   /* who drops the missing piece, and where */
+.where img{width:16px;height:16px}
+.clue{display:flex;align-items:center;gap:6px;font:500 15px/1 var(--display);color:var(--muted)}
+.clue img{width:20px;height:20px}
 .known{display:flex;flex-direction:column;gap:6px}
 .krow{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:13px}
 .krow img{width:20px;height:20px}
-.krow .op{color:var(--muted)}
+.krow .op{margin:0;font-size:13px;color:var(--muted)}
 .krow b{margin-left:4px;font:500 14px/1.1 var(--display)}
 
 /* free fusion: two cells and the result, as at the run's table */
@@ -247,6 +336,15 @@ button.cell{cursor:pointer}
 .bench.drop .cell[data-spot]{border-style:dashed;border-color:var(--torch)}
 .cell.over{background:var(--panel-hi);box-shadow:0 0 0 2px var(--torch)}
 
+/* feeding: the weapon to feed, its bar with the gain, food from the bag */
+.tgts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tgt{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer}
+.tgt img{width:32px;height:32px}
+.tgt[aria-pressed="true"]{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch);background:var(--panel-hi)}
+.tgt .lv{font-size:12px}
+.tierbox{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.tierbox b{font:500 17px/1.1 var(--display)}
+
 /* bag: a Minecraft-style inventory, as in Builds: bevelled slots on a stone panel, stack counts in pixel digits, a purple tooltip */
 .inv{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px;border:1px solid var(--ink);background:var(--stone);box-shadow:inset 2px 2px 0 var(--bevel-hi), inset -2px -2px 0 var(--bevel-lo)}
 .islot{position:relative;min-width:0;aspect-ratio:1/1;display:grid;place-items:center;padding:0;border:0;background:var(--slot);box-shadow:inset 2px 2px 0 var(--bevel-lo), inset -2px -2px 0 var(--bevel-hi)}
@@ -259,19 +357,21 @@ button.islot{cursor:pointer;touch-action:none}   /* a drag from the bag must not
 .islot[aria-pressed="true"]::after{content:"";position:absolute;inset:2px;background:var(--hover)}
 .islot.used img:not(.n){opacity:.25}
 .islot.hand{box-shadow:inset 0 0 0 2px var(--torch), inset 2px 2px 0 2px var(--bevel-lo)}
+.islot.picked{box-shadow:inset 0 0 0 2px var(--torch), inset 2px 2px 0 2px var(--bevel-lo)}
+.islot[disabled]{cursor:default}
+.islot[disabled] img:not(.n){opacity:.3}
 .islot .hl{position:absolute;top:4px;left:0;right:0;font:500 9px/1 var(--display);letter-spacing:.06em;color:var(--torch);text-align:center;pointer-events:none}
 .islot .mk{position:absolute;top:4px;left:4px;width:6px;height:6px;background:var(--moss);pointer-events:none}
 .islot .mk.spare{background:var(--ember)}
+.islot .pk{position:absolute;top:3px;left:3px;min-width:16px;height:16px;padding:0 3px;display:grid;place-items:center;border-radius:2px;background:var(--torch);color:var(--torch-ink);font:600 11px/1 var(--body);font-variant-numeric:tabular-nums;pointer-events:none}
+.islot .slt{width:14px;height:14px;color:var(--line)}
 .tip{position:absolute;z-index:3;display:flex;flex-direction:column;gap:3px;padding:5px 8px;border:2px solid var(--tip-edge);border-radius:2px;background:var(--tip);font:500 14px/1.15 var(--display);color:var(--fg);white-space:nowrap;pointer-events:none;transform:translate(-50%,-100%)}
 .tip i{font-style:normal;font-size:13px}
-.tip .t-hand{color:var(--torch)}
+.tip .t-hand,.tip .t-on{color:var(--torch)}
 .tip .t-rec{color:var(--moss)}
 .tip .t-spare{color:var(--ember)}
+.tip .t-lv{color:var(--arcane)}
 .tip .t-key{color:var(--muted)}
-
-.locknote{display:flex;gap:12px;align-items:center;padding:14px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
-.locknote .ico{width:16px;height:16px}
-.locknote b{font:500 16px/1.15 var(--display)}
 
 /* ---------- almanac: creatures with study stages ---------- */
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
@@ -291,7 +391,6 @@ button.entry{cursor:pointer}
 .study{display:flex;align-items:center;gap:3px;margin-top:6px}
 .study i{width:18px;height:6px;border-radius:1px;background:var(--seg)}
 .study i.on{background:var(--torch)}
-.study span{margin-left:6px;font-size:12px;color:var(--muted)}
 .ladder{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
 .ladder div{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted);text-align:center}
 .ladder i{height:6px;border-radius:1px;background:var(--seg)}
@@ -313,9 +412,8 @@ button.entry{cursor:pointer}
 .lockrow .ico{width:14px;height:14px}
 .lockrow b{font:500 15px/1.15 var(--display)}
 .lockrow span{font:400 13px/1 var(--body);font-variant-numeric:tabular-nums}
-.studied{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--star-dim);border-radius:6px;background:var(--panel)}
+.studied{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 8px 8px 12px;border:1px solid var(--star-dim);border-radius:6px;background:var(--panel)}
 .studied b{font:500 16px/1 var(--display);color:var(--star)}
-.studied span{font-size:13px;color:var(--muted)}
 .mini{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .mini .cell{width:52px;height:52px}
 .mini .cell img:not(.n){width:32px;height:32px}
@@ -323,10 +421,11 @@ button.entry{cursor:pointer}
 
 /* ---------- tab bar, toast, sheet ---------- */
 .tabbar{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-block:6px 26px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));border-top:1px solid var(--line);background:var(--bg)}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;text-decoration:none;cursor:pointer}   /* five tabs: "Campaigns" has to fit */
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0 4px;border:0;background:transparent;color:var(--muted);font:500 11px/1 var(--display);letter-spacing:.03em;text-transform:uppercase;text-decoration:none;cursor:pointer}   /* five tabs, as in the bot: "Campaigns" has to fit */
 .tab .ico{width:30px;height:30px}
 .tab[aria-current="page"]{color:var(--torch)}
 .tab[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;background:var(--torch)}
+.tab .dot{position:absolute;top:4px;left:50%;width:6px;height:6px;margin-left:12px;background:var(--torch)}
 .toast{position:absolute;left:16px;right:16px;top:10px;z-index:30;padding:11px 14px;border:1px solid var(--line);border-left-width:4px;border-radius:6px;background:var(--panel-hi);font:500 14px/1.25 var(--body);box-shadow:0 10px 30px var(--bezel);pointer-events:none;animation:toast .2s ease-out}
 .toast.recipe{border-left-color:var(--torch)}
 .toast.almanac{border-left-color:var(--arcane)}
@@ -346,6 +445,23 @@ button.entry{cursor:pointer}
 .sh-title b{font:500 21px/1.1 var(--display);color:var(--torch)}
 .sh-title span{font-size:12px;color:var(--muted)}
 .sheet .sec{margin-top:2px}
+/* lists in sheets: weapons to hold, gear to wear */
+.lrows{display:flex;flex-direction:column;gap:6px}
+.lrow{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:8px 12px 8px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);text-align:left;cursor:pointer}
+.lrow.on{border-color:var(--torch);box-shadow:inset 0 0 0 1px var(--torch);cursor:default}
+.lrow b{display:block;font:500 16px/1.15 var(--display)}
+.lrow .meta{display:flex;gap:10px;align-items:baseline;margin-top:5px}
+.lrow .msrc{align-items:center;gap:5px;font-size:12px;color:var(--muted)}   /* where a move comes from: the item, its level, the subclass */
+.lrow .msrc img{width:16px;height:16px}
+.lrow.off{border-style:dashed;background:transparent;cursor:default}   /* locked: another weapon, gear or level would give it */
+.lrow.off b,.lrow.off .face img{opacity:.55}
+/* floor stars: the three conditions */
+.srows{display:flex;flex-direction:column;gap:6px}
+.srow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--muted)}
+.srow .ico{width:18px;height:18px;color:var(--star-dim)}
+.srow b{font:500 16px/1.15 var(--display)}
+.srow.on{color:var(--fg)}
+.srow.on .ico{color:var(--star)}
 
 /* ---------- notes beside the phone ---------- */
 .notes{display:none;flex:0 1 300px;max-width:300px;max-height:calc(100vh - 48px);overflow-y:auto;scrollbar-width:thin;flex-direction:column;gap:22px}
@@ -357,6 +473,7 @@ button.entry{cursor:pointer}
 .note a{color:var(--torch);text-underline-offset:3px}
 .note .cur{color:var(--fg)}
 .dev{padding:2px 7px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--torch);font-size:13px;cursor:pointer}
+.dev[aria-pressed="true"]{border-color:var(--torch)}
 .foot{margin:0;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 @media (min-width:1000px){.notes{display:flex}}
 
@@ -371,7 +488,7 @@ button.entry{cursor:pointer}
   .tabbar{padding-bottom:8px}
   .sheet{padding-bottom:16px}
 }
-@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.sheet.in,.toast,.btn.pulse,.islot.fit::before,.shelf .islot.shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.view.fwd,.view.rev,.sheet.in,.toast,.btn.pulse,.islot.fit::before,.shake,.lv.up,.tnode.can{animation:none}}
 </style>
 
 <div class="stage">
@@ -389,12 +506,12 @@ button.entry{cursor:pointer}
       <header class="topbar">
         <div class="tb-root" id="tbRoot">
           <div class="hero">
-            <span class="avatar"><img src="img/ari-face.jpg" alt=""></span>
-            <span class="who"><b data-t="hero.name"></b><span id="heroSub"></span></span>
+            <span class="avatar"><img id="topFace" src="img/ari-face.jpg" alt=""></span>
+            <span class="who"><b id="topName"></b><span id="topLine"></span></span>
           </div>
           <div class="purse">
-            <span class="chip coins" id="coins"><img data-spr="coin" alt=""><span id="coinsN">0</span></span>
-            <button class="chip gems" id="gems" type="button"><img data-spr="gem" alt=""><span id="gemsN">0</span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
+            <span class="chip coins" id="coins"><img id="coinImg" alt=""><span id="coinsN">0</span></span>
+            <button class="chip gems" id="gems" type="button"><img id="gemImg" alt=""><span id="gemsN">0</span><i class="plus" aria-hidden="true"><i class="ico" data-ico="plus" data-s="2"></i></i></button>
           </div>
         </div>
         <div class="tb-sub" id="tbSub" hidden>
@@ -406,6 +523,8 @@ button.entry{cursor:pointer}
       <div class="main">
         <div class="views" id="views">
           <section class="view" data-view="camp" id="camp"></section>
+          <section class="view" data-view="build" id="build" hidden></section>
+          <section class="view" data-view="tree" id="tree" hidden></section>
           <section class="view" data-view="table" id="table" hidden></section>
           <section class="view" data-view="almanac" id="almanac" hidden></section>
         </div>
@@ -416,7 +535,7 @@ button.entry{cursor:pointer}
         <a class="tab" data-home="lobby"><i class="ico" data-ico="home"></i><span data-t="tab.lobby"></span></a>
         <a class="tab" data-home="game"><i class="ico" data-ico="tower"></i><span data-t="tab.campaigns"></span></a>
         <button class="tab" type="button" data-tab="camp"><i class="ico" data-ico="fire"></i><span data-t="tab.camp"></span></button>
-        <button class="tab" type="button" data-tab="almanac"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
+        <button class="tab" type="button" data-tab="almanac" id="almTab"><i class="ico" data-ico="book"></i><span data-t="tab.almanac"></span></button>
         <a class="tab" href="shop.html"><i class="ico" data-ico="bag"></i><span data-t="tab.shop"></span></a>
       </nav>
 
@@ -432,128 +551,272 @@ button.entry{cursor:pointer}
 (() => {
 /* ================= strings (GDE-00: one dictionary, Russian goes here later) ================= */
 const STR = {
-  "hero.name": "Ari", "hero.class": "Human · No class",
+  "hero.ari": "Ari", "hero.heir": "Corvin Ashvale", "race.human": "Human", "race.dragon": "Dragonborn",
+  "hero.lv": "{race} · Lv {n}", "hero.lvShort": "Lv {n}", "camp.heroes": "Heroes", "aria.moveFree": "Free move slot", "moves.now": "Available", "moves.later": "Locked",
+  "build.race": "Race", "build.class": "Class", "build.stats": "Stats", "build.moves": "Moves", "build.sub": "Subclass", "build.second": "Second class",
+  "build.lvAt": "Lv {n}", "build.main": "Main stat", "build.variant": "Variation of", "build.hp1": "HP at Lv 1", "build.xp": "{a} / {b}",
+  "race.lizard": "Lizardfolk", "main.even": "Balanced", "main.cdmg": "Crit damage",
+  "cls.rogue": "Rogue", "cls.warrior": "Warrior", "cls.mage": "Mage",
+  "sub.poisoner": "Poisoner", "sub.archer": "Archer", "sub.berserker": "Berserker", "sub.duelist": "Duelist",
+  "tree.title": "Skills", "tree.points": "Points {n}", "tree.learn": "Learn", "tree.max": "Max", "tree.rank": "Rank {a} / {b}",
+  "tree.needs": "Needs {name}", "tree.closed": "Other subclass chosen", "tree.noPoints": "No points", "tree.secondAt": "A class at Lv {n}",
+  "stat.hp": "HP", "stat.patk": "Phys atk", "stat.pdef": "Phys def", "stat.matk": "Magic atk", "stat.mdef": "Magic def",
+  "stat.spd": "Speed", "stat.crit": "Crit", "stat.cdmg": "Crit dmg", "stat.vita": "Vita",
+  "move.strike": "Dagger strike", "move.feint": "Feint", "move.flurry": "Flurry", "move.slash": "Slash", "move.parry": "Parry", "move.whirl": "Whirl",
+  "move.thrust": "Thrust", "move.cleave": "Cleave", "move.smash": "Smash", "move.shot": "Shot", "move.spark": "Spark", "move.spell": "Spell",
+  "move.reflex": "Viper reflex", "move.block": "Block", "move.dash": "Dash", "move.envenom": "Envenom", "build.title": "Build", "build.take": "Take to floor {n}",
+  "aria.hero": "{name}: build", "aria.lead": "{name}, goes to floor {n}: build", "aria.slotFree": "Free hero slot",
   "tab.lobby": "Lobby", "tab.campaigns": "Campaigns", "tab.camp": "Camp", "tab.almanac": "Almanac", "tab.shop": "Shop",
-  "aria.back": "Back", "aria.sections": "Sections", "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more", "aria.locked": "{name}, locked", "aria.stage": "Stage {n} of 4",
+  "aria.back": "Back", "aria.sections": "Sections", "aria.stage": "Stage {n} of 4", "aria.coins": "Coins: {n}", "aria.gems": "Crystals: {n}. Get more",
+  "aria.stars": "Floor stars: {n} of 3", "aria.empty": "{slot}, empty",
   "camp.basement": "Basement", "camp.landing": "Stair landing", "camp.shelter": "Shelter",
-  "camp.cleared": "Floor {n} cleared", "camp.new": "New at camp",
-  "camp.table": "Alchemy table", "camp.ready": "{n} ready", "camp.almost": "Almost: {name}",
-  "camp.shelf": "Shelf", "camp.almanac": "Almanac", "camp.creatures": "Creatures", "camp.fresh": "+{n} new",
-  "camp.next": "Floor {n} →", "camp.nextSub": "Basement · ~5 min", "camp.nextStub": "Floor {n} is not built yet",
-  "unlock.table": "Alchemy table", "unlock.almanac": "Almanac", "unlock.armor": "Armor slot", "unlock.belt": "Potion belt",
-  "unlock.feed": "Feed", "unlock.key": "Key", "unlock.shelter": "Shelter", "unlock.stars": "Floor stars", "unlock.quick": "Quick battle",
-  "table.title": "Alchemy table", "table.recipes": "Recipes", "table.feed": "Feed", "table.feedLock": "Feed opens after floor {n}",
-  "table.feedSoon": "Feeding comes with weapon levels.",
+  "camp.cleared": "Floor {n} cleared", "camp.floor": "Floor {n}",
+  "camp.hand": "Hand", "camp.gear": "Gear", "camp.belt": "Belt", "camp.table": "Alchemy table",
+  "camp.shelf": "Shelf",
+  "w.feed": "Feed", "w.ascend": "Ascend", "w.hold": "Hold",
+  "slot.armor": "Armor", "slot.boots": "Boots", "slot.artifact": "Artifact", "slot.ring": "Ring", "slot.pet": "Companion",
+  "gear.on": "On", "gear.wear": "Wear", "gear.off": "Take off",
+  "star.nohit": "No damage", "star.turns": "{n} turns or less", "star.noflee": "No flee",
+  "table.title": "Alchemy table", "table.recipes": "Recipes", "table.feed": "Feed",
   "book.can": "Can make", "book.almost": "Almost", "book.unknown": "Unknown", "book.known": "Known",
-  "book.new": "new", "book.where": "{many} · Floor {n}", "book.whereChest": "Chest · Floor {n}",
-  "book.sil": "???",
-  "hint.book": "Wolf pelt + something from Floor 3", "hint.vspear": "Snake fang + a longer weapon",
+  "book.new": "new", "book.floor": "Floor {n}", "book.sil": "???",
   "fuse.title": "Free fusion", "fuse.btn": "Fuse", "fuse.discovered": "Recipe discovered!", "fuse.wont": "Won't fuse",
-  "fuse.short": "Needs {name} ×{n}",
-  "bag.title": "Bag", "bag.hand": "IN HAND", "bag.inHand": "In hand", "bag.for": "For {n} recipe", "bag.forN": "For {n} recipes",
-  "bag.spare": "Spare → feed", "bag.key": "Needs a key",
-  "toast.recipe": "New recipe: {name}", "toast.almanac": "New in Almanac: {name}",
+  "fuse.short": "Needs {name} ×{n}", "fuse.lv": "Needs {name} {a}/{b}",
+  "feed.btn": "Feed", "feed.food": "Food",
+  "bag.title": "Bag", "bag.hand": "IN HAND", "bag.on": "ON", "bag.inHand": "In hand · {name}", "bag.worn": "Worn · {name}", "bag.for": "For {n} recipe", "bag.forN": "For {n} recipes",
+  "bag.spare": "Spare → feed", "bag.lv": "Lv {a}/{b}",
+  "toast.recipe": "New recipe: {name}",
   "alm.title": "Almanac", "alm.weapons": "Weapons", "alm.creatures": "Creatures", "alm.items": "Items",
   "alm.met": "{n} met", "alm.found": "{n} found", "alm.basement": "Basement", "alm.at": "Basement · Floor {n}",
   "alm.notMet": "Not met", "alm.win": "{n} win", "alm.wins": "{n} wins", "alm.met1": "Met", "alm.progress": "{a} / {b}",
   "alm.hp": "HP", "alm.dmg": "Damage", "alm.loot": "Loot", "alm.into": "Goes into", "alm.intents": "Intents",
-  "alm.studied": "Studied", "alm.quick": "Quick battle · Floor {n}+", "alm.recipe": "Recipe", "alm.foundAt": "Found",
-  "type.weapon": "Weapon", "type.mod": "Modifier", "type.mat": "Material", "type.special": "Special", "type.armor": "Armor",
+  "alm.studied": "Studied", "alm.recipe": "Recipe", "alm.foundAt": "Found", "alm.from": "{name} · Floor {n}",
+  "type.weapon": "Weapon", "type.mod": "Modifier", "type.mat": "Material", "type.special": "Special", "type.quest": "Quest",
+  "type.armor": "Armor", "type.boots": "Boots", "type.artifact": "Artifact", "type.ring": "Ring", "type.pet": "Companion", "type.use": "Potion",
   "intent.bite": "Bites · {d}", "intent.coil": "Coils", "intent.growl": "Growls", "intent.prep": "Readies a lunge", "intent.lunge": "Lunge · {d}",
-  "item.dagger": "Blunt dagger", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger",
-  "item.stone": "Whetstone", "item.fang": "Snake fang", "item.pelt": "Wolf pelt",
-  "item.lockbox": "Locked box", "item.tail": "Rat tail", "item.jacket": "Leather jacket",
-  "item.scroll": "Scroll", "item.spear": "Spear", "item.book": "Book", "item.vspear": "Viper spear",
-  "item.paper": "Paper", "item.scrap": "Scrap iron", "item.chitin": "Chitin", "item.sticks": "Sticks", "item.silk": "Spider silk",
-  "item.crystal": "Crystal shard", "item.rose": "Wild rose", "item.gland": "Venom gland", "item.wing": "Bat wing", "item.ember": "Ember",
-  "at.dagger": "Chest · Floor 1", "at.stone": "Chest · Floor 1", "at.fang": "Snake · Floor 1",
-  "at.pelt": "Dire wolf · Floor 1", "at.lockbox": "Closet · Floor 1",
-  "at.paper": "Chest · Floor 2", "at.scrap": "Chest · Floor 3", "at.chitin": "Cockroach · Floor 3", "at.sticks": "Chest · Floor 5",
-  "at.silk": "Spider · Floor 6", "at.crystal": "Chest · Floor 7", "at.rose": "Chest · Floor 4", "at.gland": "Spider · Floor 6",
-  "at.wing": "Bat · Floor 7", "at.ember": "Chest · Floor 10",
-  "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat",
-  "foe.snake.many": "Snakes", "foe.wolf.many": "Dire wolves", "foe.rat.many": "Rats",
-  "close": "Close",
-  "narr.camp": "Somebody slept here before you."
+  "item.dagger": "Blunt dagger", "item.shortsword": "Short sword", "item.sword": "Sword", "item.sharp": "Sharp dagger", "item.viper": "Viper dagger", "item.knife": "Knife",
+  "item.hatchet": "Hatchet", "item.handaxe": "Hand axe", "item.club": "Club", "item.mace": "Mace",
+  "item.spear": "Spear", "item.vspear": "Viper spear", "item.sling": "Sling", "item.bow": "Bow",
+  "item.wand": "Wand", "item.staff": "Staff", "item.scroll": "Scroll", "item.book": "Book",
+  "item.jacket": "Leather jacket", "item.oldboots": "Old boots", "item.boots": "Light boots", "item.lid": "Bucket lid",
+  "item.ring": "Mimic ring", "item.pet": "Cellar rat",
+  "item.stone": "Whetstone", "item.fang": "Snake fang", "item.gland": "Venom gland", "item.wing": "Bat wing", "item.rose": "Wild rose", "item.ember": "Ember",
+  "item.pelt": "Wolf pelt", "item.tail": "Rat tail", "item.chitin": "Chitin", "item.silk": "Spider silk", "item.shaft": "Shaft",
+  "item.sticks": "Sticks", "item.scrap": "Scrap iron", "item.paper": "Paper", "item.crystal": "Crystal shard",
+  "item.potion": "Healing potion", "item.lockbox": "Locked box", "item.bentbar": "Bent bar",
+  "at.dagger": "Chest · Floor 1", "at.shortsword": "Chest · Floor 14", "at.knife": "Chest · Floor 3", "at.hatchet": "Chest · Floor 5", "at.club": "Chest · Floor 11",
+  "at.spear": "Chest · Floor 8", "at.sling": "Chest · Floor 4", "at.wand": "Chest · Floor 6", "at.scroll": "Chest · Floor 3",
+  "at.oldboots": "Chest · Floor 7", "at.pet": "Basement · Floor 2", "at.stone": "Chest · Floor 1", "at.rose": "Chest · Floor 4",
+  "at.ember": "Chest · Floor 10", "at.sticks": "Chest · Floor 5", "at.scrap": "Chest · Floor 3", "at.paper": "Chest · Floor 2",
+  "at.crystal": "Chest · Floor 7", "at.potion": "Chest · Floor 2", "at.lockbox": "Closet · Floor 1", "at.bentbar": "Cell · Floor 2",
+  "foe.snake": "Snake", "foe.wolf": "Dire wolf", "foe.rat": "Rat", "foe.roach": "Cockroach", "foe.shadow": "Shadow", "foe.mimic": "Mimic",
+  "foe.swarm": "Rat swarm", "foe.spider": "Spider", "foe.bat": "Bat", "foe.mold": "Mold", "foe.bucket": "Living bucket", "foe.mop": "Living mop",
+  "foe.ratking": "Rat King",
+  "close": "Close"
 };
 const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ? v[p] : m));
 
 document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const HOME = "index.html";   // the lobby copy; the Telegram build maps it to index.html
-const SHOP = "shop.html";   // the shop copy; the Telegram build maps it to shop.html
+const HOME = "index.html", SHOP = "shop.html";   // the lobby and the shop; the Telegram build maps them to index.html / shop.html
 
-/* ================= data (keys from GDE/CONTRACT.md) ================= */
-const ITEMS = {   // names and "found" lines live in STR (item.*, at.*)
-  dagger:  { type:"weapon",  spr:"dagger",  at:true },
-  stone:   { type:"mod",     spr:"stone",   at:true },
-  fang:    { type:"mod",     spr:"fang",    at:true },
-  sharp:   { type:"weapon",  spr:"sharp" },
-  viper:   { type:"weapon",  spr:"viper" },
-  pelt:    { type:"mat",     spr:"pelt",    at:true },
-  lockbox: { type:"special", spr:"lockbox", at:true },
-  tail:    { type:"mat",     spr:"tail",    from:"rat" },
-  jacket:  { type:"armor",   spr:"jacket" },
-  scroll:  { type:"weapon",  spr:"scroll",  floor:3 },   // only in the hints for now
-  spear:   { type:"weapon",  spr:"spear",   floor:8 },
-  book:    { type:"weapon",  spr:"book" },
-  vspear:  { type:"weapon",  spr:"spear" },
-  // from the shop's chests and bundles (states/09-shop.html); each also drops in the tower, as in the almanac
-  paper:   { type:"mat", spr:"paper",   at:true },
-  scrap:   { type:"mat", spr:"scrap",   at:true },
-  chitin:  { type:"mat", spr:"chitin",  at:true },
-  sticks:  { type:"mat", spr:"sticks",  at:true },
-  silk:    { type:"mat", spr:"silk",    at:true },
-  crystal: { type:"mat", spr:"crystal", at:true },
-  rose:    { type:"mod", spr:"rose",    at:true },
-  gland:   { type:"mod", spr:"gland",   at:true },
-  wing:    { type:"mod", spr:"wing",    at:true },
-  ember:   { type:"mod", spr:"ember",   at:true }
+/* ================= data (keys from docs/GDE/CONTRACT.md; the rest from the almanac's catalog, mockups/05-almanac.html) ================= */
+const ITEMS = {   // names and "found" lines live in STR (item.*, at.*); tier = ★ of a weapon; from = the creature that drops it; slot types = armor…pet
+  dagger:   { type:"weapon", spr:"dagger",  tier:2, at:true },
+  shortsword: { type:"weapon", spr:"shortsword", tier:1, at:true },
+  sword:    { type:"weapon", spr:"sword",   tier:2 },
+  sharp:    { type:"weapon", spr:"sharp",   tier:2 },
+  viper:    { type:"weapon", spr:"viper",   tier:2 },
+  knife:    { type:"weapon", spr:"knife",   tier:1, at:true },
+  hatchet:  { type:"weapon", spr:"hatchet", tier:1, at:true },
+  handaxe:  { type:"weapon", spr:"handaxe", tier:2 },
+  club:     { type:"weapon", spr:"club",    tier:1, at:true },
+  mace:     { type:"weapon", spr:"mace",    tier:2 },
+  spear:    { type:"weapon", spr:"spear",   tier:1, at:true },
+  vspear:   { type:"weapon", spr:"spear",   tier:1 },
+  sling:    { type:"weapon", spr:"sling",   tier:1, at:true },
+  bow:      { type:"weapon", spr:"bow",     tier:2 },
+  wand:     { type:"weapon", spr:"wand",    tier:1, at:true },
+  staff:    { type:"weapon", spr:"staff2",  tier:2 },
+  scroll:   { type:"weapon", spr:"scroll",  tier:1, at:true },
+  book:     { type:"weapon", spr:"book",    tier:2 },
+  jacket:   { type:"armor",    spr:"jacket" },
+  oldboots: { type:"boots",    spr:"oldboots", at:true },
+  boots:    { type:"boots",    spr:"boots" },
+  lid:      { type:"artifact", spr:"lid",   from:"bucket" },
+  ring:     { type:"ring",     spr:"ring",  from:"mimic" },
+  pet:      { type:"pet",      spr:"pet",   at:true },
+  stone:    { type:"mod", spr:"stone", at:true },
+  fang:     { type:"mod", spr:"fang",  from:"snake" },
+  gland:    { type:"mod", spr:"gland", from:"spider" },
+  wing:     { type:"mod", spr:"wing",  from:"bat" },
+  rose:     { type:"mod", spr:"rose",  at:true },
+  ember:    { type:"mod", spr:"ember", at:true },
+  pelt:     { type:"mat", spr:"pelt",    from:"wolf" },
+  tail:     { type:"mat", spr:"tail",    from:"rat" },
+  chitin:   { type:"mat", spr:"chitin",  from:"roach" },
+  silk:     { type:"mat", spr:"silk",    from:"spider" },
+  shaft:    { type:"mat", spr:"shaft",   from:"mop" },
+  sticks:   { type:"mat", spr:"sticks",  at:true },
+  scrap:    { type:"mat", spr:"scrap",   at:true },
+  paper:    { type:"mat", spr:"paper",   at:true },
+  crystal:  { type:"mat", spr:"crystal", at:true },
+  potion:   { type:"use",     spr:"potion",  at:true },
+  lockbox:  { type:"special", spr:"lockbox", at:true },
+  bentbar:  { type:"quest",   spr:"bentbar", at:true }   // part 1 of the Sword of Iron Thorns
 };
 for (const k in ITEMS) { ITEMS[k].name = t("item." + k); ITEMS[k].at = ITEMS[k].at ? t("at." + k) : ""; }
 const item = k => ITEMS[k] || { name:k[0].toUpperCase() + k.slice(1), type:"mat", spr:k };   // a key from a newer run still shows up
-const RECIPES = [   // ingredients with counts; hint = shown as ??? until made
-  { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
-  { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
-  { out:"jacket", in:[["pelt", 1], ["tail", 3]] },
-  { out:"book",   in:[["scroll", 1], ["pelt", 1]], hint:"hint.book" },
-  { out:"vspear", in:[["spear", 1], ["fang", 1]],  hint:"hint.vspear" }
+const RECIPES = [   // two kinds of ingredient each: the bench has two cells. up = that weapon must be at its level cap (ascending);
+                    // keep = the level carries over from that weapon; clue = the one ingredient a ??? recipe shows
+  { id:"sharp",   out:"sharp",   in:[["dagger", 1], ["stone", 1]], keep:"dagger" },
+  { id:"viper",   out:"viper",   in:[["sharp", 1], ["fang", 1]], keep:"sharp" },
+  { id:"jacket",  out:"jacket",  in:[["pelt", 1], ["tail", 3]] },
+  { id:"knife",   out:"knife",   in:[["scrap", 1], ["sticks", 1]] },
+  { id:"spear",   out:"spear",   in:[["knife", 1], ["shaft", 1]] },
+  { id:"club",    out:"club",    in:[["chitin", 1], ["shaft", 1]] },
+  { id:"wand",    out:"wand",    in:[["crystal", 1], ["sticks", 1]] },
+  { id:"scroll",  out:"scroll",  in:[["crystal", 1], ["paper", 1]] },
+  { id:"boots",   out:"boots",   in:[["oldboots", 1], ["wing", 1]] },
+  { id:"dagger2", out:"sharp",   in:[["knife", 1], ["scrap", 1]], up:"knife" },
+  { id:"handaxe", out:"handaxe", in:[["hatchet", 1], ["shaft", 1]], up:"hatchet" },
+  { id:"mace",    out:"mace",    in:[["club", 1], ["scrap", 1]], up:"club" },
+  { id:"staff",   out:"staff",   in:[["wand", 1], ["shaft", 1]], up:"wand" },
+  { id:"sword",   out:"sword",   in:[["shortsword", 1], ["scrap", 1]], up:"shortsword" },
+  { id:"book",    out:"book",    in:[["scroll", 1], ["pelt", 1]], up:"scroll", clue:"pelt" },
+  { id:"vspear",  out:"vspear",  in:[["spear", 1], ["fang", 1]], keep:"spear", clue:"fang" }
 ];
-const CREATURES = {
-  snake: { spr:"snake", floor:1, hp:6,  loot:"fang", intents:[["bite", 2], ["coil", 0]] },
-  wolf:  { spr:"wolf",  floor:1, hp:18, loot:"pelt", intents:[["bite", 2], ["growl", 0], ["bite", 2], ["prep", 0], ["lunge", 5]] },
-  rat:   { spr:"rat",   floor:2,        loot:"tail" }
+const CREATURES = {   // hp and intents only where they are designed (floor 1)
+  snake:  { spr:"snake",  floor:1,  hp:6,  loot:["fang"], intents:[["bite", 2], ["coil", 0]] },
+  wolf:   { spr:"wolf",   floor:1,  hp:18, loot:["pelt"], intents:[["bite", 2], ["growl", 0], ["bite", 2], ["prep", 0], ["lunge", 5]] },
+  rat:    { spr:"rat",    floor:2,  loot:["tail"] },
+  roach:  { spr:"roach",  floor:3,  loot:["chitin"] },
+  shadow: { spr:"shadow", floor:4,  loot:[] },
+  mimic:  { spr:"mimic",  floor:4,  loot:["ring"] },
+  swarm:  { spr:"swarm",  floor:5,  loot:["tail"] },
+  spider: { spr:"spider", floor:6,  loot:["silk", "gland"] },
+  bat:    { spr:"bat",    floor:7,  loot:["wing"] },
+  mold:   { spr:"mold",   floor:9,  loot:[] },
+  bucket: { spr:"bucket", floor:11, loot:["lid"] },
+  mop:    { spr:"mop",    floor:12, loot:["shaft"] },
+  ratking:{ floor:15, loot:[] }   // the basement's boss, not met yet
 };
-for (const c in CREATURES) { CREATURES[c].name = t("foe." + c); CREATURES[c].many = t("foe." + c + ".many"); }
+for (const c in CREATURES) CREATURES[c].name = t("foe." + c);
 const TONE = { bite:"hit", lunge:"hit", coil:"calm", growl:"calm", prep:"warn" };
 const STUDY = { stats: 1, intents: 3, studied: 5 };   // wins for stages 2, 3, 4; stage 1 = met once (GDE-04: thresholds are an open question)
-const CAMP_UNLOCKS = {   // what each cleared floor opens at camp (GDE-04); go = where the "new" card leads
-  1: [{ key:"table", ico:"flask", go:"table" }, { key:"almanac", ico:"book", go:"almanac" }],
-  2: [{ key:"armor", ico:"shield" }],                        // the first craft: Leather jacket
-  3: [{ key:"belt", ico:"flask" }, { key:"feed", ico:"fire", go:"table" }],
-  4: [{ key:"key", ico:"lock" }],                            // the locked box opens: a wick
-  5: [{ key:"shelter", ico:"fire" }, { key:"stars", ico:"star" }, { key:"quick", ico:"tower" }]
+const SLOTS = ["armor", "boots", "artifact", "ring", "pet"];
+const HEROES = {   // the player's own hero and the ones from the shop's banner (shop.heroes in 09); art from states/img
+  ari:  { face:"img/ari-face.jpg",  bust:"img/ari-bust.jpg",  skin:"img/ari-skin.png",  race:"human" },
+  heir: { face:"img/heir-face.jpg", bust:"img/heir-bust.jpg", skin:"img/heir-skin.png", race:"dragon", rar:5 }
 };
+const HERO_SLOTS = 3;   // slots 1–3 open as you play; 4 and 5 are sold in the shop (09)
+/* the hero: race, classes, level, stats, moves. From Notion ("Расы", "Гейм-дизайн") and mockups/06-weapon.html, 07-build.html; numbers are drafts */
+const RACES = {   // main stat and HP at Lv 1 (Notion "Расы")
+  human:  { main:"even", hp:80 },
+  dragon: { main:"cdmg", hp:92, of:"lizard" }
+};
+const CLASSES = { rogue:{ spr:"sharp" }, warrior:{ spr:"shield" }, mage:{ spr:"staff" } };
+const TREES = {   // class skill trees: PLACEHOLDERS "for the look" — names, effects and ranks are stand-ins, not design.
+                  // col 0 / 1 / 2 = left / core / right; from = the node(s) it grows from; sub = a subclass (one of two, from Lv 5); branch = that subclass's own
+  rogue: [
+    { id:"r_hands", lv:1,  col:1, max:3, spr:"sharp",    n:"Quick hands",  d:"+1 Speed per rank." },
+    { id:"r_low",   lv:3,  col:0, max:2, spr:"knife",    n:"Low blow",     d:"Your first hit in a fight crits more.", from:["r_hands"] },
+    { id:"r_step",  lv:3,  col:2, max:2, spr:"oldboots", n:"Light step",   d:"Fleeing always works.", from:["r_hands"] },
+    { id:"poisoner",lv:5,  col:0, max:1, spr:"gland",    n:"Poisoner",     d:"Subclass. Gives Envenom.", from:["r_low"], sub:"poisoner" },
+    { id:"archer",  lv:5,  col:2, max:1, spr:"bow",      n:"Archer",       d:"Subclass. Bows hit harder.", from:["r_step"], sub:"archer" },
+    { id:"r_venom", lv:10, col:0, max:3, spr:"fang",     n:"Venom sacs",   d:"Poison lasts a turn longer.", from:["poisoner"], branch:"poisoner" },
+    { id:"r_aim",   lv:10, col:2, max:3, spr:"arrows",   n:"Steady aim",   d:"+1 crit face with bows.", from:["archer"], branch:"archer" },
+    { id:"r_shade", lv:15, col:1, max:2, spr:"shadow",   n:"Shade",        d:"Start a fight unseen.", from:["r_hands"] },
+    { id:"r_cloud", lv:20, col:0, max:2, spr:"mold",     n:"Toxic cloud",  d:"Poison spreads to every foe.", from:["r_venom"], branch:"poisoner" },
+    { id:"r_volley",lv:20, col:2, max:2, spr:"quiver",   n:"Volley",       d:"Shot hits twice.", from:["r_aim"], branch:"archer" },
+    { id:"r_mark",  lv:30, col:1, max:1, spr:"assassin", n:"Death mark",   d:"A marked foe takes double damage.", from:["r_shade"] }
+  ],
+  warrior: [
+    { id:"w_grip",  lv:1,  col:1, max:3, spr:"shortsword", n:"Iron grip",  d:"+1 Phys attack per rank." },
+    { id:"w_guard", lv:3,  col:0, max:2, spr:"lid",        n:"Guard",      d:"Block costs one less vita.", from:["w_grip"] },
+    { id:"w_lunge", lv:3,  col:2, max:2, spr:"spear",      n:"Lunge",      d:"You act first on the first turn.", from:["w_grip"] },
+    { id:"berserker", lv:5, col:0, max:1, spr:"greataxe",  n:"Berserker",  d:"Subclass. Hit harder when hurt.", from:["w_guard"], sub:"berserker" },
+    { id:"duelist", lv:5,  col:2, max:1, spr:"sword",      n:"Duelist",    d:"Subclass. One foe at a time, better.", from:["w_lunge"], sub:"duelist" },
+    { id:"w_rage",  lv:10, col:0, max:3, spr:"battleaxe",  n:"Rage",       d:"Each hit taken: +1 attack this fight.", from:["berserker"], branch:"berserker" },
+    { id:"w_riposte", lv:10, col:2, max:3, spr:"dirk",     n:"Riposte",    d:"A dodged hit strikes back.", from:["duelist"], branch:"duelist" },
+    { id:"w_firm",  lv:15, col:1, max:2, spr:"shield",     n:"Stand firm", d:"+2 Phys defense per rank.", from:["w_grip"] },
+    { id:"w_blood", lv:20, col:0, max:2, spr:"maul",       n:"Bloodlust",  d:"A kill heals you a little.", from:["w_rage"], branch:"berserker" },
+    { id:"w_flair", lv:20, col:2, max:2, spr:"longsword",  n:"Flourish",   d:"Crits give vita.", from:["w_riposte"], branch:"duelist" },
+    { id:"w_last",  lv:30, col:1, max:1, spr:"greatsword", n:"Last stand", d:"Once a fight, survive a killing blow.", from:["w_firm"] }
+  ]
+};
+const SUB_AT = 5, CLASS_CAP = 70, MOVE_SLOTS = 4;   // a subclass opens at class Lv 5; a class stops at 70 and levels 71–90 go to a second one; four moves in battle
+const xpNext = L => 20 * L * L + 80;               // xp to the next hero level (Notion "Лвл-ап")
+const KIND = { dagger:"daggers", sharp:"daggers", viper:"daggers", knife:"daggers", shortsword:"swords", sword:"swords", spear:"spears", vspear:"spears",
+  hatchet:"axes", handaxe:"axes", club:"maces", mace:"maces", sling:"bows", bow:"bows", wand:"staffs", staff:"staffs", scroll:"tomes", book:"tomes" };
+const MOD_OF = { viper:"fang", vspear:"fang" };    // the modifier a weapon carries
+const KIND_MOVES = { daggers:[["strike", 1], ["feint", 10], ["flurry", 20]], swords:[["slash", 1], ["parry", 10], ["whirl", 20]], spears:[["thrust", 1]],
+  axes:[["cleave", 1]], maces:[["smash", 1]], bows:[["shot", 1]], staffs:[["spark", 1]], tomes:[["spell", 1]] };   // a weapon's own moves open by its level (06)
+const MOD_MOVES = { fang:"reflex" }, GEAR_MOVES = { lid:"block", boots:"dash" }, SUB_MOVES = { poisoner:"envenom" };   // a ring gives a passive, not a move (07)
+const MOVES = { strike:"sharp", feint:"sharp", flurry:"sharp", slash:"shortsword", parry:"shortsword", whirl:"shortsword", thrust:"spear", cleave:"hatchet",
+  smash:"club", shot:"bow", spark:"wand", spell:"scroll", reflex:"fang", block:"lid", dash:"boots", envenom:"gland" };   // move → icon; names in STR (move.*)
+const GEAR_STATS = { jacket:{ hp:6, pdef:3, mdef:1 }, oldboots:{ spd:1 }, boots:{ spd:3 }, lid:{ hp:5, pdef:3 }, ring:{ spd:1 } };   // as in 07
+const WEAPON_EXTRA = { viper:{ crit:1, spd:2 } };   // a weapon's secondary stats (06)
+const STATS = ["hp", "patk", "pdef", "matk", "mdef", "spd", "crit", "cdmg", "vita"];
+const BELT = 3, TURNS = 12, SHELTER = 5;   // drafts: belt size, the star for turns
+const STAR_RULES = ["nohit", "turns", "noflee"];
+const FOOD_XP = { mat: 40, mod: 80, weapon: 120 };   // xp per piece (a weapon: × its tier); hidden, the bar shows it. 100 xp = 1 level
 
 /* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
 const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-const DEMO_SAVE = { v: 1, floor: 1,   // "after floor 1", the shape 03 writes on floor_clear
-  bag: [{ key: "viper", n: 1 }, { key: "pelt", n: 1 }, { key: "lockbox", n: 1 }], hand: "viper", moves: ["strike", "reflex"],
-  creatures: { snake: { seen: 1, wins: 1 }, wolf: { seen: 1, wins: 1 } },
-  recipes: ["sharp", "viper"], camp: ["table", "almanac"], makeable: 0, time: { 1: 241 } };
+const VET_SAVE = { v: 1, floor: 14,   // Ari after floor 14 of the basement: everything at camp is open
+  bag: [{ key:"viper", n:1 }, { key:"hatchet", n:1 }, { key:"knife", n:1 }, { key:"wand", n:1 },
+        { key:"jacket", n:1 }, { key:"oldboots", n:1 }, { key:"lid", n:1 }, { key:"ring", n:1 }, { key:"pet", n:1 },
+        { key:"shaft", n:1 }, { key:"chitin", n:3 }, { key:"tail", n:2 }, { key:"sticks", n:4 }, { key:"scrap", n:1 },
+        { key:"paper", n:2 }, { key:"silk", n:1 }, { key:"gland", n:1 }, { key:"rose", n:1 }, { key:"stone", n:2 },
+        { key:"fang", n:1 }, { key:"potion", n:1 }, { key:"bentbar", n:1 }, { key:"shortsword", n:1 }],
+  creatures: { snake:{ seen:9, wins:9 }, wolf:{ seen:3, wins:3 }, rat:{ seen:14, wins:14 }, roach:{ seen:7, wins:7 },
+    shadow:{ seen:2, wins:0 }, mimic:{ seen:1, wins:1 }, swarm:{ seen:1, wins:1 }, spider:{ seen:5, wins:5 }, bat:{ seen:4, wins:4 },
+    mold:{ seen:2, wins:2 }, bucket:{ seen:1, wins:1 }, mop:{ seen:3, wins:3 } },
+  recipes: ["sharp", "viper", "jacket", "knife", "spear", "club", "wand", "scroll"],
+  camp: ["table", "almanac", "armor", "belt", "feed", "key", "shelter", "stars"], makeable: 0,
+  time: { 14: 252 }, wallet: { coins: 1240, gems: 85 },
+  levels: { viper:{ lv:14, xp:40 }, hatchet:{ lv:10, xp:0 }, knife:{ lv:6, xp:20 }, wand:{ lv:3, xp:70 }, shortsword:{ lv:8, xp:30 } },
+  heroes: { ari:  { cls:[["rogue", 7]], sub:"poisoner", tree:{ rogue:{ r_hands:3, r_low:2, poisoner:1 } }, xp:610, hand:"viper", gear:{ armor:"jacket", boots:"oldboots", artifact:"lid", ring:"ring", pet:"pet" },
+                    moves:["strike", "reflex", "envenom", "block"], belt:["potion", "potion", null] },
+            heir: { cls:[["warrior", 3]], tree:{ warrior:{ w_grip:2 } }, xp:120, hand:"shortsword", gear:{}, moves:["slash"], belt:[null, null, null] } },   // Corvin came from the banner: a short sword from floor 14, nothing worn yet
+  active: "ari", shop: { heroes: { heir: 1 } }, stars: { 14: [1, 0, 1] } };
+const VET_SEEN = ["snake", "wolf", "rat", "roach", "shadow", "mimic", "swarm", "spider", "bat", "mold", "bucket"];   // the demo has looked at these; the mop is new
 const clone = o => JSON.parse(JSON.stringify(o));
+const obj = o => o && typeof o === "object" && !Array.isArray(o) ? o : {};
 function readSave() {   // anything the writer left out gets the empty shape; unknown fields are kept and written back
   const s = readJSON("gamey.save", null);
   if (!s || s.v !== 1 || typeof s.floor !== "number" || s.floor < 1 || !Array.isArray(s.bag)) return null;
   const arr = a => Array.isArray(a) ? a : [];
+  const belt = arr(s.belt).slice(0, BELT); while (belt.length < BELT) belt.push(null);
   return { ...s, bag: s.bag.filter(x => x && typeof x.key === "string" && x.n > 0), hand: s.hand || null, moves: arr(s.moves),
-    creatures: s.creatures && typeof s.creatures === "object" ? s.creatures : {}, recipes: arr(s.recipes), camp: arr(s.camp),
-    makeable: s.makeable | 0, time: s.time && typeof s.time === "object" ? s.time : {} };
+    creatures: obj(s.creatures), recipes: arr(s.recipes), camp: arr(s.camp), makeable: s.makeable | 0, time: obj(s.time),
+    wallet: obj(s.wallet), levels: obj(s.levels), gear: obj(s.gear), belt, stars: obj(s.stars) };
 }
-let save = readSave(), demo = !save;
-if (demo) save = clone(DEMO_SAVE);
+const wantSave = /[?&]save\b/.test(location.search);   // ?save: the player's own gamey.save; otherwise the veteran demo, kept in memory only
+function normParty(s) {   // a loadout per hero; the top-level hand / gear / belt are the lead's (03 writes only those), in an older save Ari's
+  const hs = obj(s.heroes), out = {}, got = obj(obj(s.shop).heroes);
+  const ids = ["ari", ...Object.keys(got).filter(h => h !== "ari" && HEROES[h] && got[h] > 0)];
+  const lead = ids.includes(s.active) ? s.active : "ari", top = ["hand", "gear", "belt", "moves"].some(k => k in s);
+  ids.forEach(h => {
+    const x = obj(hs[h]), src = h === lead && top ? s : x;
+    const belt = (Array.isArray(src.belt) ? src.belt : []).slice(0, BELT); while (belt.length < BELT) belt.push(null);
+    const cls = (Array.isArray(x.cls) ? x.cls : []).filter(c => Array.isArray(c) && CLASSES[c[0]]);
+    out[h] = { ...x, cls, tree: obj(x.tree), lv: cls.length ? cls.reduce((n, c) => n + (c[1] | 0), 0) : Math.max(1, x.lv | 0),   // the hero's level is the sum of class levels
+      hand: src.hand || null, gear: { ...obj(src.gear) }, moves: (Array.isArray(src.moves) ? src.moves : []).slice(0, MOVE_SLOTS), belt };
+  });
+  s.heroes = out;
+  if (!out[s.active]) s.active = "ari";
+  return s;
+}
+let save = wantSave ? readSave() : null, demo = !save;
+if (demo) save = clone(VET_SAVE);
+normParty(save);
+const syncTop = () => { const a = save.heroes[save.active]; save.hand = a.hand; save.gear = a.gear; save.belt = a.belt; save.moves = a.moves; };   // 03 reads these: the hero who goes to the floor
+syncTop();
+const persist = () => { syncTop(); if (!demo) writeJSON("gamey.save", save); };
 
 const once = {
   has: k => { const a = readJSON("gamey.once", []); return Array.isArray(a) && a.includes(k); },
@@ -573,7 +836,7 @@ function track(e, props) {
   } catch (err) {}
 }
 
-/* ================= sprites (16×16; block copied whole from states/05-almanac.html, palette included) ================= */
+/* ================= sprites (16×16; block copied whole from mockups/05-almanac.html, palette included) ================= */
 function mk(rows, pal) {
   const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
   const g = c.getContext("2d");
@@ -1178,18 +1441,6 @@ const SPR = {
     "...bedffffdeb...", "....ffffffFF....", ".....fFFFFF.....", "....ffmmmmFF....",
     "...ffmmmmmmFF...", "...fbfmmmmFbF...", "...b.fmmmmF.b...", ".....FFFFFF.....",
     ".....FF..FF.....", ".....FF..FF.....", ".....FF..FF.....", "...bbbb..bbbb..."
-  ], P),
-  coin:   mk([   // the shop's currencies, as in 09 and the lobby
-    "................", "................", "......uuuk......", "....uukkkkkk....",
-    "...ukkaaaakkk...", "...ukakkkkaka...", "..ukakkkkkkaka..", "..ukakkaakkakA..",
-    "..ukakkaakkakA..", "..kkakkkkkkaaA..", "...kkakkkkaaA...", "...kkkaaaaaaA...",
-    "....akaaaaAA....", "......AAAA......", "................", "................"
-  ], P),
-  gem:    mk([
-    "................", "................", "....VVVVVVvv....", "...VeVVVVvvvv...",
-    "..VeVVVVVvvvvL..", ".VVVVVVVVVVVVLL.", ".vVvvvvvvvvLLLL.", "..vVvvvvvvLLLL..",
-    "...vVvvvvLLLL...", "....vVvvLLLL....", ".....vVvLLL.....", "......vvLL......",
-    ".......vL.......", "................", "................", "................"
   ], P)
 };
 const urls = {};
@@ -1208,13 +1459,6 @@ function silURL(k, col) {   // the sprite's shape in one flat colour
 }
 const sil = (k, col) => SPR[k] ? `<img src="${silURL(k, col)}" alt="">` : "?";
 document.querySelectorAll("img[data-spr]").forEach(i => { i.src = sprURL(i.dataset.spr); });
-// coins and crystals from the save, as in the lobby (GDE-05: the shop writes them); the + opens the crystal packs
-const wallet = { coins: Math.max(0, ((save && save.wallet) || {}).coins | 0), gems: Math.max(0, ((save && save.wallet) || {}).gems | 0) };
-const brief = n => n < 1000 ? String(n) : n < 10000 ? `${Math.floor(n / 100) / 10}k` : `${Math.floor(n / 1000)}k`;   // the top bar is tight: 1150 → 1.1k
-$("coinsN").textContent = brief(wallet.coins); $("gemsN").textContent = brief(wallet.gems);
-$("coins").setAttribute("aria-label", t("aria.coins", { n: wallet.coins }));
-$("gems").setAttribute("aria-label", t("aria.gems", { n: wallet.gems }));
-$("gems").addEventListener("click", () => { location.href = SHOP + "?gems"; });
 
 // stack counts in a 3×5 pixel font with a drop shadow, as in Builds (Pixelify's small 2 and 5 read as 8 and S)
 const DIGITS = ["#####.##.##.###", ".#.##..#..#.###", "###..#####..###", "###..#.##..####", "#.##.####..#..#",
@@ -1234,20 +1478,32 @@ function countImg(q) {
   return `<img class="n" src="${n.src}" width="${n.w}" height="${n.h}" alt="">`;
 }
 
+SPR.coin = mk([   // the shop's currencies, as in 01 and 09
+  "................", "................", "......uuuk......", "....uukkkkkk....",
+  "...ukkaaaakkk...", "...ukakkkkaka...", "..ukakkkkkkaka..", "..ukakkaakkakA..",
+  "..ukakkaakkakA..", "..kkakkkkkkaaA..", "...kkakkkkaaA...", "...kkkaaaaaaA...",
+  "....akaaaaAA....", "......AAAA......", "................", "................"
+], P);
+SPR.gem = mk([
+  "................", "................", "....VVVVVVvv....", "...VeVVVVvvvv...",
+  "..VeVVVVVvvvvL..", ".VVVVVVVVVVVVLL.", ".vVvvvvvvvvLLLL.", "..vVvvvvvvLLLL..",
+  "...vVvvvvLLLL...", "....vVvvLLLL....", ".....vVvLLL.....", "......vvLL......",
+  ".......vL.......", "................", "................", "................"
+], P);
+
 /* ================= mask icons (take currentColor) ================= */
 const MASK = {
-  home:   ["....##....","...####...","..######..",".########.","##########",".########.",".##....##.",".##.##.##.",".##.##.##.",".########."],
   tower:  [".##.##.##.",".########.","..######..","..##..##..","..##..##..","..######..","..######..","..##..##..",".###..###.",".###..###."],
   fire:   ["....#.....","....##....","...####...","..##.###..","..#...##..","..##..##..","...####...","##......##","..######..","##......##"],
   book:   ["..#######.",".########.",".##.....#.",".##.###.#.",".##.....#.",".##.###.#.",".##.....#.",".##.....#.",".########.","..#######."],
   bag:    ["...#..#...","....##....","...####...","..######..",".########.","####.#####","###...####","####.#####",".########.","..######.."],
   flask:  ["...####...","....##....","....##....","...####...","..##..##..",".##....##.",".#......#.",".########.",".########.","..######.."],
-  shield: [".########.","##########","####..####","####..####","##......##","####..####",".###..###.",".########.","..######..","....##...."],
-  plus:   ["..##..","..##..","######","######","..##..","..##.."],
   star:   ["....##....","....##....","...####...","##########",".########.","..######..","..######..",".###..###.",".##....##.","##......##"],
   lock:   ["..####..",".#....#.",".#....#.","########","###..###","###..###","########","########"],
   back:   ["...#....","..##....",".#######","########",".#######","..##....","...#...."],
-  chev:   ["##...",".##..","..##.","...##","..##.",".##..","##..."]
+  chev:   ["##...",".##..","..##.","...##","..##.",".##..","##..."],
+  home:   ["....##....","...####...","..######..",".########.","##########",".########.",".##....##.",".##.##.##.",".##.##.##.",".########."],
+  plus:   ["..##..","..##..","######","######","..##..","..##.."]
 };
 const DPR = Math.max(1, Math.ceil(window.devicePixelRatio || 1)), masks = {};
 function maskURL(k, cell) {
@@ -1266,13 +1522,7 @@ document.querySelectorAll("[data-ico]").forEach(el => el.style.setProperty("--m"
 document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
 document.querySelectorAll("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
 
-/* ================= shared: narrator, toasts (GDE-00) ================= */
-function narrate(key, text, host) {   // italic, muted, under the scene; once per player
-  if (once.has("narrate." + key)) return false;
-  once.add("narrate." + key);
-  const p = document.createElement("p"); p.className = "narr"; p.textContent = text; host.after(p);
-  return true;
-}
+/* ================= shared: toasts (GDE-00) ================= */
 let toastT = 0, toastNext = null;
 function toast(type, text) {   // almanac | recipe | unlock: at the top for 2 s; one waits at most, a newer one takes its place
   if (toastT) { toastNext = [type, text]; return; }
@@ -1281,24 +1531,36 @@ function toast(type, text) {   // almanac | recipe | unlock: at the top for 2 s;
   toastT = setTimeout(() => { el.hidden = true; toastT = 0; const n = toastNext; toastNext = null; if (n) toast(...n); }, 2000);
 }
 const haptic = k => { if (window.GY && window.GY.haptic) window.GY.haptic(k); };
+const shake = el => { if (!el) return; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); };
 
 /* ================= rules ================= */
-const unlockFloor = key => { for (const f in CAMP_UNLOCKS) if (CAMP_UNLOCKS[f].some(u => u.key === key)) return +f; return Infinity; };
-const isOpen = key => save.camp.includes(key) || unlockFloor(key) <= save.floor;
 const have = k => save.bag.reduce((s, x) => s + (x.key === k ? x.n : 0), 0);
+const isWeapon = k => item(k).type === "weapon";
+const capLv = k => (item(k).tier || 1) * 10;        // T1 1–10, T2 11–20 … (as on the weapon screen, 06)
+const baseLv = k => capLv(k) - 9;
+const lvOf = k => { const l = save.levels[k]; return l && l.lv > 0 ? { lv: Math.min(l.lv, capLv(k)), xp: l.xp | 0 } : { lv: baseLv(k), xp: 0 }; };
+const atCap = k => lvOf(k).lv >= capLv(k);
+const holder = k => Object.keys(save.heroes).find(h => save.heroes[h].hand === k) || null;   // whose hand holds it
+const wearer = k => Object.keys(save.heroes).find(h => SLOTS.some(s => save.heroes[h].gear[s] === k)) || null;   // who wears it
+const worn = k => !!wearer(k);
+const firstName = h => t("hero." + h).split(" ")[0];
 const known = r => save.recipes.includes(r.out);
-const revealed = r => known(r) || !r.hint;
-const short = r => r.in.filter(([k, n]) => have(k) < n);
-const reach = k => (item(k).floor || (CREATURES[item(k).from] || {}).floor || 1) <= save.floor + 1;   // findable on the next floor
-const canMake = () => RECIPES.filter(r => !short(r).length);
-function book() {   // the recipe book's groups, in GDE-04 order
-  const can = canMake();
-  const almost = RECIPES.filter(r => !can.includes(r) && revealed(r) && r.in.some(([k]) => have(k)) && short(r).length <= 2 && short(r).every(([k]) => reach(k)));
-  const unknown = RECIPES.filter(r => r.hint && !known(r) && !can.includes(r)).slice(0, 2);
+const revealed = r => known(r) || !r.clue;
+const short = r => r.in.filter(([k, n]) => have(k) < n || (k === r.up && !atCap(k)));
+const lvShort = (r, k) => k === r.up && have(k) > 0;   // the weapon is there, only its level is short
+const dropper = k => { const c = item(k).from; return c && CREATURES[c] && CREATURES[c].floor <= save.floor + 1 ? c : null; };
+const canMake = () => RECIPES.filter(r => revealed(r) && !short(r).length);
+function book() {   // the recipe book's groups, in GDE-04 order, plus the ones already made
+  const can = canMake().sort((a, b) => known(a) - known(b));   // new ones first
+  const almost = RECIPES.filter(r => revealed(r) && !can.includes(r) && r.in.some(([k]) => have(k)) && short(r).length <= 2
+    && short(r).every(([k]) => lvShort(r, k) || dropper(k)));   // only what a level or a known creature can fill
+  const unknown = RECIPES.filter(r => !revealed(r)).slice(0, 2);
   const rest = RECIPES.filter(r => known(r) && !can.includes(r) && !almost.includes(r));
   return { can, almost, unknown, rest };
 }
 const usedFor = k => RECIPES.filter(r => revealed(r) && r.in.some(([x]) => x === k)).length;   // known or partial recipes, not the ??? ones
+const ascendOf = k => RECIPES.find(r => r.up === k && revealed(r));
+const weapons = () => { const lead = save.heroes[save.active].hand; return save.bag.filter(x => isWeapon(x.key)).map(x => x.key).sort((a, b) => (b === lead) - (a === lead) || !!holder(b) - !!holder(a)); };   // the lead's weapon first, then the held ones
 function stage(c) {
   const s = save.creatures[c] || {}, w = s.wins | 0;
   if (!(s.seen > 0) && !w) return 0;
@@ -1306,16 +1568,30 @@ function stage(c) {
 }
 const nextWins = st => st >= 4 ? 0 : [STUDY.stats, STUDY.stats, STUDY.intents, STUDY.studied][st];
 const metList = () => Object.keys(CREATURES).filter(c => stage(c) > 0);
-const freshNow = () => metList().filter(c => !once.has("camp.almanac." + c));
+const seenSet = new Set(demo ? VET_SEEN : []);   // the demo keeps its "seen" in memory, the real save in gamey.once
+const wasSeen = c => seenSet.has(c) || (!demo && once.has("camp.almanac." + c));
+const markSeen = c => { seenSet.add(c); if (!demo) once.add("camp.almanac." + c); };
+const freshNow = () => metList().filter(c => !wasSeen(c));
 const freshCards = new Set(freshNow());   // dots stay on the cards for this visit
 function found() {   // what the player has held: the bag, made items and what went into them, loot of beaten foes
   const f = new Set(save.bag.map(x => x.key));
   RECIPES.filter(known).forEach(r => { f.add(r.out); r.in.forEach(([k]) => f.add(k)); });
-  Object.keys(CREATURES).forEach(c => { if (stage(c) >= 2) f.add(CREATURES[c].loot); });
+  Object.keys(CREATURES).forEach(c => { if (stage(c) >= 2) CREATURES[c].loot.forEach(k => f.add(k)); });
   return Object.keys(ITEMS).filter(k => f.has(k));
 }
 const N = n => `<span class="num">${n}</span>`;   // a number inside Pixelify text
 const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+const brief = n => n < 1000 ? String(n) : n < 10000 ? `${Math.floor(n / 100) / 10}k` : `${Math.floor(n / 1000)}k`;   // the top bar is tight: 1240 → 1.2k, as in the bot
+const starsOf = k => { const n = item(k).tier || 1; return `<span class="stars">${"★".repeat(n)}<i>${"★".repeat(Math.max(0, 5 - n))}</i></span>`; };
+const lvHTML = (k, cls) => `<span class="lv${cls ? " " + cls : ""}">${lvOf(k).lv}<small> / ${capLv(k)}</small></span>`;
+function xbar(k, extra) {   // the fill is xp toward the next level; the ghost is what the chosen food adds, up to the cap
+  const l = lvOf(k), c = capLv(k);
+  if (l.lv >= c) return '<div class="xbar max"><i style="width:100%"></i></div>';
+  const ghost = Math.min(extra || 0, (c - l.lv) * 100 - l.xp, 100 - l.xp);
+  return `<div class="xbar"><i style="width:${l.xp}%"></i>${ghost > 0 ? `<u style="left:${l.xp}%;width:${ghost}%"></u>` : ""}</div>`;
+}
+function take(k, n) { save.bag.forEach(x => { if (x.key === k && n > 0) { const d = Math.min(n, x.n); x.n -= d; n -= d; } }); save.bag = save.bag.filter(x => x.n > 0); }
+function give(k) { const x = save.bag.find(y => y.key === k); if (x) x.n++; else save.bag.push({ key: k, n: 1 }); }
 
 /* ================= strip scenes (pixel art, 3 screen px per art px) ================= */
 const hash = n => { n = (n ^ 61) ^ (n >>> 16); n = Math.imul(n, 9); n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0; };
@@ -1380,78 +1656,308 @@ function paintStrip(el) {
 const ro = "ResizeObserver" in window ? new ResizeObserver(es => es.forEach(e => paintStrip(e.target))) : null;
 
 /* ================= camp ================= */
-const freshUnlock = () => (CAMP_UNLOCKS[save.floor] || []).length && !once.has("camp.new." + save.floor);
-const showNew = freshUnlock();   // decided on arrival; the card stays for this visit
+const heroLine = h => t("hero.lv", { race: t("race." + HEROES[h].race), n: save.heroes[h].lv });
+const rarity = n => `<span class="stars">${"★".repeat(n)}</span>`;
+function renderTop() {
+  const w = save.wallet || {}, c = Math.max(0, w.coins | 0), g = Math.max(0, w.gems | 0), a = save.active;
+  $("coinsN").textContent = brief(c); $("gemsN").textContent = brief(g);
+  $("coins").setAttribute("aria-label", t("aria.coins", { n: c }));
+  $("gems").setAttribute("aria-label", t("aria.gems", { n: g }));
+  $("topFace").src = HEROES[a].face; $("topName").textContent = t("hero." + a); $("topLine").textContent = heroLine(a);   // the hero who goes to the next floor
+  const tabEl = $("almTab"), dot = tabEl.querySelector(".dot"), fresh = freshNow().length > 0;
+  if (fresh && !dot) tabEl.insertAdjacentHTML("beforeend", '<i class="dot"></i>');
+  else if (!fresh && dot) dot.remove();
+}
+function rosterHTML() {   // the heroes the player has; the one with the torch goes to the next floor. A tap opens the hero's build
+  const ids = Object.keys(save.heroes), nf = save.floor + 1;
+  const cards = ids.map(h => {
+    const on = h === save.active, hd = HEROES[h];
+    return `<button class="hcard${on ? " on" : ""}" type="button" data-hero="${h}" aria-label="${t(on ? "aria.lead" : "aria.hero", { name: t("hero." + h), n: nf })}">
+      <span class="hsk"><img src="${hd.skin}" alt="" onerror="this.onerror=null;this.src='${hd.bust}';this.className='paint'"></span>${on ? `<span class="torch">${ico("fire", "", 1)}</span>` : ""}
+      <span class="hname"><b>${firstName(h)}</b><span>${hd.rar ? rarity(hd.rar) : ""}${t("hero.lvShort", { n: save.heroes[h].lv })}</span></span>
+    </button>`;
+  });
+  for (let i = ids.length; i < HERO_SLOTS; i++) cards.push(`<a class="hcard free" href="${SHOP}" aria-label="${t("aria.slotFree")}">${ico("plus", "", 3)}</a>`);   // a free slot: the summon in the shop
+  return `<h3 class="sec">${t("camp.heroes")} <span>${ids.length}/${HERO_SLOTS}</span></h3><div class="roster">${cards.join("")}</div>`;
+}
 function renderCamp() {
-  const f = save.floor, shelter = f >= unlockFloor("shelter"), b = book(), n = b.can.length, fresh = freshNow().length;
-  const time = save.time && save.time[f] > 0 ? ` · <span class="num">${mmss(save.time[f] | 0)}</span>` : "";
-  const specials = save.bag.filter(x => item(x.key).type === "special");
+  const f = save.floor, shelter = f >= SHELTER, b = book(), n = b.can.length;
+  const time = save.time && save.time[f] > 0 ? ` · ${N(mmss(save.time[f] | 0))}` : "";
+  const st = Array.isArray(save.stars[f]) ? save.stars[f] : null;
+  const starBtn = st ? `<button class="fstars" type="button" data-stars="${f}" aria-label="${t("aria.stars", { n: st.filter(Boolean).length })}">${STAR_RULES.map((r, i) => ico("star", st[i] ? "on" : "", 2)).join("")}</button>` : "";
+
+  const specials = save.bag.filter(x => ["special", "quest"].includes(item(x.key).type));
   const shelf = Array.from({ length: Math.max(4, specials.length) }, (_, i) => specials[i]
-    ? `<button class="islot" type="button" data-shelf="${specials[i].key}" aria-label="${item(specials[i].key).name}" aria-pressed="${tip.where === "shelf" && tip.key === specials[i].key}">${img(item(specials[i].key).spr)}</button>`
+    ? `<button class="islot" type="button" data-item="${specials[i].key}" aria-label="${item(specials[i].key).name}">${img(item(specials[i].key).spr)}</button>`
     : '<span class="islot empty"></span>').join("");
-  const news = showNew ? `<div class="newcard"><span class="eyebrow">${t("camp.new")}</span><div class="newrow">${CAMP_UNLOCKS[f].map(u => u.go
-    ? `<button type="button" data-go="${u.go}">${ico(u.ico)}${t("unlock." + u.key)}</button>`
-    : `<span class="nitem">${ico(u.ico)}${t("unlock." + u.key)}</span>`).join("")}</div></div>` : "";
-  const sub = n ? t("camp.ready", { n }) : b.almost.length ? t("camp.almost", { name: item(b.almost[0].out).name }) : "";
+
   $("camp").innerHTML = `
     <div class="strip" data-scene="${shelter ? "shelter" : "landing"}" id="scene">
       <span class="eyebrow">${t("camp.basement")}</span>
       <span class="title">${t(shelter ? "camp.shelter" : "camp.landing")}</span>
       <span class="meta">${t("camp.cleared", { n: f })}${time}</span>
+      ${starBtn}
     </div>
-    ${news}
+    ${rosterHTML()}
     <button class="tile" type="button" data-go="table">
       <span class="tface">${ico("flask")}</span>
-      <span class="tbody"><b>${t("camp.table")}</b>${sub ? `<span>${sub}</span>` : ""}</span>
+      <span class="tbody"><b>${t("camp.table")}</b>${n ? `<span class="outs">${b.can.slice(0, 5).map(r => img(item(r.out).spr)).join("")}</span>` : ""}</span>
       ${n ? `<span class="badge">${n}</span>` : ico("chev", "chev")}
     </button>
     <h3 class="sec">${t("camp.shelf")}</h3>
-    <div class="shelf" id="shelf">${shelf}<span class="tip" id="shelftip" hidden></span></div>
-    <button class="tile" type="button" data-go="almanac">
-      <span class="tface">${ico("book")}</span>
-      <span class="tbody"><b>${t("camp.almanac")}</b><span>${t("camp.creatures")}</span></span>
-      ${fresh ? `<span class="pill new">${t("camp.fresh", { n: N(fresh) })}</span>` : ico("chev", "chev")}
-    </button>
-    <button class="go" type="button" id="next"><b>${t("camp.next", { n: N(f + 1) })}</b><span id="nextSub">${t("camp.nextSub")}</span></button>`;
+    <div class="shelf">${shelf}</div>`;
   const sc = $("scene"); paintStrip(sc); if (ro) ro.observe(sc);
-  if (sc.dataset.scene === "landing") narrate("camp", t("narr.camp"), sc);
-  placeTip("shelf");
 }
 
-/* ================= table: the recipe book, free fusion, the bag ================= */
+/* a hero's build, a paper doll: the skin in the middle, hand / armor / boots on the left, artifact / ring / companion on the right,
+   a tap on a slot opens its sheet. Potions are not part of a build: the belt stays in the save for the run (03). One bag for everyone: what another hero holds moves over */
+let bh = "ari";   // the hero whose build is open
+const H = () => save.heroes[bh];
+const SLOT_SIL = { hand:"dagger", armor:"jacket", boots:"oldboots", artifact:"lid", ring:"ring", pet:"pet" };   // an empty slot shows the shape of what goes in it
+const dslot = (s, k, attr, label) => `<button class="dslot" type="button" ${attr} aria-label="${label}">${k ? img(item(k).spr) : sil(SLOT_SIL[s], SIL)}${
+  s === "hand" && k ? `<span class="wl">${lvOf(k).lv}/${capLv(k)}</span>` : ""}</button>`;
+function renderBuild() {
+  const me = H(), hd = HEROES[bh], nf = save.floor + 1, lead = bh === save.active;
+  const cell = s => {
+    const k = s === "hand" ? me.hand : me.gear[s], got = k && have(k) ? k : null, name = t(s === "hand" ? "camp.hand" : "slot." + s);
+    return dslot(s, got, s === "hand" ? 'data-sheet="hand"' : `data-slot="${s}"`, got ? `${name}: ${item(got).name}` : t("aria.empty", { slot: name }));
+  };
+  $("build").innerHTML = `
+    <div class="bwho"><b>${t("hero." + bh)}</b>${hd.rar ? `<span>${rarity(hd.rar)}</span>` : ""}</div>
+    <div class="doll">
+      <div class="dcol">${["hand", "armor", "boots"].map(cell).join("")}</div>
+      <div class="skinbox"><img src="${hd.skin}" alt="" onerror="this.onerror=null;this.src='${hd.bust}';this.className='paint'">${lead ? `<span class="torch">${ico("fire", "", 1)}</span>` : ""}</div>
+      <div class="dcol">${["artifact", "ring", "pet"].map(cell).join("")}</div>
+    </div>
+    ${heroHTML(me)}
+    ${lead ? "" : `<button class="btn wide" type="button" data-lead="${bh}">${t("build.take", { n: N(nf) })}</button>`}`;
+}
+function heroHTML(me) {   // race and class tiles, the hero's level, nine stats with what the gear adds, the four moves
+  const race = HEROES[bh].race, c = me.cls[0] || null, lo = loadout(bh), need = xpNext(me.lv), xp = Math.min(me.xp | 0, need);
+  const moves = Array.from({ length: MOVE_SLOTS }, (_, i) => lo[i]
+    ? `<button class="mv" type="button" data-move="${i}">${img(MOVES[lo[i]])}<b>${t("move." + lo[i])}</b></button>`
+    : `<button class="mv free" type="button" data-move="${i}" aria-label="${t("aria.moveFree")}">${ico("plus", "", 2)}<b></b></button>`).join("");
+  return `<div class="rc">
+      <button class="rct" type="button" data-race="${race}"><span class="lbl">${t("build.race")}</span><b>${t("race." + race)}</b><span class="sub">${t("main." + RACES[race].main)}</span></button>
+      <button class="rct" type="button" data-cls="${bh}"><span class="lbl">${t("build.class")}</span><b>${c ? `${t("cls." + c[0])} ${N(c[1])}` : "—"}</b><span class="sub">${
+        me.sub ? t("sub." + me.sub) : c ? `${ico("lock", "", 1)}${t("build.lvAt", { n: SUB_AT })}` : ""}</span></button>
+    </div>
+    <div class="hlv"><b>${t("hero.lvShort", { n: me.lv })}</b><div class="xbar"><i style="width:${Math.round(xp / need * 100)}%"></i></div><span>${t("build.xp", { a: xp, b: need })}</span></div>
+    <h3 class="sec">${t("build.stats")}</h3>
+    <dl class="stats">${statsOf(bh).map(([id, v, a]) => `<div><dt>${t("stat." + id)}</dt><dd>${statText(id, v + a)}${a ? `<small>+${a}</small>` : ""}</dd></div>`).join("")}</dl>
+    <h3 class="sec">${t("build.moves")} <span>${lo.length}/${MOVE_SLOTS}</span></h3>
+    <div class="moves">${moves}</div>`;
+}
+function statsOf(h) {   // [stat, the hero's own, what the gear adds]
+  const me = save.heroes[h], r = RACES[HEROES[h].race] || RACES.human, add = {};
+  let hp = r.hp; for (let l = 2; l <= me.lv; l++) hp += l % 5 ? 3 : 6;   // as the human in Notion: +3 a level, +6 on every 5th
+  const base = { hp, patk: Math.round(hp / 8), pdef: Math.round(hp / 16), matk: Math.round(hp / 8), mdef: Math.round(hp / 16), spd: 65, crit: 1, cdmg: 1.5, vita: 3 };
+  if (r.main === "cdmg") base.cdmg = 1.75;   // the race's main stat: a draft bonus
+  const plus = o => Object.entries(o).forEach(([k, v]) => { add[k] = (add[k] || 0) + v; });
+  const k = me.hand && have(me.hand) ? me.hand : null;
+  if (k) {   // the weapon's main stat grows 5% a level within its tier (06)
+    const main = ["staffs", "tomes"].includes(KIND[k]) ? "matk" : "patk";
+    plus({ [main]: Math.round((item(k).tier > 1 ? 10 : 6) * (1 + 0.05 * (lvOf(k).lv - baseLv(k)))) });
+    if (WEAPON_EXTRA[k]) plus(WEAPON_EXTRA[k]);
+  }
+  SLOTS.forEach(s => { const g = me.gear[s]; if (g && have(g) && GEAR_STATS[g]) plus(GEAR_STATS[g]); });
+  return STATS.map(id => [id, base[id], add[id] || 0]);
+}
+const statText = (id, v) => id === "crit" ? (v > 1 ? `${21 - v}–20` : "20") : id === "cdmg" ? `×${v}` : String(v);   // crit as d20 faces, as in 07
+function moveSources(h) {   // { now, later }: what the build gives now (one weapon can give several), and what stays locked —
+                            // moves of other weapons and gear in the bag, and the held weapon's next level move as "?" (06)
+  const me = save.heroes[h], k = me.hand && have(me.hand) ? me.hand : null, now = [], later = [], seen = new Set();
+  const add = (list, x) => { if (!seen.has(x.m)) { seen.add(x.m); list.push(x); } };
+  const fromWeapon = (w, list) => {
+    (KIND_MOVES[KIND[w]] || []).forEach(([m, lv]) => { if (lvOf(w).lv >= lv) add(list, { m, src: w }); });
+    if (MOD_MOVES[MOD_OF[w]]) add(list, { m: MOD_MOVES[MOD_OF[w]], src: w });
+  };
+  if (k) fromWeapon(k, now);
+  SLOTS.forEach(s => { const g = me.gear[s]; if (g && have(g) && GEAR_MOVES[g]) add(now, { m: GEAR_MOVES[g], src: g }); });
+  if (me.sub && SUB_MOVES[me.sub]) add(now, { m: SUB_MOVES[me.sub], sub: me.sub });
+  const next = k && (KIND_MOVES[KIND[k]] || []).find(([, lv]) => lvOf(k).lv < lv);
+  if (next) later.push({ m: next[0], src: k, lv: next[1], q: true });
+  weapons().filter(w => w !== k).forEach(w => fromWeapon(w, later));
+  save.bag.forEach(x => { const m = GEAR_MOVES[x.key]; if (m && !SLOTS.some(s => me.gear[s] === x.key)) add(later, { m, src: x.key }); });
+  return { now, later };
+}
+const granted = h => moveSources(h).now.map(x => x.m);
+const loadout = h => { const g = granted(h); return save.heroes[h].moves.filter(m => g.includes(m)).slice(0, MOVE_SLOTS); };   // a move whose source left the build drops out
+const srcLine = x => x.sub ? `<span class="meta msrc">${t("sub." + x.sub)}</span>`
+  : `<span class="meta msrc">${img(item(x.src).spr)}${x.q ? t("build.lvAt", { n: x.lv }) : item(x.src).name}</span>`;
+function openMove(i) {   // first the moves this build gives (a tap puts one in the slot), then the locked ones with what would unlock them
+  const lo = loadout(bh), { now, later } = moveSources(bh);
+  const nowRows = now.map(x => {
+    const at = lo.indexOf(x.m), on = at === i;
+    return `<button class="lrow${on ? " on" : ""}" type="button"${on ? ' aria-current="true"' : ` data-pick="${x.m}" data-i="${i}"`}>${face(img(MOVES[x.m]))}<span><b>${t("move." + x.m)}</b>${srcLine(x)}</span>${
+      at >= 0 ? `<span class="pill ${on ? "new" : "off"}">${t("gear.on")}</span>` : ""}</button>`;
+  }).join("");
+  const laterRows = later.map(x => `<div class="lrow off" aria-disabled="true">${face(x.q ? "?" : img(MOVES[x.m]))}<span><b>${x.q ? "?" : t("move." + x.m)}</b>${srcLine(x)}</span></div>`).join("");
+  openSheet(null, t("build.moves"), t("hero." + bh), `<h3 class="sec">${t("moves.now")}</h3><div class="lrows">${nowRows}</div>${
+    laterRows ? `<h3 class="sec">${t("moves.later")}</h3><div class="lrows">${laterRows}</div>` : ""}`);
+}
+function pickMove(m, i) {   // a move already in battle swaps places with the slot's one
+  const lo = loadout(bh), j = lo.indexOf(m);
+  if (j >= 0) { if (i < lo.length) { lo[j] = lo[i]; lo[i] = m; } }
+  else if (i < lo.length) lo[i] = m;
+  else lo.push(m);
+  H().moves = lo; persist();
+  track("equip", { hero: bh, slot: "move", item: m });
+  haptic("tick"); closeSheet(); renderBuild();
+}
+const lockline = (label, right) => `<div class="lockrow">${ico("lock", "", 1)}<b>${label}</b><span>${right}</span></div>`;
+function openRace(race) {
+  const r = RACES[race];
+  openSheet(null, t("race." + race), t("build.race"), `<dl class="facts"><div><dt>${t("build.main")}</dt><dd>${t("main." + r.main)}</dd></div>${
+    r.of ? `<div><dt>${t("build.variant")}</dt><dd>${t("race." + r.of)}</dd></div>` : ""}<div><dt>${t("build.hp1")}</dt><dd>${r.hp}</dd></div></dl>`);
+}
+/* the class skill tree: a point per class level; a node needs its class level and a learned parent; the two subclasses at Lv 5 exclude each other */
+let tcls = null;   // the class tab open in the tree ("second" = the locked second class)
+const TROW = 84;   // px per row of the tree
+const classLv = (me, c) => (me.cls.find(x => x[0] === c) || [c, 0])[1];
+const ranksOf = (me, c) => me.tree[c] || (me.tree[c] = {});
+const pointsLeft = (me, c) => classLv(me, c) - Object.values(ranksOf(me, c)).reduce((s, n) => s + n, 0);
+function nodeState(me, c, n) {   // got / max / can / closed / lock (class level) / dim (parent not learned)
+  const r = ranksOf(me, c)[n.id] | 0;
+  if (r) return r >= n.max ? "max" : pointsLeft(me, c) > 0 && classLv(me, c) >= n.lv ? "can got" : "got";
+  if ((n.sub && me.sub && me.sub !== n.sub) || (n.branch && me.sub !== n.branch && me.sub)) return "closed";
+  if (classLv(me, c) < n.lv) return "lock";
+  if (n.from && !n.from.some(p => ranksOf(me, c)[p] > 0)) return "dim";
+  if (n.branch && !me.sub) return "dim";
+  return pointsLeft(me, c) > 0 ? "can" : "dim";
+}
+function renderTree() {
+  const me = H();
+  if (tcls !== "second" && !me.cls.some(c => c[0] === tcls)) tcls = me.cls[0] ? me.cls[0][0] : "second";
+  const tabs = me.cls.map(([c, lv]) => `<button type="button" role="tab" data-tcls="${c}" aria-selected="${c === tcls}">${t("cls." + c)} ${N(lv)}</button>`);
+  if (me.cls.length < 2) tabs.push(`<button type="button" role="tab" class="locked" data-tcls="second" aria-selected="${tcls === "second"}">${ico("lock", "", 1)}${t("build.second")}</button>`);
+  let body = "";
+  if (tcls === "second") body = lockline(t("build.second"), t("tree.secondAt", { n: CLASS_CAP }));   // levels 71–90 go to a second class
+  else {
+    const nodes = TREES[tcls] || [], lv = classLv(me, tcls), ranks = ranksOf(me, tcls);
+    const rows = [...new Set(nodes.map(n => n.lv))].sort((a, b) => a - b), H_ = rows.length * TROW;
+    const at = n => ({ x: (n.col * 2 + 1) * 100, y: rows.indexOf(n.lv) * TROW + 48 });   // x in a 600-wide viewBox, y in px
+    const lines = nodes.flatMap(n => (n.from || []).map(p => {
+      const a = at(nodes.find(x => x.id === p)), b = at(n);
+      return `<line x1="${a.x}" y1="${a.y + 26}" x2="${b.x}" y2="${b.y - 26}"${ranks[p] && ranks[n.id] ? ' class="lit"' : ""}/>`;
+    })).join("");
+    const bands = rows.map((l, i) => `<div class="trow${lv < l ? " off" : ""}" style="top:${i * TROW}px"><span>${lv < l ? ico("lock", "", 1) : ""}${t("build.lvAt", { n: l })}</span></div>`).join("");
+    const cells = nodes.map(n => {
+      const st = nodeState(me, tcls, n), r = ranks[n.id] | 0, p = at(n);
+      return `<button class="tnode ${st}" type="button" data-node="${n.id}" style="left:${p.x / 6}%;top:${p.y}px" aria-label="${n.n}">${
+        st === "lock" || st === "dim" && !r ? sil(n.spr, SIL_MET) : img(n.spr)}<span class="rk">${r}/${n.max}</span></button>`;
+    }).join("");
+    body = `<div class="tierbox"><div class="wrow"><b>${t("cls." + tcls)}</b><span class="lv">${lv}<small> / ${CLASS_CAP}</small></span></div><div class="xbar"><i style="width:${lv / CLASS_CAP * 100}%"></i></div></div>
+      <h3 class="sec">${t("tree.title")} <span class="pts">${t("tree.points", { n: pointsLeft(me, tcls) })}</span></h3>
+      <div class="tree" style="height:${H_}px">${bands}<svg class="tlines" viewBox="0 0 600 ${H_}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${cells}</div>`;
+  }
+  $("tree").innerHTML = `<div class="seg two" role="tablist" aria-label="${t("build.class")}">${tabs.join("")}</div>${body}`;
+}
+function openNode(id) {
+  const me = H(), n = TREES[tcls].find(x => x.id === id), st = nodeState(me, tcls, n), r = ranksOf(me, tcls)[id] | 0;
+  const parent = n.from && TREES[tcls].find(x => x.id === n.from[0]);
+  const why = st.includes("can") ? `<button class="btn wide" type="button" data-learn="${id}">${t("tree.learn")}</button>`
+    : st === "max" ? "" : st === "closed" ? lockline(t("tree.closed"), "")
+    : st === "lock" ? lockline(t("build.class"), t("build.lvAt", { n: n.lv }))
+    : n.branch && !me.sub ? lockline(t("tree.needs", { name: t("sub." + n.branch) }), "")
+    : parent && !(ranksOf(me, tcls)[parent.id] > 0) ? lockline(t("tree.needs", { name: parent.n }), "")
+    : lockline(t("tree.noPoints"), "");
+  openSheet(img(n.spr), n.n, `${t("cls." + tcls)} · ${t("build.lvAt", { n: n.lv })}`,
+    `<p class="ndesc">${n.d}</p><div class="wrow"><span class="lv">${t("tree.rank", { a: r, b: n.max })}</span>${st === "max" ? `<span class="pill new">${t("tree.max")}</span>` : ""}</div>${why}`);
+}
+function learn(id) {
+  const me = H(), n = TREES[tcls].find(x => x.id === id);
+  if (!nodeState(me, tcls, n).includes("can")) return;
+  const ranks = ranksOf(me, tcls); ranks[id] = (ranks[id] | 0) + 1;
+  if (n.sub) me.sub = n.sub;   // choosing a subclass closes the other branch
+  persist();
+  track("skill", { hero: bh, cls: tcls, node: id, rank: ranks[id] });
+  haptic("ok"); renderTree(); openNode(id);
+}
+function lead(h) {
+  if (h === save.active) return;
+  save.active = h; persist();
+  track("hero_pick", { hero: h });
+  haptic("ok"); renderTop(); renderBuild();
+}
+const ownerPill = who => who ? `<span class="pill off">${firstName(who)}</span>` : "";
+function openHand() {   // the weapon in hand: its level, Feed, Ascend; below, every other weapon in the bag to hold instead
+  const me = H(), k = me.hand && have(me.hand) ? me.hand : null, asc = k && ascendOf(k);
+  const top = k ? `<div class="tierbox"><div class="wrow">${starsOf(k)}${lvHTML(k)}</div>${xbar(k)}</div>
+    <div class="duo"><button class="btn" type="button" data-feedw="${k}">${t("w.feed")}</button>${asc && atCap(k)
+      ? `<button class="btn" type="button" data-asc="${asc.id}">${t("w.ascend")}</button>`
+      : `<button class="btn off" type="button" aria-disabled="true">${ico("lock", "", 1)}${t("w.ascend")}</button>`}</div>` : "";
+  const rows = weapons().filter(w => w !== k).map(w => `<button class="lrow" type="button" data-hold="${w}">${face(img(item(w).spr))}<span><b>${item(w).name}</b><span class="meta">${starsOf(w)}${lvHTML(w)}</span></span>${ownerPill(holder(w))}</button>`).join("");
+  openSheet(k ? img(item(k).spr) : null, k ? item(k).name : t("camp.hand"), t("hero." + bh),
+    `${top}${rows ? `<h3 class="sec">${t("alm.weapons")}</h3><div class="lrows">${rows}</div>` : ""}`);
+}
+function hold(k) {
+  const me = H(); if (k === me.hand) return;
+  const who = holder(k); if (who) save.heroes[who].hand = null;   // taken out of another hero's hand
+  me.hand = k; persist();
+  track("equip", { hero: bh, slot: "hand", item: k });
+  haptic("tick"); closeSheet(); renderBuild();
+}
+function openSlot(s) {
+  const me = H(), cur = me.gear[s] && have(me.gear[s]) ? me.gear[s] : null;
+  const list = [...new Set(save.bag.filter(x => item(x.key).type === s).map(x => x.key))];
+  const rows = list.map(k => {
+    const on = k === cur;
+    return `<button class="lrow${on ? " on" : ""}" type="button" data-wear="${k}" data-s="${s}"${on ? ' aria-current="true"' : ""}>${face(img(item(k).spr))}<span><b>${item(k).name}</b></span>${on ? `<span class="pill new">${t("gear.on")}</span>` : ownerPill(wearer(k)) || `<span class="pill off">${t("gear.wear")}</span>`}</button>`;
+  }).join("");
+  openSheet(null, t("slot." + s), t("hero." + bh), `${rows ? `<div class="lrows">${rows}</div>` : ""}${cur ? `<button class="btn ghost" type="button" data-off="${s}">${t("gear.off")}</button>` : ""}`);
+}
+function wear(k, s) {
+  const me = H(); if (me.gear[s] === k) return;
+  const who = wearer(k); if (who) SLOTS.forEach(x => { if (save.heroes[who].gear[x] === k) save.heroes[who].gear[x] = null; });   // taken off another hero
+  me.gear[s] = k; persist();
+  track("equip", { hero: bh, slot: s, item: k });
+  haptic("tick"); closeSheet(); renderBuild();
+}
+function takeOff(s) {
+  H().gear[s] = null; persist();
+  track("equip", { hero: bh, slot: s, item: null });
+  haptic("tick"); closeSheet(); renderBuild();
+}
+function openStars(f) {
+  const st = save.stars[f] || [];
+  openSheet(null, t("camp.floor", { n: f }), "", `<div class="srows">${STAR_RULES.map((r, i) =>
+    `<div class="srow${st[i] ? " on" : ""}">${ico("star", "", 2)}<b>${t("star." + r, { n: TURNS })}</b></div>`).join("")}</div>`);
+}
+
+/* ================= table: the recipe book, free fusion, the bag; feeding ================= */
 let ttab = "recipes";
 let bench = { a: null, b: null, out: null, note: "", tone: "" };
 let shown = null;   // the recipe tapped in the book: its ingredients glow in the bag
+let feed = { target: null, picked: {}, flash: false };
 const match = (a, b) => RECIPES.find(r => r.in.length === 2 && ((r.in[0][0] === a && r.in[1][0] === b) || (r.in[0][0] === b && r.in[1][0] === a)));
 const face = inner => `<span class="face">${inner}</span>`;
+function ingHTML(r, k, n) {
+  const it = item(k), h = have(k);
+  if (k === r.up && h) return `<span class="ing${atCap(k) ? " ok" : ""}">${img(it.spr)}${it.name} <i>${N(`${lvOf(k).lv}/${capLv(k)}`)}</i></span>`;   // ascending: the level is the condition
+  const ok = h >= n;
+  return `<span class="ing${ok ? " ok" : ""}">${img(it.spr)}${it.name} <i>${ok ? "✓" : N(`${h}/${n}`)}</i></span>`;
+}
 function recRow(r, group) {
-  const it = item(r.out), name = revealed(r) ? it.name : t("book.sil");
-  if (group === "unknown") return `<div class="rec sil">${face(sil(it.spr, SIL))}<div class="rbody"><b>${name}</b><p>${t(r.hint)}</p></div></div>`;
-  const ings = r.in.map(([k, n]) => {
-    const h = have(k), ok = h >= n;
-    return `<span class="ing${ok ? " ok" : ""}">${img(item(k).spr)}${item(k).name} <i>${ok ? "✓" : `<span class="num">${h}/${n}</span>`}</i></span>`;
-  }).join("");
-  const where = group === "almost" ? short(r).map(([k]) => {
-    const c = item(k).from;
-    return c ? `<button class="where" type="button" data-foe="${c}">${t("book.where", { many: CREATURES[c].many, n: CREATURES[c].floor })}${ico("chev", "chev", 1)}</button>`
-             : item(k).floor ? `<p>${t("book.whereChest", { n: item(k).floor })}</p>` : "";
+  const it = item(r.out);
+  if (group === "unknown") return `<div class="rec sil">${face(sil(it.spr, SIL))}<div class="rbody"><b>${t("book.sil")}</b><span class="clue">${img(item(r.clue).spr)}<span>+</span><span>?</span></span></div></div>`;
+  const ings = r.in.map(([k, n]) => ingHTML(r, k, n)).join("");
+  const where = group === "almost" ? short(r).filter(([k]) => !lvShort(r, k)).map(([k]) => {
+    const c = dropper(k);
+    return c ? `<button class="where" type="button" data-foe="${c}" aria-label="${CREATURES[c].name}">${img(CREATURES[c].spr)}${t("book.floor", { n: CREATURES[c].floor })}</button>` : "";
   }).join("") : "";
   const fresh = group === "can" && !known(r) ? `<span class="tagnew">${t("book.new")}</span>` : "";
-  const on = shown === r.out, tap = group === "can" ? ` role="button" tabindex="0" aria-pressed="${on}"` : "";   // Almost holds the "where" button, so it takes a tap but no role
-  return `<div class="rec${group === "can" ? " can" : ""}${on ? " on" : ""}" data-rec="${r.out}"${tap}>
-    ${face(revealed(r) ? img(it.spr) : sil(it.spr, SIL))}
-    <div class="rbody"><b>${name}${fresh}</b><div class="ings">${ings}</div>${where}</div>
+  const on = shown === r.id, tap = group === "can" ? ` role="button" tabindex="0" aria-pressed="${on}"` : "";   // Almost holds the "where" buttons, so it takes a tap but no role
+  return `<div class="rec${group === "can" ? " can" : ""}${on ? " on" : ""}" data-rec="${r.id}"${tap}>
+    ${face(img(it.spr))}
+    <div class="rbody"><b>${it.name}${fresh}</b><div class="ings">${ings}</div>${where ? `<div class="wheres">${where}</div>` : ""}</div>
   </div>`;
 }
 function renderTable() {
-  const feedOpen = isOpen("feed"), feedAt = unlockFloor("feed");
-  let h = `<div class="seg two" role="tablist" aria-label="${t("table.title")}">
-    <button type="button" role="tab" data-ttab="recipes" aria-selected="${ttab === "recipes"}">${t("table.recipes")}</button>
-    <button type="button" role="tab" data-ttab="feed" aria-selected="${ttab === "feed"}"${feedOpen ? "" : ` class="locked" aria-label="${t("aria.locked", { name: t("table.feed") })}"`}>${t("table.feed")}${feedOpen ? "" : ico("lock", "", 1)}</button>
-  </div>`;
-  if (ttab === "feed") {
-    h += `<div class="locknote">${ico("fire")}<b>${t("table.feedSoon")}</b></div>`;
-  } else {
+  let h = `<div class="seg two" role="tablist" aria-label="${t("table.title")}">${["recipes", "feed"].map(k =>
+    `<button type="button" role="tab" data-ttab="${k}" aria-selected="${ttab === k}">${t("table." + k)}</button>`).join("")}</div>`;
+  if (ttab === "feed") h += feedHTML();
+  else {
     const b = book();
     const group = (key, list) => list.length ? `<h3 class="sec">${t("book." + key)} <span>${list.length}</span></h3><div class="recs">${list.map(r => recRow(r, key)).join("")}</div>` : "";
     h += group("can", b.can) + group("almost", b.almost) + group("unknown", b.unknown);
@@ -1461,7 +1967,7 @@ function renderTable() {
       <h3 class="sec">${t("bag.title")} <span>${save.bag.length}</span></h3>${bagHTML()}`;
   }
   $("table").innerHTML = h;
-  placeTip("bag");
+  placeTip();
 }
 function benchHTML() {
   const cell = (side) => {
@@ -1476,36 +1982,36 @@ function benchHTML() {
   else if (r && revealed(r)) res = `<span class="cell dim">${img(item(r.out).spr)}</span><b></b>`;
   const ready = bench.a && bench.b;
   return `<div class="bench" id="bench">${cell("a")}<span class="op" aria-hidden="true">+</span>${cell("b")}<span class="op" aria-hidden="true">=</span><div class="part res${bench.out ? " done" : ""}">${res}</div></div>
-    ${ready || bench.note ? `<div class="tablerow"><span class="tablenote ${bench.tone}" role="status">${bench.note}</span>${ready ? `<button class="btn${r && r.out === shown ? " pulse" : ""}" type="button" id="fuse">${t("fuse.btn")}</button>` : ""}</div>` : ""}`;
+    ${ready || bench.note ? `<div class="tablerow"><span class="tablenote ${bench.tone}" role="status">${bench.note}</span>${ready ? `<button class="btn${r && r.id === shown ? " pulse" : ""}" type="button" id="fuse">${t("fuse.btn")}</button>` : ""}</div>` : ""}`;
 }
 function tagOf(k) {   // the line under the name in the tooltip
-  if (k === save.hand) return ["t-hand", t("bag.inHand")];
+  const hh = holder(k); if (hh) return ["t-hand", t("bag.inHand", { name: firstName(hh) })];
+  const ww = wearer(k); if (ww) return ["t-on", t("bag.worn", { name: firstName(ww) })];
   const it = item(k);
-  if (it.type === "special") return ["t-key", t("bag.key")];
-  if (it.type !== "mat") return null;
+  if (it.type === "weapon") return ["t-lv", t("bag.lv", { a: lvOf(k).lv, b: capLv(k) })];
+  if (it.type !== "mat" && it.type !== "mod") return null;
   const n = usedFor(k);
-  if (n) return ["t-rec", t(n > 1 ? "bag.forN" : "bag.for", { n })];
-  return isOpen("feed") ? ["t-spare", t("bag.spare")] : null;
+  return n ? ["t-rec", t(n > 1 ? "bag.forN" : "bag.for", { n })] : ["t-spare", t("bag.spare")];
 }
+const markOf = k => { const tag = tagOf(k); return tag && tag[0] === "t-rec" ? '<i class="mk"></i>' : tag && tag[0] === "t-spare" ? '<i class="mk spare"></i>' : ""; };
 function bagHTML() {
   const cells = Math.max(12, Math.ceil(save.bag.length / 6) * 6);
-  const want = shown ? RECIPES.find(r => r.out === shown).in.map(([k]) => k) : [];
+  const r = shown && RECIPES.find(x => x.id === shown), want = r ? r.in.map(([k]) => k) : [];
   let h = "";
   for (let i = 0; i < cells; i++) {
     const x = save.bag[i];
     if (!x) { h += '<span class="islot"></span>'; continue; }
-    const it = item(x.key), hand = x.key === save.hand, tag = tagOf(x.key);
+    const it = item(x.key), hand = !!holder(x.key), on = !hand && worn(x.key), tag = tagOf(x.key);
     const used = bench.a === x.key || bench.b === x.key;
-    const mark = !hand && tag && tag[0] === "t-rec" ? '<i class="mk"></i>' : !hand && tag && tag[0] === "t-spare" ? '<i class="mk spare"></i>' : "";
-    h += `<button class="islot${hand ? " hand" : ""}${used ? " used" : want.includes(x.key) ? " fit" : ""}" type="button" data-bag="${x.key}" aria-label="${it.name}${x.n > 1 ? ` ×${x.n}` : ""}${tag ? `, ${tag[1]}` : ""}" aria-pressed="${tip.where === "bag" && tip.key === x.key}">${img(it.spr) || "?"}${hand ? `<span class="hl">${t("bag.hand")}</span>` : ""}${mark}${x.n > 1 ? countImg(x.n) : ""}</button>`;
+    h += `<button class="islot${hand || on ? " hand" : ""}${used ? " used" : want.includes(x.key) ? " fit" : ""}" type="button" data-bag="${x.key}" aria-label="${it.name}${x.n > 1 ? ` ×${x.n}` : ""}${tag ? `, ${tag[1]}` : ""}" aria-pressed="${tip.key === x.key}">${img(it.spr) || "?"}${hand ? `<span class="hl">${t("bag.hand")}</span>` : on ? `<span class="hl">${t("bag.on")}</span>` : markOf(x.key)}${x.n > 1 ? countImg(x.n) : ""}</button>`;
   }
   return `<div class="inv" id="bag">${h}<span class="tip" id="bagtip" hidden></span></div>`;
 }
-let tip = { where: null, key: null };
-function placeTip(where) {   // the purple tooltip over the pressed slot; stays inside its panel
-  const box = $(where === "bag" ? "bag" : "shelf"), el = $(where === "bag" ? "bagtip" : "shelftip");
+let tip = { key: null };
+function placeTip() {   // the purple tooltip over the pressed slot; stays inside the bag
+  const box = $("bag"), el = $("bagtip");
   if (!box || !el) return;
-  const sel = tip.where === where && box.querySelector(`[data-${where}="${tip.key}"]`);
+  const sel = tip.key && box.querySelector(`[data-bag="${tip.key}"]`);
   if (!sel) { el.hidden = true; return; }
   const tag = tagOf(tip.key);
   el.innerHTML = `<span>${item(tip.key).name}</span>${tag ? `<i class="${tag[0]}">${tag[1]}</i>` : ""}`;
@@ -1527,9 +2033,9 @@ function place(k) {
   bench[on] = null; bench.out = null; bench.note = ""; bench.tone = "";
   haptic("tick");
 }
-function showRec(out) {   // a tap on a recipe lays nothing out: its ingredients glow in the bag and the table scrolls into view
-  shown = out;
-  track("recipe_view", { tab: "recipes", entry: out });
+function showRec(id) {   // a tap on a recipe lays nothing out: its ingredients glow in the bag and the table scrolls into view
+  shown = id;
+  track("recipe_view", { tab: "recipes", entry: id });
   haptic("tick");
   renderTable();
   const h = $("fusehead"); if (h) h.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });   // the cells and the bag in view
@@ -1550,7 +2056,7 @@ document.addEventListener("pointermove", e => {
     const s = item(drag.k).spr;
     drag.ghost = document.createElement("img"); drag.ghost.className = "dragicon"; drag.ghost.alt = ""; if (SPR[s]) drag.ghost.src = sprURL(s);
     $("app").appendChild(drag.ghost); $("bench").classList.add("drop"); drag.el.classList.add("used");
-    if (tip.where === "bag") { tip = { where: null, key: null }; $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip("bag"); }
+    if (tip.key) { tip = { key: null }; $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip(); }
   }
   const app = $("app").getBoundingClientRect();
   drag.ghost.style.left = `${e.clientX - app.left}px`; drag.ghost.style.top = `${e.clientY - app.top}px`;
@@ -1568,28 +2074,89 @@ function dragEnd(e) {
 }
 document.addEventListener("pointerup", dragEnd);
 document.addEventListener("pointercancel", dragEnd);
-function take(k, n) { save.bag.forEach(x => { if (x.key === k && n > 0) { const d = Math.min(n, x.n); x.n -= d; n -= d; } }); save.bag = save.bag.filter(x => x.n > 0); }
-function give(k) { const x = save.bag.find(y => y.key === k); if (x) x.n++; else save.bag.push({ key: k, n: 1 }); }
+function levelAfter(r) {   // ascending starts the next tier at its first level; a variant keeps its base's level; anything else starts fresh
+  if (!isWeapon(r.out)) return null;
+  if (r.up) return { lv: capLv(r.up) + 1, xp: 0 };
+  if (r.keep && have(r.keep)) { const l = lvOf(r.keep); return { lv: Math.min(Math.max(l.lv, baseLv(r.out)), capLv(r.out)), xp: l.xp }; }
+  return { lv: baseLv(r.out), xp: 0 };
+}
 function fuse() {
   const { a, b } = bench; if (!a || !b) return;
   const r = match(a, b);
   if (!r) { bench.note = t("fuse.wont"); bench.tone = "bad"; haptic("error"); renderTable(); return; }
   const miss = short(r)[0];
-  if (miss) { bench.note = t("fuse.short", { name: item(miss[0]).name, n: N(miss[1]) }); bench.tone = "bad"; haptic("error"); renderTable(); return; }
-  const discovered = !known(r), hand = save.hand;
+  if (miss) {
+    bench.note = lvShort(r, miss[0]) ? t("fuse.lv", { name: item(miss[0]).name, a: N(lvOf(miss[0]).lv), b: N(capLv(miss[0])) })
+                                     : t("fuse.short", { name: item(miss[0]).name, n: N(miss[1]) });
+    bench.tone = "bad"; haptic("error"); renderTable(); return;
+  }
+  const discovered = !known(r), lv = levelAfter(r);
   r.in.forEach(([k, n]) => take(k, n));
   give(r.out);
-  if (hand && !have(hand)) save.hand = item(r.out).type === "weapon" ? r.out : null;   // the weapon in hand went into it
+  r.in.forEach(([k]) => { if (!have(k)) delete save.levels[k]; });
+  if (lv) save.levels[r.out] = lv;
+  Object.values(save.heroes).forEach(h => {   // a weapon in hand or a worn piece went into it: the new one takes its place
+    if (h.hand && !have(h.hand)) h.hand = isWeapon(r.out) && !holder(r.out) ? r.out : null;
+    SLOTS.forEach(s => { if (h.gear[s] && !have(h.gear[s])) h.gear[s] = item(r.out).type === s && !worn(r.out) ? r.out : null; });
+  });
   if (discovered) save.recipes.push(r.out);
   save.makeable = canMake().length;
-  save.camp = [...new Set([...save.camp, ...Object.keys(CAMP_UNLOCKS).filter(f => +f <= save.floor).flatMap(f => CAMP_UNLOCKS[f].map(u => u.key))])];
-  writeJSON("gamey.save", save); demo = false; noteSource();
+  persist();
   track("fuse", { recipe: r.out, auto: false, discovered });   // the table never lays items out itself
   bench = { a: null, b: null, out: r.out, note: discovered ? t("fuse.discovered") : "", tone: "good" };
-  tip = { where: null, key: null }; shown = null;
+  tip = { key: null }; shown = null;
   haptic("ok");
   if (discovered) toast("recipe", t("toast.recipe", { name: item(r.out).name }));
-  renderTable(); renderCamp();
+  renderTable();
+}
+
+/* feeding: spare materials and weapons give a weapon xp; the amounts stay hidden, the bar shows them */
+const xpOf = k => { const it = item(k); return it.type === "weapon" ? FOOD_XP.weapon * (it.tier || 1) : FOOD_XP[it.type] || 0; };
+const gain = () => Object.entries(feed.picked).reduce((s, [k, n]) => s + xpOf(k) * n, 0);
+const room = k => { const l = lvOf(k); return (capLv(k) - l.lv) * 100 - l.xp; };
+const edible = k => k !== feed.target && !holder(k) && !worn(k) && xpOf(k) > 0;
+function feedHTML() {
+  const ws = weapons();
+  if (!feed.target || !have(feed.target)) feed.target = ws[0] || null;
+  const k = feed.target; if (!k) return "";
+  const full = atCap(k), cnt = Object.values(feed.picked).reduce((s, n) => s + n, 0), asc = ascendOf(k);
+  const foods = save.bag.filter(x => edible(x.key));
+  let f = "";
+  for (let i = 0, cells = Math.max(12, Math.ceil(foods.length / 6) * 6); i < cells; i++) {
+    const x = foods[i];
+    if (!x) { f += '<span class="islot"></span>'; continue; }
+    const it = item(x.key), p = feed.picked[x.key] | 0, left = x.n - p;
+    f += `<button class="islot${p ? " picked" : ""}" type="button" data-food="${x.key}"${full ? " disabled" : ""} aria-label="${it.name}${left > 1 ? ` ×${left}` : ""}${p ? `, ${p}` : ""}">${img(it.spr) || "?"}${p ? `<span class="pk">${p}</span>` : markOf(x.key)}${left > 1 ? countImg(left) : ""}</button>`;
+  }
+  const act = full ? (asc ? `<button class="btn wide" type="button" data-asc="${asc.id}">${t("w.ascend")}</button>` : "")
+    : `<button class="btn wide${cnt ? "" : " off"}" type="button" id="eat"${cnt ? "" : ' aria-disabled="true"'}>${t("feed.btn")}${cnt ? ` ×${N(cnt)}` : ""}</button>`;
+  return `<div class="tgts">${ws.map(w => `<button class="tgt" type="button" data-ft="${w}" aria-pressed="${w === k}" aria-label="${item(w).name}">${img(item(w).spr)}${lvHTML(w)}</button>`).join("")}</div>
+    <div class="tierbox"><b>${item(k).name}</b><div class="wrow">${starsOf(k)}${lvHTML(k, feed.flash ? "up" : "")}</div>${xbar(k, gain())}</div>
+    <h3 class="sec">${t("feed.food")}</h3>
+    <div class="inv" id="food">${f}</div>
+    ${act}`;
+}
+function pick(k, el) {   // each tap adds one piece; a tap on an emptied stack puts them all back
+  if (atCap(feed.target)) return;
+  const p = feed.picked[k] | 0;
+  if (p >= have(k)) delete feed.picked[k];
+  else if (gain() >= room(feed.target)) { shake(el); haptic("error"); return; }   // the bar is already full to the cap
+  else feed.picked[k] = p + 1;
+  haptic("tick"); renderTable();
+}
+function eat() {
+  const k = feed.target, add = gain(); if (!k || !add) return;
+  const l = lvOf(k), before = l.lv, c = capLv(k);
+  l.xp += add;
+  while (l.xp >= 100 && l.lv < c) { l.xp -= 100; l.lv += 1; }
+  if (l.lv >= c) l.xp = 0;   // xp past the cap is lost
+  save.levels[k] = l;
+  let n = 0;
+  for (const [f, q] of Object.entries(feed.picked)) { take(f, q); n += q; if (!have(f)) delete save.levels[f]; }
+  feed.picked = {}; feed.flash = l.lv > before;
+  save.makeable = canMake().length; persist();
+  track("feed", { weapon: k, items: n, lv: l.lv });
+  haptic("ok"); renderTable(); feed.flash = false;
 }
 
 /* ================= almanac: Weapons · Creatures · Items ================= */
@@ -1601,7 +2168,7 @@ function renderAlmanac() {
   if (aseg === "creatures") {
     body = `<h3 class="sec">${t("alm.basement")} <span>${t("alm.met", { n: met.length })}</span></h3><div class="rows">${Object.keys(CREATURES).map(c => {
       const st = stage(c), cr = CREATURES[c];
-      if (!st) return `<div class="rowcard unk" role="img" aria-label="${t("alm.notMet")}"><span class="face">?</span><b></b><span></span></div>`;
+      if (!st || !cr.spr) return `<div class="rowcard unk" role="img" aria-label="${t("alm.notMet")}"><span class="face">?</span><b></b><span></span></div>`;
       const s = save.creatures[c] || {}, nw = nextWins(st);
       return `<button class="rowcard${freshCards.has(c) ? " new-dot" : ""}" type="button" data-foe="${c}">
         ${face(st >= 2 ? img(cr.spr) : sil(cr.spr, SIL_MET))}
@@ -1610,33 +2177,31 @@ function renderAlmanac() {
       </button>`;
     }).join("")}</div>`;
   } else {
-    const list = found().filter(k => aseg === "weapons" ? item(k).type === "weapon" : item(k).type !== "weapon");
+    const list = found().filter(k => aseg === "weapons" ? isWeapon(k) : !isWeapon(k));
     const cards = list.map(k => `<button class="entry" type="button" data-item="${k}">${img(item(k).spr)}<span>${item(k).name}</span></button>`);
     while (cards.length < 8 || cards.length % 4) cards.push('<div class="entry unk" role="img" aria-label="?"><i aria-hidden="true">?</i></div>');
     body = `<h3 class="sec">${t("alm.basement")} <span>${t("alm.found", { n: list.length })}</span></h3><div class="cards">${cards.join("")}</div>`;
   }
   $("almanac").innerHTML = `<div class="vh"><h2>${t("alm.title")}</h2></div>
     <div class="seg" role="tablist" aria-label="${t("alm.title")}">${["weapons", "creatures", "items"].map(s =>
-      `<button type="button" role="tab" data-seg="${s}" aria-selected="${aseg === s}">${t("alm." + s)}${s === "creatures" && freshNow().length ? '<i class="dot"></i>' : ""}</button>`).join("")}</div>
+      `<button type="button" role="tab" data-seg="${s}" aria-selected="${aseg === s}">${t("alm." + s)}${s === "creatures" && freshCards.size ? '<i class="dot"></i>' : ""}</button>`).join("")}</div>
     ${body}`;
 }
-function seenCreatures() {   // opening the tab puts out the "+N new" on the camp tile
-  metList().forEach(c => once.add("camp.almanac." + c));
-}
+function seenCreatures() { metList().forEach(markSeen); renderTop(); }   // opening the tab puts out the dot on the Almanac tab
 
-/* ================= sheets: creature card, item card ================= */
+/* ================= sheets: creature, item, lists ================= */
 let lastFocus = null;
-function openSheet(pic, title, sub, body) {
+function openSheet(pic, title, subt, body) {
   const sh = $("sheet"), open = !sh.hidden;
   if (!open) lastFocus = document.activeElement;
-  sh.innerHTML = `<div class="grab"></div><div class="plinth">${pic}</div>
-    <div class="sh-head"><div class="sh-title"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</div><button class="btn ghost sm" type="button" data-close>${t("close")}</button></div>
+  sh.innerHTML = `<div class="grab"></div>${pic ? `<div class="plinth">${pic}</div>` : ""}
+    <div class="sh-head"><div class="sh-title"><b>${title}</b>${subt ? `<span>${subt}</span>` : ""}</div><button class="btn ghost sm" type="button" data-close>${t("close")}</button></div>
     ${body}`;
   sh.setAttribute("aria-label", title);
   sh.hidden = $("backdrop").hidden = false;
-  sh.scrollTop = 0;
+  if (!open) sh.scrollTop = 0;
   if (!open && !still) { sh.classList.remove("in"); void sh.offsetWidth; sh.classList.add("in"); }
-  sh.querySelector("[data-close]").focus({ preventScroll: true });
+  if (!open) sh.querySelector("[data-close]").focus({ preventScroll: true });
   syncBack();
 }
 function closeSheet() {
@@ -1646,50 +2211,52 @@ function closeSheet() {
 }
 const winsLabel = n => t(n === 1 ? "alm.win" : "alm.wins", { n });
 const lockrow = (label, a, b) => `<div class="lockrow">${ico("lock", "", 1)}<b>${label}</b><span>${b ? `${t("alm.progress", { a, b })} ${t(b === 1 ? "alm.win" : "alm.wins", { n: "" }).trim()}` : ""}</span></div>`;
-function openCreature(c) {
+function openCreature(c, quiet) {
   const cr = CREATURES[c], st = stage(c), w = (save.creatures[c] || {}).wins | 0;
-  track("almanac_view", { tab: "creatures", entry: c });
+  if (!quiet) track("almanac_view", { tab: "creatures", entry: c });
   if (freshCards.delete(c) && aseg === "creatures" && !$("almanac").hidden) renderAlmanac();
-  const pic = st >= 2 ? img(cr.spr) : SPR[cr.spr] ? sil(cr.spr, st ? SIL_MET : SIL) : '<span class="q">?</span>';
-  const ladder = `<div class="ladder">${[t("alm.met1"), winsLabel(STUDY.stats), winsLabel(STUDY.intents), winsLabel(STUDY.studied)].map((l, i) =>
+  const pic = !cr.spr ? '<span class="q">?</span>' : st >= 2 ? img(cr.spr) : sil(cr.spr, st ? SIL_MET : SIL);
+  let body = `<div class="ladder">${[t("alm.met1"), winsLabel(STUDY.stats), winsLabel(STUDY.intents), winsLabel(STUDY.studied)].map((l, i) =>
     `<div${i < st ? ' class="on"' : ""}><i></i>${l}</div>`).join("")}</div>`;
-  let body = ladder;
   if (!st) body += lockrow(t("alm.notMet"));
   if (st >= 2) {
-    const dmg = cr.intents.map(i => i[1]).filter(Boolean), lo = Math.min(...dmg), hi = Math.max(...dmg);
-    const into = RECIPES.filter(r => revealed(r) && r.in.some(([k]) => k === cr.loot) && (known(r) || book().almost.includes(r) || book().can.includes(r)));
-    body += `<dl class="facts">
-      <div><dt>${t("alm.hp")}</dt><dd>${cr.hp}</dd></div>
-      <div><dt>${t("alm.dmg")}</dt><dd>${lo === hi ? lo : `${lo}–${hi}`}</dd></div>
-      <div><dt>${t("alm.loot")}</dt><dd><span>${img(item(cr.loot).spr)}${item(cr.loot).name}</span></dd></div>
-      ${into.length ? `<div><dt>${t("alm.into")}</dt><dd>${into.map(r => `<span>${img(item(r.out).spr)}${item(r.out).name}</span>`).join("")}</dd></div>` : ""}
-    </dl>`;
+    const b = book(), dmg = (cr.intents || []).map(i => i[1]).filter(Boolean);
+    const into = RECIPES.filter(r => revealed(r) && r.in.some(([k]) => cr.loot.includes(k)) && (known(r) || b.almost.includes(r) || b.can.includes(r)));
+    const rows = (cr.hp ? `<div><dt>${t("alm.hp")}</dt><dd>${cr.hp}</dd></div>` : "")
+      + (dmg.length ? `<div><dt>${t("alm.dmg")}</dt><dd>${Math.min(...dmg) === Math.max(...dmg) ? dmg[0] : `${Math.min(...dmg)}–${Math.max(...dmg)}`}</dd></div>` : "")
+      + (cr.loot.length ? `<div><dt>${t("alm.loot")}</dt><dd>${cr.loot.map(k => `<span>${img(item(k).spr)}${item(k).name}</span>`).join("")}</dd></div>` : "")
+      + (into.length ? `<div><dt>${t("alm.into")}</dt><dd>${[...new Set(into.map(r => r.out))].map(k => `<span>${img(item(k).spr)}${item(k).name}</span>`).join("")}</dd></div>` : "");
+    if (rows) body += `<dl class="facts">${rows}</dl>`;
   } else if (st) body += lockrow(`${t("alm.hp")} · ${t("alm.loot")}`, w, STUDY.stats);
-  if (st >= 3) body += `<h3 class="sec">${t("alm.intents")}</h3><div class="intents">${cr.intents.map(([k, d]) => `<span class="intent ${TONE[k]}">${t("intent." + k, { d: N(d) })}</span>`).join("")}</div>`;
-  else if (st) body += lockrow(t("alm.intents"), w, STUDY.intents);
-  if (st >= 4) body += `<div class="studied"><b>${t("alm.studied")}</b><span>${t("alm.quick", { n: unlockFloor("quick") })}</span></div>`;
+  if (cr.intents) {
+    if (st >= 3) body += `<h3 class="sec">${t("alm.intents")}</h3><div class="intents">${cr.intents.map(([k, d]) => `<span class="intent ${TONE[k]}">${t("intent." + k, { d: N(d) })}</span>`).join("")}</div>`;
+    else if (st) body += lockrow(t("alm.intents"), w, STUDY.intents);
+  }
+  if (st >= 4) body += `<div class="studied"><b>${t("alm.studied")}</b></div>`;
   else if (st) body += lockrow(t("alm.studied"), w, STUDY.studied);
-  openSheet(pic, st ? cr.name : cr.name, t("alm.at", { n: cr.floor }), body);
+  openSheet(pic, st ? cr.name : "?", t("alm.at", { n: cr.floor }), body);
 }
 function openItem(k) {
   const it = item(k), r = RECIPES.find(x => x.out === k && known(x));
-  track("almanac_view", { tab: it.type === "weapon" ? "weapons" : "items", entry: k });
+  track("almanac_view", { tab: isWeapon(k) ? "weapons" : "items", entry: k });
   let body = "";
-  if (r) body = `<h3 class="sec">${t("alm.recipe")}</h3><div class="mini">${r.in.map(([x, n]) =>
+  if (isWeapon(k) && have(k)) body += `<div class="tierbox"><div class="wrow">${starsOf(k)}${lvHTML(k)}</div>${xbar(k)}</div>`;
+  if (r) body += `<h3 class="sec">${t("alm.recipe")}</h3><div class="mini">${r.in.map(([x, n]) =>
     `<span class="cell">${img(item(x).spr)}${n > 1 ? countImg(n) : ""}</span>`).join('<span class="op">+</span>')}<span class="op">=</span><span class="cell">${img(it.spr)}</span></div>`;
-  else if (it.at) body = `<dl class="facts"><div><dt>${t("alm.foundAt")}</dt><dd>${it.at}</dd></div></dl>`;
-  if (it.type === "special") body += `<div class="lockrow">${ico("lock", "", 1)}<b>${t("bag.key")}</b><span></span></div>`;
+  else {
+    const c = it.from && CREATURES[it.from], at = it.at || (c ? t("alm.from", { name: c.name, n: c.floor }) : "");
+    if (at) body += `<dl class="facts"><div><dt>${t("alm.foundAt")}</dt><dd>${at}</dd></div></dl>`;
+  }
   openSheet(img(it.spr), it.name, t("type." + it.type), body);
 }
 
 /* ================= navigation ================= */
-document.querySelectorAll("[data-home]").forEach(a => { a.href = HOME + "?tab=" + a.dataset.home; });   // the lobby's own tabs; a link with a parameter is built from the name (CONTRACT)
-let tab = "camp", sub = null;
+let tab = "camp", sub = null, subFrom = null;   // subFrom: a table opened from a build goes back to it
 const views = [...document.querySelectorAll(".view")], viewsEl = $("views");
 function syncBack() {   // Telegram's own back button: sheet → sub-screen → almanac → home
   if (!window.GY) return;
   if (!$("sheet").hidden) window.GY.back(closeSheet);
-  else if (sub) window.GY.back(() => { sub = null; show("rev"); });
+  else if (sub) window.GY.back(back);
   else if (tab !== "camp") window.GY.back(() => { tab = "camp"; show("rev"); });
   else window.GY.back(null);   // Camp is a tab like the lobby's: no back at its root
 }
@@ -1698,20 +2265,37 @@ function show(dir) {
   views.forEach(v => { v.hidden = v !== cur; });
   if (dir && !still) { cur.classList.remove("fwd", "rev"); void cur.offsetWidth; cur.classList.add(dir); }
   $("tbRoot").hidden = !!sub; $("tbSub").hidden = !sub;
-  if (sub === "table") { $("tbTitle").textContent = t("table.title"); $("tbSubt").textContent = t(save.floor >= unlockFloor("shelter") ? "camp.shelter" : "camp.landing"); }
+  if (sub) {
+    $("tbTitle").textContent = t(sub === "table" ? "table.title" : sub === "tree" ? "tree.title" : "build.title");
+    $("tbSubt").textContent = sub === "tree" ? t("hero." + bh) : t(save.floor >= SHELTER ? "camp.shelter" : "camp.landing");
+  }
   document.querySelectorAll(".tab[data-tab]").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
-  tip = { where: null, key: null };
+  tip = { key: null };
+  renderTop();
   if (id === "camp") renderCamp();
+  if (id === "build") renderBuild();
+  if (id === "tree") renderTree();
   if (id === "table") renderTable();
   if (id === "almanac") renderAlmanac();
   viewsEl.scrollTop = 0;
   syncBack();
 }
-function go(where) {
-  if (showNew) once.add("camp.new." + save.floor);   // the "new" card has done its job
-  if (where === "table") { sub = "table"; ttab = "recipes"; shown = null; track("recipe_view", { tab: "recipes", entry: null }); }
-  else { sub = null; tab = "almanac"; aseg = "creatures"; track("almanac_view", { tab: "creatures", entry: null }); seenCreatures(); }
-  show("fwd");
+function back() { sub = subFrom; subFrom = null; show("rev"); }   // the table or the tree opened from a build go back to it
+function go(where, o) {
+  o = o || {};
+  if (where === "build") { bh = o.hero; sub = "build"; subFrom = null; show("fwd"); return; }
+  if (where === "tree") { subFrom = "build"; sub = "tree"; tcls = null; show("fwd"); return; }
+  if (where === "table") {
+    subFrom = sub === "build" ? "build" : null; sub = "table"; ttab = o.ttab || "recipes"; shown = o.rec || null;
+    feed = { target: o.target || feed.target, picked: {}, flash: false };
+    track("recipe_view", { tab: ttab, entry: o.rec || null });
+    show("fwd");
+    if (o.rec) { const h = $("fusehead"); if (h) h.scrollIntoView({ block: "start" }); }   // Ascend: the recipe's pieces glow in the bag
+  } else {
+    sub = null; tab = "almanac"; aseg = "creatures";
+    track("almanac_view", { tab: "creatures", entry: null });
+    seenCreatures(); show("fwd");
+  }
 }
 
 /* ================= input ================= */
@@ -1719,49 +2303,59 @@ document.addEventListener("click", e => {
   if (performance.now() - dragEndAt < 150) { dragEndAt = 0; return; }   // swallow one stray click, never a real tap after it
   const el = e.target.closest("button, [data-rec]");
   const prevTip = tip.key;
-  if (!el || !(el.dataset.bag || el.dataset.shelf)) {   // a tap anywhere else lets the tooltip go
-    if (tip.where) { const w = tip.where; tip = { where: null, key: null }; if (w === "bag" && !$("table").hidden && $("bag")) $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); placeTip(w); if (w === "shelf" && $("shelf")) $("shelf").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false")); }
+  if ((!el || !el.dataset.bag) && tip.key) {   // a tap anywhere else lets the tooltip go
+    tip = { key: null };
+    if ($("bag")) $("bag").querySelectorAll('[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false"));
+    placeTip();
   }
   if (!el) return;
   const d = el.dataset;
   if (d.go) go(d.go);
   else if (d.tab) {
     if (d.tab === tab && !sub) { viewsEl.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); return; }
-    tab = d.tab; sub = null;
-    if (tab === "almanac") { if (showNew) once.add("camp.new." + save.floor); track("almanac_view", { tab: aseg, entry: null }); if (aseg === "creatures") seenCreatures(); }
+    tab = d.tab; sub = null; subFrom = null;
+    if (tab === "almanac") { track("almanac_view", { tab: aseg, entry: null }); if (aseg === "creatures") seenCreatures(); }
     show("fwd");
   }
+  else if (d.foe) openCreature(d.foe);
   else if (d.rec) showRec(d.rec);
   else if (d.bag) {
     place(d.bag);
-    tip = prevTip === d.bag && !(bench.a === d.bag || bench.b === d.bag) ? { where: null, key: null } : { where: "bag", key: d.bag };
+    tip = prevTip === d.bag && !(bench.a === d.bag || bench.b === d.bag) ? { key: null } : { key: d.bag };
     renderTable();
   }
   else if (d.cell) { bench[d.cell] = null; bench.note = ""; bench.out = null; haptic("tick"); renderTable(); }
   else if (el.id === "fuse") fuse();
-  else if (d.ttab) {
-    if (d.ttab === "feed" && !isOpen("feed")) { toast("unlock", t("table.feedLock", { n: unlockFloor("feed") })); haptic("error"); return; }
-    ttab = d.ttab; track("recipe_view", { tab: ttab, entry: null }); renderTable();
-  }
-  else if (d.foe) openCreature(d.foe);
+  else if (d.ttab) { ttab = d.ttab; feed.picked = {}; track("recipe_view", { tab: ttab, entry: null }); renderTable(); }
   else if (d.item) openItem(d.item);
   else if (d.seg) {
     aseg = d.seg; track("almanac_view", { tab: aseg, entry: null });
     if (aseg === "creatures") seenCreatures();
     renderAlmanac();
   }
-  else if (d.shelf) {
-    tip = prevTip === d.shelf ? { where: null, key: null } : { where: "shelf", key: d.shelf };
-    $("shelf").querySelectorAll("[data-shelf]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.shelf === tip.key)));
-    if (item(d.shelf).type === "special" && tip.key) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); haptic("error"); }
-    placeTip("shelf");
-  }
-  else if (el.id === "next") {
-    const s = $("nextSub"); s.textContent = t("camp.nextStub", { n: save.floor + 1 });
-    clearTimeout(s._t); s._t = setTimeout(() => { s.textContent = t("camp.nextSub"); }, 2000);
-  }
+  else if (d.hero) go("build", { hero: d.hero });
+  else if (d.lead) lead(d.lead);
+  else if (d.sheet === "hand") openHand();
+  else if (d.race) openRace(d.race);
+  else if (d.cls) go("tree");
+  else if (d.tcls) { tcls = d.tcls; haptic("tick"); renderTree(); }
+  else if (d.node) openNode(d.node);
+  else if (d.learn) learn(d.learn);
+  else if (d.move) openMove(+d.move);
+  else if (d.pick) pickMove(d.pick, +d.i);
+  else if (d.hold) hold(d.hold);
+  else if (d.slot) openSlot(d.slot);
+  else if (d.wear) wear(d.wear, d.s);
+  else if (d.off) takeOff(d.off);
+  else if (d.stars) openStars(+d.stars);
+  else if (d.feedw) { if (!$("sheet").hidden) closeSheet(); go("table", { ttab: "feed", target: d.feedw }); }
+  else if (d.asc) { if (!$("sheet").hidden) closeSheet(); if (sub === "table") { ttab = "recipes"; showRec(d.asc); } else go("table", { rec: d.asc }); }
+  else if (d.ft) { feed = { target: d.ft, picked: {}, flash: false }; haptic("tick"); renderTable(); }
+  else if (d.food) pick(d.food, el);
+  else if (el.id === "eat") eat();
+  else if (el.id === "gems") location.href = SHOP + "?gems";   // the crystal packs, as from 01
   else if (el.hasAttribute("data-close")) closeSheet();
-  else if (el.id === "back") { sub = null; show("rev"); }
+  else if (el.id === "back") back();
   else if (d.dev) dev(d.dev);
 });
 $("backdrop").addEventListener("click", closeSheet);
@@ -1769,26 +2363,33 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.rec) { e.preventDefault(); showRec(e.target.dataset.rec); return; }
   if (e.key !== "Escape") return;
   if (!$("sheet").hidden) closeSheet();
-  else if (sub) { sub = null; show("rev"); }
+  else if (sub) back();
 });
 
 /* ================= design-notes helpers (the Telegram build drops the notes) ================= */
 function noteSource() {
   const n = $("srcNote"); if (!n) return;
-  n.innerHTML = demo ? "Сейчас: встроенное демо «после этажа 1» (<code>gamey.save</code> нет)." : "Сейчас: <code>gamey.save</code> из забега или после крафта.";
+  n.innerHTML = !demo ? "Сейчас: <code>gamey.save</code>; крафт, корм, снаряжение и выбор героя пишут его обратно."
+    : wantSave ? "Сохранения нет — показано демо ветерана, в памяти." : "Сейчас: демо ветерана в памяти, <code>gamey.save</code> не трогает.";
+  const v = $("devVet"), s = $("devSave");
+  if (v) v.setAttribute("aria-pressed", String(!wantSave));
+  if (s) s.setAttribute("aria-pressed", String(wantSave));
 }
 function dev(k) {
-  if (k === "demo") { save = clone(DEMO_SAVE); demo = true; }
-  if (k === "tails") { const x = save.bag.find(y => y.key === "tail"); if (x) x.n += 3; else save.bag.push({ key: "tail", n: 3 }); }
-  if (k === "fresh") { try { const a = readJSON("gamey.once", []); localStorage.setItem("gamey.once", JSON.stringify((Array.isArray(a) ? a : []).filter(x => !/^(camp\.|narrate\.camp)/.test(x)))); } catch (e) {} location.reload(); return; }
+  if (k === "vet") { location.href = location.pathname; return; }
+  if (k === "save") { location.href = location.pathname + "?save"; return; }
+  if (k === "tails") for (let i = 0; i < 3; i++) give("tail");
+  save.makeable = canMake().length; persist();
   bench = { a: null, b: null, out: null, note: "", tone: "" }; shown = null;
-  noteSource(); show();
+  show();
 }
 
 /* ================= init ================= */
-$("heroSub").textContent = t("hero.class");
+$("coinImg").src = sprURL("coin"); $("gemImg").src = sprURL("gem");
+save.makeable = canMake().length;
 noteSource();
 const from = /03-run|run\.html/.test(document.referrer) ? "run" : /01-|index\.html/.test(document.referrer) ? "home" : "direct";
+document.querySelectorAll("[data-home]").forEach(a => { a.href = HOME + "?tab=" + a.dataset.home; });   // the lobby's own tabs; a link with a parameter is built from the name (CONTRACT)
 track("camp_open", { tab: "camp", entry: from });
 show();
 })();

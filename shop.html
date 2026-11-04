@@ -493,7 +493,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 document.documentElement.lang = "en";
 const $ = id => document.getElementById(id);
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LOBBY = "index.html";   // the lobby copy; the Telegram build maps it to index.html
+const LOBBY = "index.html";   // the lobby; the Telegram build maps it to index.html
 const Q = new URLSearchParams(location.search);
 
 /* ================= catalog: every price, pack, odd and set lives here, none in the markup (GDE-05). Draft prices ================= */
@@ -550,7 +550,7 @@ const AD = { coins: 150 };
 const SHOP_FLAGS = { paidChests: true };   // false in regions that ban paid loot boxes: the coin chest stays
 if (Q.has("nogacha")) SHOP_FLAGS.paidChests = false;
 
-/* ================= what the chests hold: every one of these also drops in the tower (states/05-almanac.html, "at") ================= */
+/* ================= what the chests hold: every one of these also drops in the tower (mockups/05-almanac.html, "at") ================= */
 const RANK = { common: 0, rare: 1, super: 2, epic: 3, legend: 4 };   // the gear's tiers, ★ to ★★★★★; only a hero is legendary
 const POOL = {
   common:   ["tail", "paper", "scrap", "chitin", "sticks"],
@@ -563,7 +563,7 @@ const STOCK = ["potion", "insurance", "autoclear"];   // supplies wait for the r
 const SPRITE = { insurance: "seal", bag: "sack", autoclear: "glass", pouch_super: "pouch" };   // anything else: the key is the sprite
 const item = k => ({ name: t("item." + k), spr: SPRITE[k] || k });
 const rarName = r => `${"★".repeat(RANK[r] + 1)} ${t("rar." + r)}`;
-const RECIPES = [   // copy of RECIPES in states/08-camp.html: for makeable (CONTRACT) and the recipe toast
+const RECIPES = [   // copy of RECIPES in mockups/08-camp.html: for makeable (CONTRACT) and the recipe toast
   { out:"sharp",  in:[["dagger", 1], ["stone", 1]] },
   { out:"viper",  in:[["sharp", 1], ["fang", 1]] },
   { out:"jacket", in:[["pelt", 1], ["tail", 3]] },
@@ -631,7 +631,7 @@ function track(e, props) {
   } catch (err) {}
 }
 
-/* ================= sprites (16×16; block copied whole from states/08-camp.html = 05-almanac.html, palette included) ================= */
+/* ================= sprites (16×16; block copied whole from mockups/08-camp.html = 05-almanac.html, palette included) ================= */
 function mk(rows, pal) {
   const c = document.createElement("canvas"); c.width = rows[0].length; c.height = rows.length;
   const g = c.getContext("2d");

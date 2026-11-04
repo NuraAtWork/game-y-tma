@@ -474,7 +474,7 @@ const t = (k, v) => (STR[k] || k).replace(/\{(\w+)\}/g, (m, p) => (v && p in v ?
 
 document.documentElement.lang = "en";
 const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // the camp and shop copies; the Telegram build maps them to run.html / camp.html / shop.html
+const LINK = { run: "run.html", camp: "camp.html", shop: "shop.html" };   // the Telegram build maps them to run.html / camp.html / shop.html
 
 /* ================= storage (CONTRACT: gamey.save v1, gamey.once, gamey.events; all in try/catch) ================= */
 const readJSON = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -1021,7 +1021,7 @@ document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () =>
 $("toCampaigns").addEventListener("click", () => tabEl("game").click());
 $("toCampaigns").classList.toggle("pulse", firstRun);   // the very first visit: the way on
 // the lobby's shortcuts into the shop, once it opens: the hero banner (Summon) and the daily gift (the stall)
-const BANNER_DAYS = 14;   // as BANNER.days in 09-shop-copy.html: banners change every 14 days
+const BANNER_DAYS = 14;   // as BANNER.days in 09-shop-tma.html: banners change every 14 days
 const today = (d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)(new Date());   // the shop's local day
 {
   const c = BANNER_DAYS * 864e5, left = Math.floor(Date.now() / c) * c + c - Date.now();
