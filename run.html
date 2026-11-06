@@ -35,8 +35,8 @@ img{max-width:100%}
    corridor, the closet (a locked box), the empty vault, the alchemy table → the heavy door → the lair with the dire wolf and
    the stairs up, where gamey.save is written. The first-person version is archive/03-run-floor-1-first-person.html.
    Layout: header, room title + turn, goal bar, the room, health and vita, the weapon in hand, then four moves in a 2×2 grid
-   during a fight or the bag outside one. Desktop = centred column; phone and Telegram = edge to edge, rooms without side
-   doors crop their side walls. In Telegram (tools/tg.js) the page scrolls inside .app and keeps clear of the safe areas. */
+   during a fight or the bag outside one. Desktop = centred column; phone and Telegram = edge to edge. Rooms are 180×160 art px,
+   shaped for an upright phone: the whole room shows at a whole number of device pixels per art pixel. In Telegram (tools/tg.js) the page scrolls inside .app and keeps clear of the safe areas. */
 :root{
   --bg:#111316;
   --panel:#15181c;
@@ -81,7 +81,7 @@ a{color:inherit}
 
 /* the room: canvas below, labels above. --px = one art pixel, set from JS (the phone crop changes it) */
 .scene{--px:2px;position:relative;height:248px;background:#0d0e10;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-/* the world: the whole room and its labels; the camera slides it sideways when the screen shows only part of the room */
+/* the world: the whole room and its labels, centred in the scene */
 .world{position:absolute;top:0;left:0;height:100%;will-change:transform}
 .world canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated}
 .scene.shake{animation:shake .32s}
@@ -94,7 +94,7 @@ a{color:inherit}
 .fade.on{opacity:1}
 .at{position:absolute;translate:-50% 0;white-space:nowrap;pointer-events:none}
 .gone{opacity:0!important;transition:opacity .4s}
-/* over the room, fixed: the goal top-left, the log and the minimap top-right, an arrow at a side door out of frame */
+/* over the room, fixed: the goal top-left, the log and the minimap top-right */
 .goalchip{position:absolute;left:8px;top:8px;z-index:2;display:flex;align-items:center;gap:8px;max-width:calc(100% - 64px);min-height:34px;padding:6px 10px;background:rgba(10,11,13,.82);border:1px solid #2c3036;border-radius:6px;font-size:12.5px;line-height:1.25;color:#e6e2da;text-align:left}
 .goalchip b{font:700 12.5px/1 var(--mono);color:var(--gold);white-space:nowrap}
 .goals{position:absolute;left:8px;top:48px;z-index:2;margin:0;padding:6px 12px;list-style:none;background:rgba(10,11,13,.92);border:1px solid #2c3036;border-radius:6px}
@@ -104,11 +104,6 @@ a{color:inherit}
 .goals li.done i{background:var(--teal);border-color:var(--teal);box-shadow:inset 0 0 0 2px #0d0e10}
 .sbtn{position:absolute;right:6px;top:6px;z-index:2;display:grid;place-items:center;width:42px;height:42px;border-radius:6px;background:rgba(10,11,13,.6);color:#c9ccd1}
 .sbtn .ic{width:20px;height:20px}
-.edge{position:absolute;top:50%;z-index:2;translate:0 -50%;display:grid;place-items:center;width:40px;height:60px;background:rgba(10,11,13,.6);color:var(--teal-hi)}
-.edge.w{left:0;border-radius:0 8px 8px 0}
-.edge.e{right:0;border-radius:8px 0 0 8px}
-.edge .ic{width:22px;height:22px;stroke-width:2.2}
-/* the minimap: rooms seen so far, and the ways out of them */
 .mmap{position:absolute;right:6px;top:54px;z-index:1;width:60px;padding:4px;background:rgba(10,11,13,.78);border:1px solid #2c3036;border-radius:5px;pointer-events:none}
 .mmap svg{width:100%;height:auto}
 .mmap.off{display:none}
@@ -272,13 +267,11 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 
 <div class="app" id="app">
   <div class="scene" id="scene">
-    <div class="world" id="world"><canvas id="cv" width="320" height="124"></canvas></div>
+    <div class="world" id="world"><canvas id="cv" width="180" height="160"></canvas></div>
     <button class="goalchip" id="goal" aria-expanded="false" aria-controls="goals"><span data-s="goal"></span><b id="goalN">0/3</b></button>
     <ul class="goals" id="goals" hidden></ul>
     <button class="sbtn" id="chron" data-sl="log"><svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg></button>
     <div class="mmap" id="mmap" aria-hidden="true"></div>
-    <button class="edge w" id="edgeW" hidden><svg class="ic" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <button class="edge e" id="edgeE" hidden><svg class="ic" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
     <p class="narr" id="narr" aria-live="polite"></p>
     <div class="hurtfx" id="hurtfx"></div>
     <div class="fade" id="fade"></div>
@@ -339,8 +332,6 @@ const STR = {
 document.documentElement.lang = STR.lang;
 document.querySelectorAll("[data-s]").forEach(e => e.textContent = STR[e.dataset.s]);
 document.querySelectorAll("[data-sl]").forEach(e => e.setAttribute("aria-label", STR[e.dataset.sl]));
-document.getElementById("edgeW").setAttribute("aria-label", STR.door.W);
-document.getElementById("edgeE").setAttribute("aria-label", STR.door.E);
 document.getElementById("goals").innerHTML = STR.goals.map(t => `<li><i></i>${t}</li>`).join("");
 
 /* ================= shared with the other screens (GDE-00, docs/GDE/CONTRACT.md): storage, analytics, once ================= */
@@ -365,7 +356,8 @@ function once(key) {
 const buzz = k => window.GY && window.GY.haptic(k);   // phone vibration, only inside Telegram (tools/tg.js)
 const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
 
-const VW = 320, VH = 124, FLOOR_Y = 27, FLOOR = 1;   // a room in art pixels: the PixelLab sprites sit in it at 1:1
+const VW = 180, VH = 160, FLOOR_Y = 27, FLOOR = 1;   // a room in art pixels, upright like the phone: the PixelLab sprites sit in it at 1:1
+const MID = VW >> 1, OX = MID - 160, SIDE_Y = 21;   // the north and south doorways are drawn around x 160 and moved to the middle; side doors sit 21 px lower
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const pad2 = n => String(n).padStart(2, "0");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -475,15 +467,15 @@ loadSprite("hero", "ari-skin", "#e0565a");
 
 /* ================= floor 1: the rooms and the ways between them ================= */
 const NODES = {
-  A: { at: [0, 3], kind: "room", torches: [262], seed: 3 },
-  K: { at: [1, 3], kind: "hall", torches: [262], seed: 5 },
-  B: { at: [2, 3], kind: "hall", torches: [64], seed: 7 },
-  C: { at: [2, 2], kind: "room", torches: [262], seed: 9 },
-  D: { at: [3, 3], kind: "hall", torches: [64, 253], seed: 13 },
+  A: { at: [0, 3], kind: "room", torches: [124], seed: 3 },
+  K: { at: [1, 3], kind: "hall", torches: [30], seed: 5 },
+  B: { at: [2, 3], kind: "hall", torches: [30], seed: 7 },
+  C: { at: [2, 2], kind: "room", torches: [100], seed: 9 },
+  D: { at: [3, 3], kind: "hall", torches: [30, 124], seed: 13 },
   I: { at: [3, 2], kind: "room", torches: [], seed: 17 },
-  E: { at: [4, 3], kind: "room", torches: [64], seed: 19 },
-  F: { at: [4, 2], kind: "room", torches: [84], seed: 23 },
-  G: { at: [4, 1], kind: "hall", torches: [64, 253], seed: 29 },
+  E: { at: [4, 3], kind: "room", torches: [40], seed: 19 },
+  F: { at: [4, 2], kind: "room", torches: [30], seed: 23 },
+  G: { at: [4, 1], kind: "hall", torches: [30, 124], seed: 29 },
   H: { at: [4, 0], kind: "room", torches: [], seed: 31, exit: true }
 };
 const EDGES = ["AK", "KB", "BC", "BD", "DI", "DE", "EF", "FG", "GH"];
@@ -494,26 +486,26 @@ EDGES.forEach(([a, b]) => {
   NODES[a].doors[d] = b; NODES[b].doors[{ N: "S", S: "N", W: "E", E: "W" }[d]] = a;
 });
 
-const SPOTS = { S: [160, 108], N: [160, 66], W: [90, 96], E: [230, 96], start: [112, 100] };   // where Ari stands after coming in by that side
-const EXITS = { N: [160, 38], S: [160, 136], W: [-8, 96], E: [328, 96] };                    // where Ari walks to leave by it
+const SPOTS = { S: [90, 152], N: [90, 84], W: [40, 128], E: [140, 128], start: [72, 134] };   // where Ari stands after coming in by that side
+const EXITS = { N: [90, 38], S: [90, 176], W: [-8, 128], E: [188, 128] };                      // where Ari walks to leave by it
 const OPP = { N: "S", S: "N", W: "E", E: "W" };
-const DOORS = { N: [136, 0, 184, 36], S: [126, 106, 194, 123], W: [0, 40, 26, 100], E: [293, 40, 319, 100] };   // at least 44 CSS px at 2×
+const DOORS = { N: [66, 0, 114, 36], S: [56, 142, 124, 159], W: [0, 62, 26, 122], E: [153, 62, 179, 122] };   // at least 44 CSS px at 2×
 
 // things to tap: a box in art pixels and, for some, a name above
 const OBJ = {
-  chest: { room: "C", box: [146, 38, 173, 59],  at: [160, 27] },
-  box:   { room: "I", box: [212, 82, 229, 99] },
-  table: { room: "F", box: [140, 38, 199, 71],  at: [170, 27] },
-  climb: { room: "H", box: [130, 0, 190, 44],   at: [160, 2] }
+  chest: { room: "C", box: [24, 40, 51, 61],    at: [38, 29] },
+  box:   { room: "I", box: [112, 96, 128, 112] },
+  table: { room: "F", box: [60, 58, 119, 91],   at: [90, 47] },
+  climb: { room: "H", box: [60, 0, 120, 44],    at: [90, 49] }
 };
 
 /* the snake waits in the narrow passage and follows whoever flees into the dead end; the dire wolf keeps the lair */
 const FOE = {
   snake: { max: 6, img: "foe-snake", w: 28, h: 30, split: 15, loot: "fang", home: "B",
-           bits: ["#8c9c41", "#496232", "#d8cf8e"], at: { B: [172, 56], C: [204, 70] },
+           bits: ["#8c9c41", "#496232", "#d8cf8e"], at: { B: [110, 60], C: [118, 70] },
            moves: [{ k: "bite", dmg: 2 }, { k: "coil", dmg: 0 }] },
   wolf:  { max: 18, img: "foe-wolf", w: 50, h: 33, split: 14, loot: "pelt", home: "H",
-           bits: ["#77757d", "#4a4950", "#c9c7cc"], at: { H: [196, 50] },
+           bits: ["#77757d", "#4a4950", "#c9c7cc"], at: { H: [64, 56] },
            // 18 HP, not 14–16: with a strike of 3 the wolf would die on turn 5, before its lunge (GDE-03)
            moves: [{ k: "bite", dmg: 2 }, { k: "growl", dmg: 0 }, { k: "bite", dmg: 2 }, { k: "prep", dmg: 0, prep: true }, { k: "lunge", dmg: 5, lunge: true }] }
 };
@@ -531,7 +523,7 @@ const FLAMES = [
   ["....r.", "...o..", "..oo..", ".oyoo.", "ooyyo.", "oywwyo", ".oyyo."]
 ];
 const FLAME_PAL = { o: "#e57c32", y: "#f7c35c", w: "#fff2c0", r: "#b8462a" };
-const PUDDLES = [[112, 98, 14, 4], [222, 80, 10, 3]];   // the damp corridor: where the water drips
+const PUDDLES = [[72, 122, 14, 4], [128, 92, 10, 3]];   // the damp corridor: where the water drips
 const RIPPLES = [];   // ripple rings by radius, made once
 for (let r = 1; r <= 20; r++) RIPPLES[r] = [1, 2, 3].map(ry => ring(r, ry, "#7fa4b4"));
 
@@ -593,15 +585,17 @@ function buildRoom(id) {
     }
     if (N.doors[side]) {
       const dx = side === "W" ? 0 : VW - 12;
-      px("#0b0c0e", dx, 52, 12, 40);
-      px("#5a5f66", dx, 47, 12, 5); px("#6e747c", dx, 47, 12, 1); px("#42464c", dx, 51, 12, 1);
-      px("#4a4f56", side === "W" ? 11 : VW - 12, 52, 1, 40);
-      px("#161719", dx, 88, 12, 4);
+      px("#0b0c0e", dx, 52 + SIDE_Y, 12, 40);
+      px("#5a5f66", dx, 47 + SIDE_Y, 12, 5); px("#6e747c", dx, 47 + SIDE_Y, 12, 1); px("#42464c", dx, 51 + SIDE_Y, 12, 1);
+      px("#4a4f56", side === "W" ? 11 : VW - 12, 52 + SIDE_Y, 1, 40);
+      px("#161719", dx, 88 + SIDE_Y, 12, 4);
     }
   }
   x.fillStyle = "rgba(0,0,0,.35)"; x.fillRect(9, FLOOR_Y, 2, VH); x.fillRect(VW - 11, FLOOR_Y, 2, VH);
 
-  // the north side: an arch into a short corridor, the heavy door's frame (the door is drawn each frame), or the stairs up
+  // the north side: an arch into a short corridor, the heavy door's frame (the door is drawn each frame), or the stairs up;
+  // drawn around x 160 and moved to the middle of the room
+  x.save(); x.translate(OX, 0);
   if (N.doors.N) {
     px("#0f1012", 136, 0, 49, 37);
     px("#5a5f66", 137, 0, 47, 4); px("#6e747c", 137, 0, 47, 1); px("#42464c", 137, 3, 47, 1);
@@ -627,10 +621,12 @@ function buildRoom(id) {
     }
     for (const [y, l, w] of [[36, 128, 65], [41, 126, 69]]) { px("#4a4f56", l, y, w, 1); px("#383c42", l, y + 1, w, 4); px(OUT, l, y + 5, w, 1); }
   }
+  x.translate(0, VH - 124);
   if (N.doors.S) {
     for (const dx of [133, 182]) { px(OUT, dx - 1, 111, 8, 13); px("#5a5f66", dx, 112, 6, 12); px("#6e747c", dx, 112, 6, 1); px("#42464c", dx + 5, 113, 1, 11); }
     px("#141518", 140, 117, 41, 7); px("#0b0c0e", 140, 120, 41, 4);
   }
+  x.restore();
 
   for (const t of N.torches) {
     px(OUT, t - 1, 31, 8, 5); px(OUT, t + 1, 35, 4, 12);
@@ -661,11 +657,11 @@ function buildRoom(id) {
   };
 
   if (id === "A") {   // where Ari wakes: a heap of straw, a bucket, crates
-    straw(26, 72, 40, 14, ["#b8913a", "#9c7a2e", "#d9b45a", "#7d6228"]);
-    for (let i = 0; i < 9; i++) px("#b8913a", 30 + (rnd() * 50 | 0), 88 + (rnd() * 8 | 0), 3, 1);
-    crate(20, 40, 22, 18); put(SPR.barrel, 290, 98); put(SPR.bucket, 46, 98); crate(250, 100, 22, 18);
+    straw(14, 100, 40, 14, ["#b8913a", "#9c7a2e", "#d9b45a", "#7d6228"]);
+    for (let i = 0; i < 9; i++) px("#b8913a", 16 + (rnd() * 46 | 0), 116 + (rnd() * 8 | 0), 3, 1);
+    crate(14, 40, 22, 18); put(SPR.barrel, 154, 134); put(SPR.bucket, 28, 134); crate(116, 138, 22, 18);
     x.fillStyle = "rgba(200,205,212,.32)";
-    for (const [a, b, w, h] of [[300, 1, 10, 1], [309, 1, 1, 10], [301, 2, 1, 1], [302, 3, 1, 1], [303, 4, 1, 1], [304, 5, 1, 1], [305, 6, 1, 1], [304, 1, 1, 3], [305, 3, 3, 1]]) x.fillRect(a, b, w, h);
+    for (const [a, b, w, h] of [[160, 1, 10, 1], [169, 1, 1, 10], [161, 2, 1, 1], [162, 3, 1, 1], [163, 4, 1, 1], [164, 5, 1, 1], [165, 6, 1, 1], [164, 1, 1, 3], [165, 3, 3, 1]]) x.fillRect(a, b, w, h);
   }
   if (id === "K") {   // water runs down the wall and stands in puddles
     for (const [cx, cy, rx, ry] of PUDDLES) {
@@ -673,34 +669,35 @@ function buildRoom(id) {
       px("#34505e", cx - rx + 3, cy - ry + 1, rx, 1); px("#7fa4b4", cx - 3, cy - 1, 2, 1);
       px("#2a3a44", cx - 1, 22, 2, FLOOR_Y - 22);
     }
-    put(SPR.sack, 40, 98);
+    put(SPR.sack, 14, 138);
   }
   if (id === "B") {   // cracks and fallen stones
-    for (const [a, b] of [[100, 60], [104, 63], [107, 64], [111, 68], [114, 71], [116, 75]]) { px("#141518", a, b, 4, 1); px("#3a3e44", a, b + 1, 4, 1); }
-    rubble(30, 102, 8); rubble(240, 104, 6); rubble(90, 40, 4);
+    for (const [a, b] of [[50, 62], [54, 65], [57, 66], [61, 70], [64, 73], [66, 77]]) { px("#141518", a, b, 4, 1); px("#3a3e44", a, b + 1, 4, 1); }
+    rubble(16, 140, 8); rubble(130, 142, 6); rubble(26, 40, 4);
   }
   if (id === "C") {   // a dead end: rubble, a crack in the wall
-    rubble(24, 96, 10); rubble(270, 98, 8); rubble(60, 36, 5);
-    for (let i = 0; i < 18; i++) px("#141518", 84 + (i % 3 === 0 ? 1 : 0), 2 + i, 1, 1);
-    crate(278, 40, 22, 18);
+    rubble(14, 140, 10); rubble(140, 140, 8); rubble(60, 36, 5);
+    for (let i = 0; i < 18; i++) px("#141518", 70 + (i % 3 === 0 ? 1 : 0), 2 + i, 1, 1);
+    crate(148, 40, 22, 18);
   }
-  if (id === "D") { crate(20, 96, 22, 18); put(SPR.barrel, 292, 100); rubble(220, 60, 4); }
+  if (id === "D") { crate(14, 136, 22, 18); put(SPR.barrel, 154, 136); rubble(104, 56, 4); }
   if (id === "I") {   // a closet: shelves, a broom, a bucket
-    shelf(30, 110, 10, .7); shelf(30, 110, 20, .5);
-    for (let i = 0; i < 26; i++) px(i % 4 ? "#6e4a2a" : "#5a3a20", 268 - (i >> 1), 40 + i * 2, 2, 2);
-    straw(244, 86, 14, 10, ["#c9a24a", "#9c7a2e"]);
-    put(SPR.bucket, 284, 96); crate(24, 92, 22, 18); put(SPR.sack, 54, 100);
+    shelf(16, 60, 10, .7); shelf(16, 60, 20, .5);
+    for (let i = 0; i < 26; i++) px(i % 4 ? "#6e4a2a" : "#5a3a20", 162 - (i >> 1), 40 + i * 2, 2, 2);
+    straw(138, 86, 14, 10, ["#c9a24a", "#9c7a2e"]);
+    put(SPR.bucket, 150, 132); crate(14, 128, 22, 18); put(SPR.sack, 44, 138);
   }
   if (id === "E") {   // an empty vault: niches with bones, claw marks across the floor
-    for (const nx of [36, 96, 214, 274]) {
+    for (const nx of [120]) {   // a niche the goal chip and the log button leave in sight
       px(OUT, nx - 1, 3, 20, 20); px("#0d0e10", nx, 5, 18, 18); px("#0d0e10", nx + 2, 4, 14, 1);
       bone(nx + 6, 18); px("#d9d2c0", nx + 4, 13, 4, 3); px(OUT, nx + 5, 14, 1, 1); px(OUT, nx + 7, 14, 1, 1);
     }
-    scratch(80, 62); scratch(208, 92); scratch(246, 52, 4);
-    bone(120, 104); bone(60, 90);
+    scratch(26, 84); scratch(118, 122); scratch(124, 66, 4);
+    bone(70, 140); bone(30, 118);
   }
-  if (id === "F") {   // the alchemy table, left as it was
-    shelf(104, 218, 9, .9); shelf(104, 218, 19, .8);
+  if (id === "F") {   // the alchemy table, left as it was, with shelves either side of the way north
+    shelf(14, 58, 9, .9); shelf(14, 58, 19, .8); shelf(122, 166, 9, .9); shelf(122, 166, 19, .8);
+    x.save(); x.translate(-80, 20);
     px(OUT, 139, 49, 62, 11);
     px("#7a5838", 140, 50, 60, 5); px("#96704a", 140, 50, 60, 1); px("#4f3620", 140, 55, 60, 3);
     for (const lx of [142, 194]) { px(OUT, lx - 1, 58, 6, 14); px("#3e2a18", lx, 58, 4, 13); px("#5a3e26", lx, 58, 1, 13); }
@@ -710,13 +707,14 @@ function buildRoom(id) {
     for (const [bx, col, h] of [[175, "#cf4656", 9], [181, "#7aa266", 7], [187, "#8f7ad1", 11], [193, "#5f9aa6", 8]]) {
       px(OUT, bx - 1, 50 - h - 1, 6, h + 1); px(col, bx, 50 - h + 2, 4, h - 2); px("#c4c6cf", bx + 1, 50 - h, 2, 2); px("#b8865f", bx + 1, 50 - h - 1, 2, 1); px("#efe9dc", bx, 50 - h + 3, 1, 2);
     }
-    crate(16, 100, 22, 18); put(SPR.barrel, 290, 98); put(SPR.sack, 40, 104);
+    x.restore();
+    crate(14, 136, 22, 18); put(SPR.barrel, 154, 136); put(SPR.sack, 40, 142);
   }
-  if (id === "G") { scratch(110, 44, 4); scratch(196, 46, 4); crate(20, 96, 22, 18); bone(250, 104); }
-  if (id === "H") {   // the lair: a nest of old straw, bones, claws
-    straw(160, 70, 76, 20, ["#4f463e", "#5e5248", "#3f3832", "#6e6258"]);
-    bone(40, 96); bone(70, 104); bone(260, 100); bone(110, 86); bone(286, 74);
-    scratch(36, 60); scratch(250, 46, 4);
+  if (id === "G") { scratch(44, 44, 4); scratch(116, 46, 4); crate(14, 136, 22, 18); bone(140, 146); }
+  if (id === "H") {   // the lair: a nest of old straw under the wolf, bones, claws
+    straw(52, 78, 84, 20, ["#4f463e", "#5e5248", "#3f3832", "#6e6258"]);
+    bone(20, 120); bone(40, 142); bone(150, 128); bone(28, 96); bone(152, 92);
+    scratch(16, 58); scratch(136, 50, 4);
   }
   return c;
 }
@@ -728,8 +726,8 @@ function buildShade(id, spot) {
   const N = NODES[id], c = canvas(VW, VH), x = c.getContext("2d"), img = x.createImageData(VW, VH);
   const [hx, hf] = SPOTS[spot];
   const lights = [...N.torches.map(t => [t + 3, 28, 70, 1]), [hx - 11, hf - 36, 80, .85]];
-  if (N.doors.N) lights.push([160, 24, 46, .5]);
-  if (N.exit) lights.push([160, 10, 90, 1.2]);
+  if (N.doors.N) lights.push([MID, 24, 46, .5]);
+  if (N.exit) lights.push([MID, 10, 90, 1.2]);
   const base = id === "I" || id === "H" ? .46 : .36;
   for (let j = 0; j < VH; j++) for (let i = 0; i < VW; i++) {
     let lit = 0;
@@ -857,7 +855,7 @@ function drawSlash(s, now) {
 
 /* particles: embers, dust, bits of a beaten foe */
 const PARTS = [];
-const DUST = Array.from({ length: 16 }, (_, i) => ({ x: 14 + Math.random() * 290, y: 30 + Math.random() * 86, s: Math.random() * 6.28, i }));
+const DUST = Array.from({ length: 12 }, (_, i) => ({ x: 14 + Math.random() * (VW - 28), y: 30 + Math.random() * (VH - 40), s: Math.random() * 6.28, i }));
 function burst(x, y, cols, n, spread = .045) {
   const now = performance.now();
   for (let i = 0; i < n; i++) PARTS.push({ x, y, vx: (Math.random() - .5) * spread * 2, vy: -Math.random() * .05 - .01, g: .00012,
@@ -880,7 +878,7 @@ function drawParticles(now, dt, N, hx, hf) {
   }
   for (const d of DUST) {
     const t = now / 1000;
-    const x = (d.x + t * 1.4 + Math.sin(t * .7 + d.s) * 4) % 300 + 10, y = d.y + Math.sin(t * .5 + d.s) * 3;
+    const x = (d.x + t * 1.4 + Math.sin(t * .7 + d.s) * 4) % (VW - 20) + 10, y = d.y + Math.sin(t * .5 + d.s) * 3;
     g.globalAlpha = .18 + .14 * Math.sin(t * 1.3 + d.i);
     px("#e6dcc4", Math.round(x), Math.round(y));
   }
@@ -902,14 +900,13 @@ function frame(now) {
   const dt = Math.min(66, now - last); last = now;
   const id = S.room, N = NODES[id];
   const [hxf, hff] = heroAt(now), hx = Math.round(hxf), hf = Math.round(hff);
-  CAM.x += (camAim(now) - CAM.x) * Math.min(1, dt / 160); aim();
   g.drawImage(roomBG(id), 0, 0);
-  if (id === "G") drawHeavy(S.heavyAt ? Math.min(30, (now - S.heavyAt) / 22) : 0);
+  if (id === "G") { g.save(); g.translate(OX, 0); drawHeavy(S.heavyAt ? Math.min(30, (now - S.heavyAt) / 22) : 0); g.restore(); }
   if (id === "K") drawDrips(now);
   g.drawImage(shadeFor(id, S.spot), 0, 0);
   N.torches.forEach((t, i) => glow(t + 3, 29, 36 + Math.sin(now / 170 + i * 3) * 2, .12));
   if (!V.gone) glow(hx - 11, hf - 36, 30 + Math.sin(now / 150) * 2, .1);
-  if (N.exit) glow(160, 8, 46, .14, "245,220,160");
+  if (N.exit) glow(MID, 8, 46, .14, "245,220,160");
 
   const here = foesHere();
   for (const k of here) {
@@ -931,8 +928,8 @@ function frame(now) {
       drawBody(k, SPR[k], G.sx + ox, G.sy + oy, FOE[k].split, now, a);
     }]);
   }
-  if (id === "C") list.push([59, () => drawChest(146, 38, S.chest)]);
-  if (id === "I" && !S.boxTaken) list.push([99, () => { g.drawImage(SHADOWS.item, 213, 95); g.drawImage(ITEM.lockbox, 213, 82); }]);
+  if (id === "C") list.push([61, () => drawChest(24, 40, S.chest)]);
+  if (id === "I" && !S.boxTaken) list.push([112, () => { g.drawImage(SHADOWS.item, 113, 109); g.drawImage(ITEM.lockbox, 112, 96); }]);
   if (SPR.hero && !V.gone) list.push([hf, () => {
     g.drawImage(HERO_RING, hx - 15, hf - 4);
     g.drawImage(SHADOWS.hero, hx - 11, hf - 3);
@@ -943,8 +940,8 @@ function frame(now) {
   N.torches.forEach((t, i) => drawFlame(t, now, i));
   drawParticles(now, dt, N, hx, hf);
   V.fx = V.fx.filter(s => drawSlash(s, now));
-  if (id === "C" && !S.chest) twinkle(170, 41, now, 0);
-  if (id === "I" && !S.boxTaken) twinkle(226, 84, now, .5);
+  if (id === "C" && !S.chest) twinkle(48, 43, now, 0);
+  if (id === "I" && !S.boxTaken) twinkle(126, 98, now, .5);
 
   // frames: the target in a fight, whatever is under the cursor, the way up once the lair is clear
   const gap = 1 + Math.floor(now / 380) % 2;
@@ -963,11 +960,10 @@ function frame(now) {
 }
 
 /* ================= the room's DOM ================= */
-// Overlays live in the world, in art-pixel coordinates (percent of the room), and slide with it.
-// The camera: a wide screen sees the whole room; a phone sees a window of it at 2× or 2.5×, about 40% of the screen,
-// following Ari, or Ari and every foe in a fight. Arrows at the edges stand in for a side door out of frame.
+// Overlays live in the world, in art-pixel coordinates (percent of the room). The world is the whole room,
+// as large as the screen's width and about half its height allow, at a whole number of device pixels per art pixel.
 const scene = $("scene"), world = $("world");
-const CAM = { s: 2, w: VW, x: 0 };
+const CAM = { s: 2 };
 let UI = {}, OUI = {};
 const toPct = (x, y) => [x / VW * 100 + "%", y / VH * 100 + "%"];
 function place(e, x, y, w, h) {
@@ -976,28 +972,14 @@ function place(e, x, y, w, h) {
   return e;
 }
 function layout() {
-  const W = scene.clientWidth;
-  if (W / VW >= 2) { CAM.s = W / VW; CAM.w = VW; }
-  else {
-    const dpr = Math.round((devicePixelRatio || 1) * 100) / 100, H = (TG && TG.viewportStableHeight) || innerHeight;
-    const fit = Math.min(Math.min(H * .5, 400) / VH, W / 140);   // about half the screen, at least 140 art px across so a fight fits
-    CAM.s = Math.max(1 / dpr, Math.floor(fit * dpr + 1e-6) / dpr); CAM.w = W / CAM.s;   // a whole number of device pixels per art pixel
-  }
+  const W = scene.clientWidth, H = (TG && TG.viewportStableHeight) || innerHeight;
+  const dpr = Math.round((devicePixelRatio || 1) * 100) / 100;
+  const fit = Math.min(W / VW, Math.min(H * .52, 460) / VH);
+  CAM.s = Math.max(1 / dpr, Math.floor(fit * dpr + 1e-6) / dpr);
   scene.style.height = Math.round(VH * CAM.s) + "px";
   scene.style.setProperty("--px", CAM.s + "px");
   world.style.width = VW * CAM.s + "px";
-  CAM.x = camAim(performance.now()); aim();
-}
-function camAim(now) {
-  if (CAM.w >= VW) return 0;
-  const [hx] = heroAt(now), xs = [hx - 14, hx + 14, ...foesHere().flatMap(k => [geom(k).cx - 26, geom(k).cx + 26])];   // room for the foe's chip
-  return clamp((Math.min(...xs) + Math.max(...xs)) / 2 - CAM.w / 2, 0, VW - CAM.w);
-}
-function aim() {
-  world.style.transform = `translateX(${-Math.round(CAM.x) * CAM.s}px)`;   // whole art pixels, so the sprites stay crisp
-  const N = NODES[S.room], free = !fight() && !S.busy && !S.over;
-  $("edgeW").hidden = !(N.doors.W && CAM.x > 6 && free);
-  $("edgeE").hidden = !(N.doors.E && CAM.x + CAM.w < VW - 6 && free);
+  world.style.left = Math.round((W - VW * CAM.s) / 2) + "px";
 }
 function el(tag, cls, html) {
   const e = document.createElement(tag);
@@ -1030,7 +1012,7 @@ function mountRoom() {
     const O = OBJ[k];
     if (O.room !== id) continue;
     const name = STR.obj[k];
-    OUI[k] = { hit: hitbox(k, O.box, name || NAME("lockbox"), () => useObj(k)), label: name && place(el("div", "at olabel", name), ...O.at) };
+    OUI[k] = { hit: hitbox(k, O.box, name || NAME("lockbox"), () => useObj(k)), label: name && place(el("div", "at olabel" + (usableObj(k) ? "" : " gone"), name), ...O.at) };   // born hidden, no fade
   }
   OUI.doors = {};
   for (const d in N.doors) OUI.doors[d] = hitbox("door:" + d, DOORS[d], STR.door[d], () => go(d));
@@ -1356,11 +1338,11 @@ function useObj(k) {
 }
 async function openChest() {
   S.chest = true; S.busy = true;
-  burst(160, 44, ["#f4d27c", "#dcaa48", "#fff2c0"], 14, .05);
+  burst(38, 46, ["#f4d27c", "#dcaa48", "#fff2c0"], 14, .05);
   log(STR.chestOpen);
   track("chest_open", { item: ["dagger", "stone"], source: S.room });
-  addItem("dagger", S.room, 160, 32, 150);
-  addItem("stone", S.room, 160, 32, 700);
+  addItem("dagger", S.room, 38, 32, 150);
+  addItem("stone", S.room, 38, 32, 700);
   render();
   await wait(1100);
   S.busy = false;
@@ -1369,7 +1351,7 @@ async function openChest() {
 }
 function takeBox() {
   S.boxTaken = true;
-  addItem("lockbox", S.room, 221, 80);
+  addItem("lockbox", S.room, 120, 92);
   narrate(null, STR.boxLocked);
   render();
 }
@@ -1404,7 +1386,7 @@ function writeSave(secs, prev) {
 }
 async function climb() {
   S.busy = true; render();
-  await walk([160, 40], 700);
+  await walk([MID, 40], 700);
   V.gone = true;
   $("fade").classList.add("on");
   await wait(300);
@@ -1585,8 +1567,6 @@ $("moves").addEventListener("pointerdown", e => { const b = e.target.closest("[d
 for (const t of ["pointerleave", "pointercancel"]) $("moves").addEventListener(t, () => { if (S.preview) { S.preview = null; render(); } });
 $("flee").onclick = flee;
 $("bag").onclick = e => { const c = e.target.closest(".cell[title]"); if (c) toast(c.title); };
-$("edgeW").onclick = () => go("W");
-$("edgeE").onclick = () => go("E");
 $("chron").onclick = showChronicle;
 $("mClose").onclick = () => ({ wake, fall: getUp, end: () => {} }[modalKind] || closeModal)();
 $("modal").onclick = e => { if (e.target === $("modal") && (!modalKind || modalKind === "table")) closeModal(); };
