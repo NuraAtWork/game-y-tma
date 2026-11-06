@@ -46,7 +46,7 @@ img{max-width:100%}
   --fg:#ece8e1;
   --soft:#bfc3c8;
   --muted:#8c9198;
-  --dim:#555a61;
+  --dim:#7a7f86;
   --gold:#e3b55f;
   --gold-soft:#e8cf98;
   --teal:#86d0b0;
@@ -77,53 +77,13 @@ a{color:inherit}
 @keyframes blink{50%{opacity:.35}}
 
 /* .app scrolls itself: the Telegram build fixes html and body to the screen */
-.app{max-width:840px;height:100%;min-height:100vh;margin:0 auto;padding:16px 24px calc(var(--tg-bottom, 0px) + 24px);border-inline:1px solid #1c1f23;overflow-y:auto;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
-
-/* header */
-.top{display:flex;align-items:center;justify-content:space-between;min-height:48px}
-.brand{display:flex;align-items:center;gap:18px}
-.logo{position:relative;width:42px;height:44px}
-.logo i{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
-.logo b{position:absolute;left:9px;top:-3px;font:700 32px/1 var(--mono);color:var(--gold)}
-.logo em{position:absolute;left:23px;top:19px;font:700 22px/1 var(--mono);font-style:normal;color:#f3efe8}
-.bname b{display:block;font:700 17px/1 var(--mono);letter-spacing:.16em}
-.bname small{display:block;margin-top:8px;font:500 11px/1 var(--mono);letter-spacing:.5em;color:var(--muted)}
-.tools button{display:grid;place-items:center;width:40px;height:40px;border-radius:6px;color:#a6aab0}
-.tools button:hover{color:var(--fg)}
-.tools .ic{width:24px;height:24px;stroke-width:1.6}
-
-/* room title */
-.head{display:flex;justify-content:space-between;align-items:flex-start;margin-top:22px}
-.crumb{display:flex;align-items:center;gap:10px;font:500 12.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.crumb i{width:7px;height:7px;border-radius:50%;background:var(--teal)}
-.crumb span{color:var(--dim)}
-h1{margin:16px 0 0;font:600 30px/1.1 var(--sans);letter-spacing:-.01em;color:#f2eee7}
-.turn{display:flex;align-items:center;gap:12px;height:52px;padding:0 16px;background:var(--teal-bg);border:1px solid var(--teal-line);border-radius:8px;transition:background .2s,border-color .2s,opacity .3s}
-.turn span{font:500 13px/1 var(--mono);color:#97c4ae}
-.turn b{font:700 20px/1 var(--mono);color:var(--teal-hi)}
-.turn.foe{background:#241618;border-color:#5a3134}
-.turn.foe span,.turn.foe b{color:#f0a3a3}
-.turn.hide{opacity:0;visibility:hidden}
-.turn.pop b{animation:pop .45s}
-@keyframes pop{40%{transform:scale(1.35);color:#fff}}
-
-/* goal */
-.goal{display:flex;align-items:center;gap:14px;width:100%;min-height:48px;margin-top:22px;padding:8px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px;text-align:left}
-.goal:hover{border-color:var(--line-hi)}
-.goal>.ic{color:var(--gold-soft)}
-.goal .gt{flex:1;min-width:0;font-size:15px;color:#e6e2da}
-.goal b{font:700 15px/1 var(--mono);letter-spacing:.06em;color:var(--gold)}
-.goal .chev{width:16px;height:16px;color:var(--muted);transition:transform .2s}
-.goal[aria-expanded="true"] .chev{transform:rotate(90deg)}
-.goals{display:flex;gap:8px;margin:8px 0 0;padding:0;list-style:none}
-.goals li{flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;font-size:13.5px;color:var(--muted)}
-.goals li i{width:14px;height:14px;border:1px solid var(--dim);border-radius:3px}
-.goals li.done{color:var(--fg)}
-.goals li.done i{background:var(--teal);border-color:var(--teal);box-shadow:inset 0 0 0 2px var(--panel)}
+.app{max-width:840px;height:var(--tg-viewport-stable-height, 100%);min-height:0;margin:0 auto;padding:calc(var(--tg-top, 0px) + 16px) 24px calc(var(--tg-bottom, 0px) + 24px);border-inline:1px solid #1c1f23;overflow-y:auto;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
 
 /* the room: canvas below, labels above. --px = one art pixel, set from JS (the phone crop changes it) */
-.scene{--px:calc(100cqw / 320);position:relative;margin-top:14px;aspect-ratio:320/124;background:#0d0e10;border:1px solid var(--line);border-radius:10px;overflow:hidden;container-type:inline-size}
-.scene canvas{position:absolute;top:0;left:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated}
+.scene{--px:2px;position:relative;height:248px;background:#0d0e10;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+/* the world: the whole room and its labels; the camera slides it sideways when the screen shows only part of the room */
+.world{position:absolute;top:0;left:0;height:100%;will-change:transform}
+.world canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated}
 .scene.shake{animation:shake .32s}
 .scene.roar{animation:shake .5s 2}
 @keyframes shake{20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
@@ -134,77 +94,77 @@ h1{margin:16px 0 0;font:600 30px/1.1 var(--sans);letter-spacing:-.01em;color:#f2
 .fade.on{opacity:1}
 .at{position:absolute;translate:-50% 0;white-space:nowrap;pointer-events:none}
 .gone{opacity:0!important;transition:opacity .4s}
-.tag{position:absolute;left:2.3%;top:4.6%;display:flex;align-items:center;gap:.9em;font:700 max(8px,calc(var(--px)*3.3))/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#9a9fa6;text-shadow:0 1px 0 #000;pointer-events:none}
-.tag b{padding:.35em .5em;border:1px solid #5d6269;font-weight:500;color:#b4b9bf;background:rgba(10,11,13,.55)}
+/* over the room, fixed: the goal top-left, the log and the minimap top-right, an arrow at a side door out of frame */
+.goalchip{position:absolute;left:8px;top:8px;z-index:2;display:flex;align-items:center;gap:8px;max-width:calc(100% - 64px);min-height:34px;padding:6px 10px;background:rgba(10,11,13,.82);border:1px solid #2c3036;border-radius:6px;font-size:12.5px;line-height:1.25;color:#e6e2da;text-align:left}
+.goalchip b{font:700 12.5px/1 var(--mono);color:var(--gold);white-space:nowrap}
+.goals{position:absolute;left:8px;top:48px;z-index:2;margin:0;padding:6px 12px;list-style:none;background:rgba(10,11,13,.92);border:1px solid #2c3036;border-radius:6px}
+.goals li{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;color:var(--muted)}
+.goals li i{width:12px;height:12px;border:1px solid var(--dim);border-radius:3px}
+.goals li.done{color:var(--fg)}
+.goals li.done i{background:var(--teal);border-color:var(--teal);box-shadow:inset 0 0 0 2px #0d0e10}
+.sbtn{position:absolute;right:6px;top:6px;z-index:2;display:grid;place-items:center;width:42px;height:42px;border-radius:6px;background:rgba(10,11,13,.6);color:#c9ccd1}
+.sbtn .ic{width:20px;height:20px}
+.edge{position:absolute;top:50%;z-index:2;translate:0 -50%;display:grid;place-items:center;width:40px;height:60px;background:rgba(10,11,13,.6);color:var(--teal-hi)}
+.edge.w{left:0;border-radius:0 8px 8px 0}
+.edge.e{right:0;border-radius:8px 0 0 8px}
+.edge .ic{width:22px;height:22px;stroke-width:2.2}
 /* the minimap: rooms seen so far, and the ways out of them */
-.mmap{position:absolute;right:2.3%;top:4.6%;width:max(66px,calc(var(--px)*30));padding:4px;background:rgba(10,11,13,.78);border:1px solid #2c3036;border-radius:5px;pointer-events:none}
+.mmap{position:absolute;right:6px;top:54px;z-index:1;width:60px;padding:4px;background:rgba(10,11,13,.78);border:1px solid #2c3036;border-radius:5px;pointer-events:none}
 .mmap svg{width:100%;height:auto}
+.mmap.off{display:none}
 .flabel{display:flex;flex-direction:column;align-items:center;gap:.45em;transition:opacity .4s}
-.flabel .nm,.olabel{display:flex;align-items:center;font:600 max(9.5px,calc(var(--px)*5))/1 var(--sans);color:#efebe4;text-shadow:0 1px 0 #000,0 0 4px #000}
+.flabel .nm,.olabel{display:flex;align-items:center;font:600 max(12px,calc(var(--px)*5))/1 var(--sans);color:#efebe4;text-shadow:0 1px 0 #000,0 0 4px #000}
 .olabel{transition:opacity .3s}
 .flabel .nm>span{margin-left:.5em;font-family:var(--mono);font-weight:700;color:var(--hp)}
 .flabel.sel .nm{color:var(--gold)}
-.fbar{position:relative;width:calc(var(--px)*30);height:max(3px,calc(var(--px)*1.1));background:#4b2f31;border-radius:2px;overflow:hidden}
+.fbar{position:relative;width:calc(var(--px)*30);height:max(4px,calc(var(--px)*1.1));background:#4b2f31;border-radius:2px;overflow:hidden}
 .fbar>*,.bar>*{position:absolute;top:0;bottom:0;left:0;display:block;text-decoration:none}
 .fbar s{background:var(--hp-trail);transition:width .5s ease .3s}
 .fbar i{background:#d48686;transition:width .2s}
 .fbar b{background:#fff;animation:blink .8s infinite}
-.chip{display:flex;align-items:center;gap:.55em;padding:.55em .75em;background:rgba(14,16,19,.92);border:1px solid #2c3036;border-radius:4px;font:500 max(8.5px,calc(var(--px)*4.3))/1 var(--sans);color:#d9d6d0;transition:opacity .4s,border-color .2s,scale .2s}
+.chip{display:flex;align-items:center;gap:.55em;padding:.55em .75em;background:rgba(14,16,19,.92);border:1px solid #2c3036;border-radius:4px;font:500 max(12px,calc(var(--px)*4.3))/1 var(--sans);color:#d9d6d0;transition:opacity .4s,border-color .2s,scale .2s}
 .chip svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .chip.warn{border-color:#7a3c40;color:#f4b9b9;background:rgba(40,16,19,.92)}
 .chip.prep{border-color:#6b5a2c;color:var(--gold-soft)}
 .chip.miss{border-color:var(--teal-line);color:var(--teal-hi);text-decoration:line-through}
 .chip.act{border-color:var(--gold);scale:1.12}
-.say{position:absolute;translate:-50% 0;max-width:46%;padding:.55em .8em;background:#efe9de;color:#1d1915;border-radius:6px;font:500 max(9.5px,calc(var(--px)*4.3))/1.3 var(--sans);text-align:center;pointer-events:none;animation:sayin .2s ease-out}
+.say{position:absolute;translate:-50% 0;max-width:46%;padding:.55em .8em;background:#efe9de;color:#1d1915;border-radius:6px;font:500 max(12.5px,calc(var(--px)*4.3))/1.3 var(--sans);text-align:center;pointer-events:none;animation:sayin .2s ease-out}
 .say::after{content:"";position:absolute;left:50%;bottom:-5px;translate:-50% 0;border:5px solid transparent;border-bottom:0;border-top-color:#efe9de}
 @keyframes sayin{from{opacity:0;transform:translateY(4px)}}
-/* the narrator: one italic line under the room, once per player and event */
-.narr{min-height:1.35em;margin:8px 0 -6px;font:italic 400 14px/1.35 var(--sans);color:#cfc7b6;text-align:center;opacity:0;transition:opacity .5s}
+/* the narrator: one italic line at the foot of the room, once per player and event */
+.narr{position:absolute;left:50%;bottom:8px;z-index:2;translate:-50% 0;width:max-content;max-width:86%;margin:0;padding:4px 10px;background:rgba(10,11,13,.72);border-radius:6px;font:italic 400 13.5px/1.35 var(--sans);color:#d6cfc0;text-align:center;pointer-events:none;opacity:0;transition:opacity .5s}
 .narr.on{opacity:1}
 /* toasts: the almanac and recipes, over the room for two seconds */
-.toast{position:absolute;left:50%;top:17%;z-index:2;translate:-50% 0;padding:.5em .9em;background:rgba(20,18,12,.94);border:1px solid #6b5a2c;border-radius:6px;font:600 max(9.5px,calc(var(--px)*4))/1 var(--sans);color:var(--gold-soft);white-space:nowrap;pointer-events:none;animation:toastin .25s ease-out}
+.toast{position:absolute;left:50%;top:56px;z-index:2;translate:-50% 0;padding:.5em .9em;background:rgba(20,18,12,.94);border:1px solid #6b5a2c;border-radius:6px;font:600 max(12.5px,calc(var(--px)*4))/1 var(--sans);color:var(--gold-soft);white-space:nowrap;pointer-events:none;animation:toastin .25s ease-out}
 @keyframes toastin{from{opacity:0;transform:translateY(-6px)}}
-.hit{position:absolute;border-radius:6px}
+.hit{position:absolute;min-width:44px;min-height:44px;border-radius:6px}
 .hit:disabled{cursor:default}
-.float{position:absolute;translate:-50% -50%;display:flex;align-items:center;gap:.35em;font:700 max(13px,calc(var(--px)*6.5))/1 var(--mono);color:#fff;white-space:nowrap;text-shadow:0 2px 0 #000,0 0 6px rgba(0,0,0,.6);pointer-events:none;animation:rise .95s ease-out forwards}
-.float.big{font-size:max(17px,calc(var(--px)*9));color:var(--gold-soft)}
+.float{position:absolute;translate:-50% -50%;display:flex;align-items:center;gap:.35em;font:700 max(15px,calc(var(--px)*6.5))/1 var(--mono);color:#fff;white-space:nowrap;text-shadow:0 2px 0 #000,0 0 6px rgba(0,0,0,.6);pointer-events:none;animation:rise .95s ease-out forwards}
+.float.big{font-size:max(19px,calc(var(--px)*9));color:var(--gold-soft)}
 .float.hurt{color:#f09595}
-.float.miss{color:var(--teal-hi);font-family:var(--sans);font-size:max(11px,calc(var(--px)*5))}
-.float.item{font:600 max(11px,calc(var(--px)*4.6))/1 var(--sans);color:var(--gold-soft);animation-duration:1.6s}
+.float.miss{color:var(--teal-hi);font-family:var(--sans);font-size:max(13px,calc(var(--px)*5))}
+.float.item{font:600 max(12.5px,calc(var(--px)*4.6))/1 var(--sans);color:var(--gold-soft);animation-duration:1.6s}
 .float.item img{width:max(16px,calc(var(--px)*8));height:max(16px,calc(var(--px)*8))}
 @keyframes rise{0%{opacity:0;transform:translateY(20%) scale(.7)}15%{opacity:1;transform:translateY(0) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translateY(-120%) scale(1)}}
 
-/* health, vita */
-.stats{display:grid;grid-template-columns:1fr 180px;gap:34px;margin-top:16px}
-.stats .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.lbl{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--soft)}
-.lbl svg{width:13px;height:13px;fill:var(--hp)}
-.lbl .drop{width:10px;height:10px}
-.val{display:flex;align-items:baseline;gap:4px;font:500 14px/1 var(--mono);color:var(--muted)}
-.val b{font-size:17px;font-weight:700;color:var(--fg)}
-.val em{margin-right:8px;padding:2px 6px;border-radius:4px;background:#2d1a1c;font-style:normal;font-weight:700;font-size:12.5px;color:#f09595}
+/* health and vita, one compact row under the room */
+.stats{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-top:12px}
+.st{display:flex;align-items:center;gap:8px;min-width:0}
+.st .heart{width:15px;height:15px;fill:var(--hp);flex:none}
+.st>.drop{width:11px;height:11px}
+.val{display:flex;align-items:baseline;gap:2px;font:500 13px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.val b{font-size:16px;font-weight:700;color:var(--fg)}
+.val em{display:flex;align-items:center;gap:3px;margin-right:6px;padding:2px 6px;border-radius:4px;background:#2d1a1c;font-style:normal;font-weight:700;font-size:12.5px;color:#f09595}
+.val em svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .vt .val b{color:var(--vita-hi)}
-.bar{position:relative;height:7px;margin-top:11px;background:var(--hp-track);border-radius:4px;overflow:hidden}
+.bar{position:relative;flex:1;min-width:60px;height:8px;background:var(--hp-track);border-radius:4px;overflow:hidden}
 .bar s{background:var(--hp-trail);border-radius:4px;transition:width .55s ease .35s}
 .bar i{background:var(--hp);border-radius:4px;transition:width .25s}
 .bar b{background:repeating-linear-gradient(-45deg,#ffb0b0 0 3px,#a8484e 3px 6px);animation:blink 1.1s infinite}
-.pips{display:flex;justify-content:space-between;align-items:center;height:7px;margin-top:11px;padding:0 3px}
+.pips{display:flex;gap:8px;align-items:center;height:12px;padding:0 3px}
 .pips i{width:11px;height:11px;border:1.5px solid var(--vita-off);border-radius:50% 0 50% 50%;rotate:-45deg;transition:background .25s,border-color .25s}
 .pips i.on{background:var(--vita);border-color:var(--vita)}
 .pips i.spend{animation:blink .7s infinite}
-
-/* weapon in hand */
-.weapon{display:flex;align-items:center;justify-content:space-between;height:46px;margin-top:10px}
-.wl{display:flex;align-items:center;gap:12px;font-size:15px;color:#e3dfd8;white-space:nowrap}
-.wl img{width:32px;height:32px;margin:-4px}
-.wl em{width:1px;height:16px;background:var(--line-hi)}
-.wl span{font:500 13.5px/1 var(--mono);color:var(--muted)}
-.wl span i{font-style:normal;color:var(--gold);letter-spacing:.05em}
-.wl.none{color:var(--dim)}
-.wl.none .hand{display:grid;place-items:center;width:24px;height:24px;border:1px dashed var(--dim);border-radius:5px}
-.chron{display:flex;align-items:center;gap:6px;min-height:40px;font-size:14px;color:#c9ccd1}
-.chron:hover{color:var(--fg)}
-.chron .ic{width:14px;height:14px}
 
 /* moves: four slots, 2×2; a slot fills when the weapon in hand gives a move */
 .moves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
@@ -219,14 +179,15 @@ h1{margin:16px 0 0;font:600 30px/1.1 var(--sans);letter-spacing:-.01em;color:#f2
 .mv kbd{position:absolute;bottom:8px;right:11px;font:500 11px/1 var(--mono);color:var(--dim)}
 .mv:hover{border-color:#4a5058}
 .mv:active{transform:translateY(1px)}
-.mv.primary{background:#6b655d;border-color:#6b655d;color:#f3efe8}
-.mv.primary small,.mv.primary kbd{color:#d9d3c9}
+.mv.primary{background:#6b655d;border-color:#c9a86a;color:#fff8ec}
+.mv.primary small,.mv.primary kbd{color:#efe7d8}
 .mv.primary:hover{background:#787168;border-color:#787168}
-.mv.off{background:#17191c;border-color:#212428;color:#50555c;cursor:default}
+.mv.off{background:#17191c;border-color:#262a2f;color:#6c7179;cursor:default}
 .mv.off img{opacity:.35;filter:grayscale(1)}
-.mv.off small,.mv.off .cost{color:#464b51}
-.mv.off .cost .drop{background:#464b51}
+.mv.off small,.mv.off .cost{color:#5d6269}
+.mv.off .cost .drop{background:#5d6269}
 .mv.wait{opacity:.5;cursor:default}
+.mv.hot{border-color:var(--gold)}
 .mv.empty{justify-content:center;background:none;border:1px dashed #2a2e34;color:#41464d;font-size:13px;cursor:default}
 .mv.empty:hover{border-color:#2a2e34}
 
@@ -246,19 +207,21 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 
 /* flee */
 .belt{display:flex;justify-content:flex-end;margin-top:10px}
-.flee{display:flex;align-items:center;gap:8px;height:52px;padding:0 18px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;color:var(--soft)}
+.flee{position:relative;display:flex;align-items:center;gap:8px;height:52px;padding:0 18px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;color:var(--soft)}
 .flee:hover:not(:disabled){border-color:#4a5058;color:var(--fg)}
 .flee:disabled{opacity:.4;cursor:default}
-.flee.hot{border-color:var(--gold);color:var(--gold-soft);animation:pulse 1.6s ease-out infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(227,181,95,.45)}100%{box-shadow:0 0 0 10px rgba(227,181,95,0)}}
+.flee.hot{border-color:var(--gold);color:var(--gold-soft)}
+.flee.hot::after,.mv.hot::after{content:"";position:absolute;inset:-1px;border:2px solid var(--gold);border-radius:inherit;opacity:0;pointer-events:none;animation:ring 1.6s ease-out infinite}
+@keyframes ring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
 .flee .ic{width:18px;height:18px}
+.flee.solo{flex:1;justify-content:center;height:60px;font-size:16px}
 
 /* sheets: chronicle, the alchemy table, waking, falling, the end of the floor */
 .modal{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(8,9,11,.72)}
 .sheet{width:min(440px,100%);max-height:84vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line-hi);border-radius:10px;overflow:hidden}
 .sheet header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
 .sheet header b{font-size:17px;font-weight:600}
-.sheet header button{display:grid;place-items:center;width:36px;height:36px;color:var(--muted)}
+.sheet header button{display:grid;place-items:center;width:44px;height:44px;color:var(--muted)}
 .sheet .body{overflow:auto;padding:12px 18px 16px}
 .logl{display:flex;gap:14px;padding:6px 0;font-size:14px;color:var(--soft);border-bottom:1px solid #1d2024}
 .logl:last-child{border:0}
@@ -273,6 +236,8 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 .btn{display:grid;place-items:center;width:100%;height:48px;background:var(--gold);color:#1a140a;border-radius:8px;font-weight:600;font-size:15px;text-decoration:none}
 .btn:hover{filter:brightness(1.07)}
 .btn:disabled{opacity:.35;cursor:default;filter:none}
+.btn.ghost{margin-top:14px;height:44px;background:none;border:1px solid var(--line-hi);color:var(--soft)}
+.btn.ghost.sure{border-color:#7a3c40;color:#f4b9b9}
 .craft .slots{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 14px}
 .craft .slots>i{font:500 18px/1 var(--mono);font-style:normal;color:var(--muted)}
 .craft .slot{display:grid;place-items:center;width:60px;height:60px;background:var(--panel-hi);border:1px dashed var(--line-hi);border-radius:8px;font:700 22px/1 var(--mono);color:var(--muted)}
@@ -286,21 +251,14 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 .craft .cell.fit{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 
 @media (hover:none){.mv kbd{display:none}}
+@media (max-height:700px){.mv{height:60px}.flee{height:46px}}
 @media (max-width:560px){
-  .app{padding:12px 16px calc(var(--tg-bottom, 0px) + 18px);border:0}
-  .brand{gap:14px}
-  .bname b{font-size:15px}
-  .head{margin-top:16px}
-  h1{font-size:25px;margin-top:12px}
-  .turn{height:44px;padding:0 12px;gap:8px}
-  .goal{margin-top:16px;gap:10px;padding:8px 12px}
-  .goal .gt{font-size:14px}
-  .stats{grid-template-columns:1fr 38%;gap:18px}
-  .lbl{font-size:14px}
+  .app{padding:calc(var(--tg-top, 0px) + 8px) 16px calc(var(--tg-bottom, 0px) + 18px);border:0}
+  .scene{margin:0 -16px;border-inline:0;border-radius:0}
+  .modal{place-items:end center;padding:0}
+  .sheet{width:100%;max-height:82vh;border-radius:14px 14px 0 0;border-bottom:0}
+  .stats{gap:14px}
   .val em{margin-right:4px}
-  .wl{gap:8px;font-size:14px}
-  .wl em{display:none}
-  .wl span{font-size:12.5px}
   .moves{gap:8px}
   .mv{height:68px;gap:8px;padding:0 8px}
   .mv img{width:26px;height:26px}
@@ -313,59 +271,23 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 </style>
 
 <div class="app" id="app">
-  <header class="top">
-    <div class="brand">
-      <span class="logo" aria-hidden="true"><i></i><b>S</b><em>A</em></span>
-      <div class="bname"><b>SLEEP ACADEMY</b><small>TOWERS</small></div>
-    </div>
-    <div class="tools">
-      <button id="reset" data-sl="reset"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
-    </div>
-  </header>
-
-  <section class="head">
-    <div>
-      <div class="crumb"><i></i><span data-s="tower"></span><span>/</span><span data-s="floor"></span></div>
-      <h1 id="title"></h1>
-    </div>
-    <div class="turn" id="turnBox"><span id="turnL"></span><b id="turn">01</b></div>
-  </section>
-
-  <button class="goal" id="goal" aria-expanded="false" aria-controls="goals">
-    <svg class="ic" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
-    <span class="gt" data-s="goal"></span>
-    <b id="goalN">0 / 3</b>
-    <svg class="ic chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-  </button>
-  <ul class="goals" id="goals" hidden></ul>
-
   <div class="scene" id="scene">
-    <canvas id="cv" width="320" height="124"></canvas>
-    <div class="tag"><b>01</b><span data-s="tag"></span></div>
+    <div class="world" id="world"><canvas id="cv" width="320" height="124"></canvas></div>
+    <button class="goalchip" id="goal" aria-expanded="false" aria-controls="goals"><span data-s="goal"></span><b id="goalN">0/3</b></button>
+    <ul class="goals" id="goals" hidden></ul>
+    <button class="sbtn" id="chron" data-sl="log"><svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg></button>
     <div class="mmap" id="mmap" aria-hidden="true"></div>
+    <button class="edge w" id="edgeW" hidden><svg class="ic" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="edge e" id="edgeE" hidden><svg class="ic" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+    <p class="narr" id="narr" aria-live="polite"></p>
     <div class="hurtfx" id="hurtfx"></div>
     <div class="fade" id="fade"></div>
   </div>
-  <p class="narr" id="narr" aria-live="polite"></p>
 
   <section class="stats">
-    <div>
-      <div class="row">
-        <span class="lbl"><svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><span data-s="health"></span></span>
-        <span class="val"><em id="inc" hidden></em><b id="hp"></b> / <span id="hpMax"></span></span>
-      </div>
-      <div class="bar"><s id="hpTrail"></s><i id="hpBar"></i><b id="hpGhost"></b></div>
-    </div>
-    <div class="vt">
-      <div class="row"><span class="lbl"><i class="drop"></i><span data-s="vita"></span></span><span class="val"><b id="vita"></b> / <span id="vitaMax"></span></span></div>
-      <div class="pips" id="pips"></div>
-    </div>
+    <div class="st hpw" data-sl="health"><svg class="heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><div class="bar"><s id="hpTrail"></s><i id="hpBar"></i><b id="hpGhost"></b></div><span class="val"><em id="inc" hidden></em><b id="hp"></b>/<span id="hpMax"></span></span></div>
+    <div class="st vt" data-sl="vita"><div class="pips" id="pips"></div><span class="val"><b id="vita"></b>/<span id="vitaMax"></span></span></div>
   </section>
-
-  <div class="weapon">
-    <span class="wl" id="wl"></span>
-    <button class="chron" id="chron"><span data-s="log"></span> <svg class="ic" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button>
-  </div>
 
   <div class="moves" id="moves"></div>
   <section class="bagp" id="bagp" hidden>
@@ -390,9 +312,9 @@ button.cell:not(:disabled):hover{border-color:#4a5058}
 const STR = {
   lang: "ru",
   // static labels: [data-s] gets the text, [data-sl] the aria-label
-  tower: "Башня испытаний", floor: "Этаж 01", tag: "Нижний подвал", goal: "Выберись из подвала", goals: ["Змея", "Волк", "Лестница"],
+  goal: "Выберись из подвала", goals: ["Змея", "Волк", "Лестница"],
   health: "Здоровье", vita: "Вита", log: "Хроника", bag: "Сумка", flee: "Сбежать", reset: "Начать заново", close: "Закрыть",
-  turn: "ход", foes: "враги", empty: "Пусто", handEmpty: "В руке пусто", level: n => `ур. ${n}`, inHand: "рука",
+  empty: "Пусто", inHand: "рука", sure: "Точно начать заново?", leave: "Бросить забег?",
   dmg: n => `${n} урона`, counter: "уклон, ответ ×2", isNew: "новый", wasted: "впустую", dodge: "уклон", nothingYet: "Пока пусто",
   door: { N: "Вперёд", S: "Назад", W: "Налево", E: "Направо" },
   room: { A: "Холодный погреб", K: "Сырой коридор", B: "Узкий проход", C: "Тупик", D: "Коридор", I: "Чулан",
@@ -417,6 +339,8 @@ const STR = {
 document.documentElement.lang = STR.lang;
 document.querySelectorAll("[data-s]").forEach(e => e.textContent = STR[e.dataset.s]);
 document.querySelectorAll("[data-sl]").forEach(e => e.setAttribute("aria-label", STR[e.dataset.sl]));
+document.getElementById("edgeW").setAttribute("aria-label", STR.door.W);
+document.getElementById("edgeE").setAttribute("aria-label", STR.door.E);
 document.getElementById("goals").innerHTML = STR.goals.map(t => `<li><i></i>${t}</li>`).join("");
 
 /* ================= shared with the other screens (GDE-00, docs/GDE/CONTRACT.md): storage, analytics, once ================= */
@@ -439,6 +363,7 @@ function once(key) {
   return true;
 }
 const buzz = k => window.GY && window.GY.haptic(k);   // phone vibration, only inside Telegram (tools/tg.js)
+const TG = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
 
 const VW = 320, VH = 124, FLOOR_Y = 27, FLOOR = 1;   // a room in art pixels: the PixelLab sprites sit in it at 1:1
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -569,14 +494,14 @@ EDGES.forEach(([a, b]) => {
   NODES[a].doors[d] = b; NODES[b].doors[{ N: "S", S: "N", W: "E", E: "W" }[d]] = a;
 });
 
-const SPOTS = { S: [160, 108], N: [160, 66], W: [48, 96], E: [272, 96], start: [112, 100] };   // where Ari stands after coming in by that side
+const SPOTS = { S: [160, 108], N: [160, 66], W: [90, 96], E: [230, 96], start: [112, 100] };   // where Ari stands after coming in by that side
 const EXITS = { N: [160, 38], S: [160, 136], W: [-8, 96], E: [328, 96] };                    // where Ari walks to leave by it
 const OPP = { N: "S", S: "N", W: "E", E: "W" };
-const DOORS = { N: [136, 0, 184, 36], S: [132, 110, 188, 123], W: [0, 46, 16, 94], E: [303, 46, 319, 94] };
+const DOORS = { N: [136, 0, 184, 36], S: [126, 106, 194, 123], W: [0, 40, 26, 100], E: [293, 40, 319, 100] };   // at least 44 CSS px at 2×
 
 // things to tap: a box in art pixels and, for some, a name above
 const OBJ = {
-  chest: { room: "C", box: [146, 46, 173, 67],  at: [160, 35] },
+  chest: { room: "C", box: [146, 38, 173, 59],  at: [160, 27] },
   box:   { room: "I", box: [212, 82, 229, 99] },
   table: { room: "F", box: [140, 38, 199, 71],  at: [170, 27] },
   climb: { room: "H", box: [130, 0, 190, 44],   at: [160, 2] }
@@ -585,10 +510,10 @@ const OBJ = {
 /* the snake waits in the narrow passage and follows whoever flees into the dead end; the dire wolf keeps the lair */
 const FOE = {
   snake: { max: 6, img: "foe-snake", w: 28, h: 30, split: 15, loot: "fang", home: "B",
-           bits: ["#8c9c41", "#496232", "#d8cf8e"], at: { B: [200, 56], C: [204, 70] },
+           bits: ["#8c9c41", "#496232", "#d8cf8e"], at: { B: [172, 56], C: [204, 70] },
            moves: [{ k: "bite", dmg: 2 }, { k: "coil", dmg: 0 }] },
   wolf:  { max: 18, img: "foe-wolf", w: 50, h: 33, split: 14, loot: "pelt", home: "H",
-           bits: ["#77757d", "#4a4950", "#c9c7cc"], at: { H: [178, 50] },
+           bits: ["#77757d", "#4a4950", "#c9c7cc"], at: { H: [196, 50] },
            // 18 HP, not 14–16: with a strike of 3 the wolf would die on turn 5, before its lunge (GDE-03)
            moves: [{ k: "bite", dmg: 2 }, { k: "growl", dmg: 0 }, { k: "bite", dmg: 2 }, { k: "prep", dmg: 0, prep: true }, { k: "lunge", dmg: 5, lunge: true }] }
 };
@@ -738,7 +663,7 @@ function buildRoom(id) {
   if (id === "A") {   // where Ari wakes: a heap of straw, a bucket, crates
     straw(26, 72, 40, 14, ["#b8913a", "#9c7a2e", "#d9b45a", "#7d6228"]);
     for (let i = 0; i < 9; i++) px("#b8913a", 30 + (rnd() * 50 | 0), 88 + (rnd() * 8 | 0), 3, 1);
-    crate(20, 40, 22, 18); put(SPR.barrel, 290, 98); put(SPR.bucket, 70, 96); crate(250, 100, 22, 18);
+    crate(20, 40, 22, 18); put(SPR.barrel, 290, 98); put(SPR.bucket, 46, 98); crate(250, 100, 22, 18);
     x.fillStyle = "rgba(200,205,212,.32)";
     for (const [a, b, w, h] of [[300, 1, 10, 1], [309, 1, 1, 10], [301, 2, 1, 1], [302, 3, 1, 1], [303, 4, 1, 1], [304, 5, 1, 1], [305, 6, 1, 1], [304, 1, 1, 3], [305, 3, 3, 1]]) x.fillRect(a, b, w, h);
   }
@@ -970,12 +895,14 @@ function heroAt(now) {
 
 // 30 frames a second is plenty for the pixel art and kinder to a phone's battery
 let last = performance.now();
+let paused = false;
 function frame(now) {
   requestAnimationFrame(frame);
-  if (now - last < 32) return;
+  if (paused || now - last < 32) return;
   const dt = Math.min(66, now - last); last = now;
   const id = S.room, N = NODES[id];
   const [hxf, hff] = heroAt(now), hx = Math.round(hxf), hf = Math.round(hff);
+  CAM.x += (camAim(now) - CAM.x) * Math.min(1, dt / 160); aim();
   g.drawImage(roomBG(id), 0, 0);
   if (id === "G") drawHeavy(S.heavyAt ? Math.min(30, (now - S.heavyAt) / 22) : 0);
   if (id === "K") drawDrips(now);
@@ -1004,7 +931,7 @@ function frame(now) {
       drawBody(k, SPR[k], G.sx + ox, G.sy + oy, FOE[k].split, now, a);
     }]);
   }
-  if (id === "C") list.push([67, () => drawChest(146, 46, S.chest)]);
+  if (id === "C") list.push([59, () => drawChest(146, 38, S.chest)]);
   if (id === "I" && !S.boxTaken) list.push([99, () => { g.drawImage(SHADOWS.item, 213, 95); g.drawImage(ITEM.lockbox, 213, 82); }]);
   if (SPR.hero && !V.gone) list.push([hf, () => {
     g.drawImage(HERO_RING, hx - 15, hf - 4);
@@ -1016,7 +943,7 @@ function frame(now) {
   N.torches.forEach((t, i) => drawFlame(t, now, i));
   drawParticles(now, dt, N, hx, hf);
   V.fx = V.fx.filter(s => drawSlash(s, now));
-  if (id === "C" && !S.chest) twinkle(170, 49, now, 0);
+  if (id === "C" && !S.chest) twinkle(170, 41, now, 0);
   if (id === "I" && !S.boxTaken) twinkle(226, 84, now, .5);
 
   // frames: the target in a fight, whatever is under the cursor, the way up once the lair is clear
@@ -1031,32 +958,51 @@ function frame(now) {
       if (V.hover.startsWith("door:") && !here.length) brackets(DOORS[V.hover.slice(5)], "#a5e4c6", .9, 1);
     }
     if (id === "H" && S.foes.wolf.dead && !S.busy && V.hover !== "climb") brackets(OBJ.climb.box, "#a5e4c6", .5, gap);
+    if (!here.length && !S.busy) for (const d in N.doors) if (V.hover !== "door:" + d) brackets(DOORS[d], "#a5e4c6", .3, 1);
   }
 }
 
 /* ================= the room's DOM ================= */
-// overlays sit in art-pixel coordinates; on phones a room without side doors crops its side walls
-const scene = $("scene"), PLACED = [];
-const VIEW = { x0: 0, w: VW };
+// Overlays live in the world, in art-pixel coordinates (percent of the room), and slide with it.
+// The camera: a wide screen sees the whole room; a phone sees a window of it at 2× or 2.5×, about 40% of the screen,
+// following Ari, or Ari and every foe in a fight. Arrows at the edges stand in for a side door out of frame.
+const scene = $("scene"), world = $("world");
+const CAM = { s: 2, w: VW, x: 0 };
 let UI = {}, OUI = {};
-const toPct = (x, y) => [(x - VIEW.x0) / VIEW.w * 100 + "%", y / VH * 100 + "%"];
-function place(e, x, y, w, h) { PLACED.push([e, x, y, w, h]); return e; }
+const toPct = (x, y) => [x / VW * 100 + "%", y / VH * 100 + "%"];
+function place(e, x, y, w, h) {
+  [e.style.left, e.style.top] = toPct(x, y);
+  if (w) { e.style.width = w / VW * 100 + "%"; e.style.height = h / VH * 100 + "%"; }
+  return e;
+}
 function layout() {
-  const N = NODES[S.room], crop = matchMedia("(max-width:560px)").matches && !N.doors.W && !N.doors.E;
-  VIEW.x0 = crop ? 32 : 0; VIEW.w = crop ? 256 : VW;
-  scene.style.aspectRatio = `${VIEW.w} / ${VH}`;
-  scene.style.setProperty("--px", `calc(100cqw / ${VIEW.w})`);
-  cv.style.width = VW / VIEW.w * 100 + "%";
-  cv.style.left = -VIEW.x0 / VIEW.w * 100 + "%";
-  for (const [e, x, y, w, h] of PLACED) {
-    [e.style.left, e.style.top] = toPct(x, y);
-    if (w) { e.style.width = w / VIEW.w * 100 + "%"; e.style.height = h / VH * 100 + "%"; }
+  const W = scene.clientWidth;
+  if (W / VW >= 2) { CAM.s = W / VW; CAM.w = VW; }
+  else {
+    const dpr = Math.round((devicePixelRatio || 1) * 100) / 100, H = (TG && TG.viewportStableHeight) || innerHeight;
+    const fit = Math.min(Math.min(H * .5, 400) / VH, W / 140);   // about half the screen, at least 140 art px across so a fight fits
+    CAM.s = Math.max(1 / dpr, Math.floor(fit * dpr + 1e-6) / dpr); CAM.w = W / CAM.s;   // a whole number of device pixels per art pixel
   }
+  scene.style.height = Math.round(VH * CAM.s) + "px";
+  scene.style.setProperty("--px", CAM.s + "px");
+  world.style.width = VW * CAM.s + "px";
+  CAM.x = camAim(performance.now()); aim();
+}
+function camAim(now) {
+  if (CAM.w >= VW) return 0;
+  const [hx] = heroAt(now), xs = [hx - 14, hx + 14, ...foesHere().flatMap(k => [geom(k).cx - 26, geom(k).cx + 26])];   // room for the foe's chip
+  return clamp((Math.min(...xs) + Math.max(...xs)) / 2 - CAM.w / 2, 0, VW - CAM.w);
+}
+function aim() {
+  world.style.transform = `translateX(${-Math.round(CAM.x) * CAM.s}px)`;   // whole art pixels, so the sprites stay crisp
+  const N = NODES[S.room], free = !fight() && !S.busy && !S.over;
+  $("edgeW").hidden = !(N.doors.W && CAM.x > 6 && free);
+  $("edgeE").hidden = !(N.doors.E && CAM.x + CAM.w < VW - 6 && free);
 }
 function el(tag, cls, html) {
   const e = document.createElement(tag);
   e.className = cls + " rov"; if (html) e.innerHTML = html;
-  scene.insertBefore(e, $("hurtfx"));
+  world.appendChild(e);
   return e;
 }
 function hitbox(key, [x0, y0, x1, y1], label, onClick) {
@@ -1068,8 +1014,8 @@ function hitbox(key, [x0, y0, x1, y1], label, onClick) {
   return b;
 }
 function mountRoom() {
-  scene.querySelectorAll(".rov").forEach(e => e.remove());
-  PLACED.length = 0; UI = {}; OUI = {};
+  world.querySelectorAll(".rov").forEach(e => e.remove());
+  UI = {}; OUI = {};
   const id = S.room, N = NODES[id];
   for (const k in FOE) {
     const f = S.foes[k];
@@ -1096,7 +1042,7 @@ function float(x, y, html, cls) {
   const s = document.createElement("span");
   s.className = "float " + (cls || ""); s.innerHTML = html;
   [s.style.left, s.style.top] = toPct(x, y);
-  scene.insertBefore(s, $("hurtfx")); setTimeout(() => s.remove(), 1700);
+  world.appendChild(s); setTimeout(() => s.remove(), 1700);
 }
 function replay(e, cls) { e.classList.remove(cls); void e.offsetWidth; e.classList.add(cls); }
 // the narrator: one short italic line under the room; with a key, once per player (gamey.once)
@@ -1124,7 +1070,8 @@ function toast(text, key) {
   (function next() {
     const [t, k] = TOASTS[0];
     if (k) once(k);
-    const e = el("div", "toast"); e.textContent = t;
+    const e = document.createElement("div");
+    e.className = "toast"; e.textContent = t; scene.appendChild(e);
     setTimeout(() => { e.remove(); TOASTS.shift(); if (TOASTS.length) next(); }, 2000);
   })();
 }
@@ -1148,6 +1095,7 @@ function reset() {
 }
 async function wake() {
   closeModal();
+  try { if (TG && TG.isVersionAtLeast("6.2")) TG.enableClosingConfirmation(); } catch (e) {}
   S.t0 = Date.now();
   track("run_start", { floor: FLOOR });
   track("room_enter", { floor: FLOOR, room: S.room, t_from_run_start: 0 });
@@ -1345,7 +1293,6 @@ async function foesTurn() {
   S.turn++;
   S.vita = Math.min(S.vitaMax, S.vita + 1);
   S.busy = false;
-  replay($("turnBox"), "pop");
   render();
 }
 // on floor 1 a fall costs nothing: Ari gets up, the wolf waits behind its door again (GDE-03 §9)
@@ -1409,11 +1356,11 @@ function useObj(k) {
 }
 async function openChest() {
   S.chest = true; S.busy = true;
-  burst(160, 52, ["#f4d27c", "#dcaa48", "#fff2c0"], 14, .05);
+  burst(160, 44, ["#f4d27c", "#dcaa48", "#fff2c0"], 14, .05);
   log(STR.chestOpen);
   track("chest_open", { item: ["dagger", "stone"], source: S.room });
-  addItem("dagger", S.room, 160, 40, 150);
-  addItem("stone", S.room, 160, 40, 700);
+  addItem("dagger", S.room, 160, 32, 150);
+  addItem("stone", S.room, 160, 32, 700);
   render();
   await wait(1100);
   S.busy = false;
@@ -1462,6 +1409,7 @@ async function climb() {
   $("fade").classList.add("on");
   await wait(300);
   S.goals[2] = 1; S.over = true; S.busy = false;
+  try { if (TG && TG.isVersionAtLeast("6.2")) TG.disableClosingConfirmation(); } catch (e) {}
   const secs = runSecs(), prev = loadSave(), fresh = [...S.met].filter(k => !(prev && prev.creatures && prev.creatures[k]));
   writeSave(secs, prev);
   track("floor_clear", { floor: FLOOR, duration_s: secs, deaths: S.deaths });
@@ -1550,18 +1498,15 @@ function render() {
   const pv = idle && S.preview && usable(S.preview) ? S.preview : null;
   const M = pv && MOVE[pv]();
 
-  $("title").textContent = STR.room[S.room];
-  $("turn").textContent = pad2(S.turn);
-  $("turnBox").classList.toggle("hide", !war);
-  $("turnBox").classList.toggle("foe", war && S.busy && !S.over);
-  $("turnL").textContent = war && S.busy && !S.over ? STR.foes : STR.turn;
-  $("goalN").textContent = `${S.goals.reduce((a, b) => a + b, 0)} / 3`;
+  scene.setAttribute("aria-label", STR.room[S.room]);
+  $("goalN").textContent = `${S.goals.reduce((a, b) => a + b, 0)}/3`;
+  $("mmap").classList.toggle("off", war);
   [...$("goals").children].forEach((li, i) => li.classList.toggle("done", !!S.goals[i]));
 
   const lose = war && idle ? Math.min(incoming(pv), S.hp) : 0;
   $("hp").textContent = S.hp; $("hpMax").textContent = S.max;
   bar($("hpTrail"), $("hpBar"), $("hpGhost"), S.hp, S.max, lose);
-  $("inc").hidden = !lose; $("inc").textContent = "−" + lose;
+  $("inc").hidden = !lose; $("inc").innerHTML = ICON.bite + lose;   // what lands at the end of the turn, not what was taken
   const spend = M ? M.vita : 0;
   $("vita").textContent = S.vita; $("vitaMax").textContent = S.vitaMax;
   $("pips").innerHTML = Array.from({ length: S.vitaMax }, (_, i) => `<i class="${i < S.vita - spend ? "on" : i < S.vita ? "on spend" : ""}"></i>`).join("");
@@ -1588,25 +1533,24 @@ function render() {
   }
   for (const d in OUI.doors || {}) OUI.doors[d].disabled = S.over || war;
 
-  // the weapon in hand, then the four moves in a fight or the bag outside one
-  $("wl").className = "wl" + (S.hand ? "" : " none");
-  $("wl").innerHTML = S.hand ? `<img class="px" src="${ICON_URL[S.hand]}" alt="">${NAME(S.hand)}<em></em><span><i>${"★".repeat(DEF[S.hand].tier)}</i> · ${STR.level(1)}</span>`
-    : `<span class="hand"></span>${STR.handEmpty}`;
-  $("moves").hidden = !war; $("bagp").hidden = war; $("fleeRow").hidden = !war;
+  // in a fight the moves the weapon gives (and Flee alone when it gives none); outside one the bag, the weapon in hand first
   const list = movesOf(S.hand);
-  const html = [0, 1, 2, 3].map(i => {
-    const m = list[i];
-    if (!m) return `<button class="mv empty" disabled>${STR.empty}</button>`;
-    const D = MOVE[m](), cls = !idle ? (m === "strike" ? "primary wait" : "wait") : !usable(m) ? "off" : m === "strike" ? "primary" : "";
+  $("moves").hidden = !war || !list.length; $("bagp").hidden = war; $("fleeRow").hidden = !war || !FLEE[S.room];
+  $("moves").style.gridTemplateColumns = list.length === 1 ? "1fr" : "";
+  const html = list.map((m, i) => {
+    const D = MOVE[m](), hot = m === "reflex" && idle && usable(m) && counters(S.target);   // the leap is coming: the counter lights up
+    const cls = !idle ? (m === "strike" ? "primary wait" : "wait") : !usable(m) ? "off" : m === "strike" ? "primary" : hot ? "hot" : "";
     return `<button class="mv ${cls}" data-m="${m}"${/off|wait/.test(cls) ? ' aria-disabled="true"' : ""}><img class="px" src="${ICON_URL[D.icon]}" alt=""><span class="mt"><b>${D.name}</b><small>${D.sub}</small></span>${
       D.vita ? `<span class="cost"><i class="drop"></i>${D.vita}</span>` : ""}${S.newMoves.has(m) ? `<span class="newb">${STR.isNew}</span>` : ""}<kbd>${i + 1}</kbd></button>`;
   }).join("");
   if (html !== movesHTML) { $("moves").innerHTML = movesHTML = html; }
   $("flee").disabled = S.busy || S.over || !FLEE[S.room];
   $("flee").classList.toggle("hot", war && !list.length && idle);
-  $("bagN").textContent = S.bag.length ? S.bag.reduce((a, b) => a + b.n, 0) : "";
-  $("bag").innerHTML = S.bag.length ? S.bag.map(b => `<span class="cell${b.k === S.fresh ? " new" : ""}" title="${NAME(b.k)}">${itemImg(b.k)}${b.n > 1 ? `<b>${b.n}</b>` : ""}</span>`).join("")
-    : `<span class="none">${STR.empty}</span>`;
+  $("flee").classList.toggle("solo", war && !list.length);
+  const cells = [...(S.hand ? [`<span class="cell${S.hand === S.fresh ? " new" : ""}" title="${NAME(S.hand)}">${itemImg(S.hand)}<u>${STR.inHand}</u></span>`] : []),
+    ...S.bag.map(b => `<span class="cell${b.k === S.fresh ? " new" : ""}" title="${NAME(b.k)}">${itemImg(b.k)}${b.n > 1 ? `<b>${b.n}</b>` : ""}</span>`)];
+  $("bagN").textContent = "";
+  $("bag").innerHTML = cells.length ? cells.join("") : `<span class="none">${STR.empty}</span>`;
   S.fresh = null;
   renderMap();
 }
@@ -1626,7 +1570,11 @@ function showChronicle() {
   const rows = S.log.length
     ? S.log.slice().reverse().map(l => `<div class="logl"><em>${pad2(l.turn)}</em><span>${l.text}</span></div>`).join("")
     : `<div class="logl"><span>${STR.nothingYet}</span></div>`;
-  openModal(STR.log, rows);
+  openModal(STR.log, rows + `<button class="btn ghost" id="restart">${STR.reset}</button>`);
+  $("restart").onclick = e => {
+    if (e.currentTarget.classList.contains("sure")) return reset();
+    e.currentTarget.classList.add("sure"); e.currentTarget.textContent = STR.sure;
+  };
 }
 
 /* ================= input ================= */
@@ -1636,7 +1584,9 @@ $("moves").addEventListener("pointerover", e => { const b = e.target.closest("[d
 $("moves").addEventListener("pointerdown", e => { const b = e.target.closest("[data-m]"); if (b && S.preview !== b.dataset.m) { S.preview = b.dataset.m; render(); } });
 for (const t of ["pointerleave", "pointercancel"]) $("moves").addEventListener(t, () => { if (S.preview) { S.preview = null; render(); } });
 $("flee").onclick = flee;
-$("reset").onclick = reset;
+$("bag").onclick = e => { const c = e.target.closest(".cell[title]"); if (c) toast(c.title); };
+$("edgeW").onclick = () => go("W");
+$("edgeE").onclick = () => go("E");
 $("chron").onclick = showChronicle;
 $("mClose").onclick = () => ({ wake, fall: getUp, end: () => {} }[modalKind] || closeModal)();
 $("modal").onclick = e => { if (e.target === $("modal") && (!modalKind || modalKind === "table")) closeModal(); };
@@ -1653,9 +1603,26 @@ document.addEventListener("keydown", e => {
   if (d) { e.preventDefault(); go(d); }
 });
 
-// in Telegram: the header matches the page, and Back leaves the run for the app
-try { const tg = window.Telegram && window.Telegram.WebApp; if (tg && tg.initData) { tg.setHeaderColor("#111316"); tg.setBackgroundColor("#111316"); } } catch (e) {}
-if (window.GY) window.GY.back(() => { location.href = "index.html"; });   // in Telegram, Back leaves the run for the app
+// in Telegram: the bars match the page, the phone stays upright, a minimised app stops drawing.
+// Back closes an open sheet first; leaving a run midway asks, and so does closing the app (nothing saves before the stairs).
+try {
+  if (TG) {
+    TG.setHeaderColor("#111316"); TG.setBackgroundColor("#111316");
+    if (TG.isVersionAtLeast("7.10")) TG.setBottomBarColor("#111316");
+    if (TG.isVersionAtLeast("8.0")) { TG.lockOrientation(); TG.onEvent("deactivated", () => paused = true); TG.onEvent("activated", () => paused = false); }
+  }
+} catch (e) {}
+const leaveRun = () => { location.href = "index.html"; };   // in Telegram, Back leaves the run for the app
+function ask(text, yes) {
+  if (TG && TG.isVersionAtLeast("6.2")) TG.showConfirm(text, ok => ok && yes());
+  else if (confirm(text)) yes();
+}
+if (window.GY) window.GY.back(() => {
+  if (!$("modal").hidden && modalKind === "fall") return getUp();
+  if (!$("modal").hidden && (!modalKind || modalKind === "table")) return closeModal();
+  if (S.over || modalKind === "wake") return leaveRun();
+  ask(STR.leave, leaveRun);
+});
 
 reset();
 requestAnimationFrame(frame);
